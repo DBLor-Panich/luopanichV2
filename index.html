@@ -75,7 +75,7 @@
   background: #fff;
   border-radius: 22px 22px 0 0;
 
-  padding: 20px 20px env(safe-area-inset-bottom);
+  padding: 20px 20px 24px; /* เว้นล่างให้หายอึดอัด */
 
   /* ✅ CORE FIX */
   max-height: calc(100dvh - 40px);   /* ใช้ dvh แทน vh */
@@ -258,14 +258,31 @@ button:disabled {
 }
 
   .cart-item{
-    display:flex;justify-content:space-between;
-    align-items:center;margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px dashed rgba(0,0,0,.08);
   }
   .total{
-    font-size:18px;font-weight:700;
-    text-align:right;margin-top:12px;
+  font-size:18px;
+  font-weight:700;
+  text-align:right;
+  margin-top:16px;
+  padding-top:12px;
+  border-top:1px solid rgba(0,0,0,.08);
   }
 
+#cartSheet .btn-primary{
+  margin-top:16px;
+  margin-bottom:12px;
+}
+
+#cartSheet{
+  padding-bottom: calc(env(safe-area-inset-bottom) + 28px);
+}
+  
   /* ===== Order Preview (Hidden) ===== */
   #orderPreview {
     width: 360px;
