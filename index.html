@@ -460,28 +460,42 @@ button:disabled {
   min-height: 60dvh;   /* 🔴 ปรับได้: 65–80 */
 }  
 
-/* ===== Status Badge ===== */
+/* ===== Status Badge (Viewer) ===== */
 .status {
-  padding: 2px 8px;
-  border-radius: 999px; 
+  padding: 3px 10px;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
+/* พร้อมส่ง */
 .status.ready {
   background: #e6f9f0;
   color: #1e9c6a;
 }
 
+/* อยู่ระหว่างจัดส่ง */
+.status.shipping {
+  background: #fff4e5;
+  color: #e37400;
+}
+
+/* อยู่โกดังไทย */
+.status.warehouse {
+  background: #eef3ff;
+  color: #3b6cff;
+}
+
+/* หมด */
 .status.out {
   background: #fdecec;
   color: #d93025;
 }
 
-.status.warehouse {
-  background: #eef3ff;
-  color: #3b6cff;
-}
 
 .admin-action {
   display: flex;
@@ -1393,9 +1407,18 @@ function renderProducts(){
 
     found = true;
 
-    /* ================= STATUS LOGIC ================= */
-    let statusClass = "ready";
-    let statusText  = "พร้อมส่ง · โกดังไทย";
+/* ================= STATUS LOGIC ================= */
+const statusMap = {
+  ready:     "พร้อมส่ง",
+  shipping:  "อยู่ระหว่างจัดส่ง",
+  warehouse: "อยู่โกดังไทย",
+  out:       "หมด"
+};
+
+const statusKey   = p.status || (Number(p.stock) === 0 ? "out" : "ready");
+const statusClass = statusKey;
+const statusText  = statusMap[statusKey] || "พร้อมส่ง";
+
 
     if (Number(p.stock) <= 0) {
       statusClass = "out";
