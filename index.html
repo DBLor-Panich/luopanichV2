@@ -1244,17 +1244,33 @@ function renderProducts(){
   }
 }
 
-
-
 function renderProductSheet(){
   const p = state.selectedProduct;
 
   productSheet.innerHTML = `
-    <!-- ❌ CLOSE BUTTON -->
+    <!-- ❌ CLOSE BUTTON (TOP-RIGHT) -->
     <button
       class="sheet-close"
       onclick="closeOverlay(productSheet)"
       aria-label="Close"
+      style="
+        position: absolute;
+        top: calc(env(safe-area-inset-top) + 12px);
+        right: 12px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        font-size: 22px;
+        font-weight: 500;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      "
     >
       ×
     </button>
@@ -1266,18 +1282,18 @@ function renderProductSheet(){
     </div>
 
     <!-- ✅ FIX IMAGE -->
-<img 
-  src="${p.image || ''}"
-  alt="${p.name}"
-  style="
-    width:100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius:14px;
-    margin:12px 0;
-    background:#f0f0f0;
-  "
->
+    <img 
+      src="${p.image || ''}"
+      alt="${p.name}"
+      style="
+        width:100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius:14px;
+        margin:12px 0;
+        background:#f0f0f0;
+      "
+    >
 
     <div class="price">฿${p.price}</div>
     <div class="stock">คงเหลือ ${p.stock} ชิ้น</div>
@@ -1307,7 +1323,7 @@ function renderProductSheet(){
     }
   `;
 }
-
+  
 function renderCart(){
   cartSheet.innerHTML="<h3>ตะกร้า</h3>";
 
