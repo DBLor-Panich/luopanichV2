@@ -1246,14 +1246,25 @@ function renderProductSheet(){
   const p = state.selectedProduct;
 
   productSheet.innerHTML = `
-    <h3>${p.name}</h3>
-    <div style="color:#888;font-size:13px">
+    <!-- ❌ CLOSE BUTTON -->
+    <button
+      class="sheet-close"
+      onclick="closeOverlay(productSheet)"
+      aria-label="Close"
+    >
+      ×
+    </button>
+
+    <h3 style="margin-top:4px">${p.name}</h3>
+
+    <div style="color:#888;font-size:13px;margin-bottom:8px">
       รหัสสินค้า: ${p.productId}
     </div>
 
     <!-- ✅ FIX IMAGE -->
     <img 
       src="${p.image || ''}"
+      alt="${p.name}"
       style="
         width:100%;
         max-height:280px;
@@ -1270,11 +1281,19 @@ function renderProductSheet(){
     ${
       state.mode === "viewer"
         ? `
-          <button class="btn btn-primary"
-            style="width:100%;margin-top:16px"
-            onclick="openQtySheet()">
-            เพิ่มลงตะกร้า
-          </button>
+          <!-- 🔹 ACTION ZONE -->
+          <div style="
+            margin-top:20px;
+            padding-bottom:calc(env(safe-area-inset-bottom) + 12px);
+          ">
+            <button
+              class="btn btn-primary"
+              style="width:100%"
+              onclick="openQtySheet()"
+            >
+              เพิ่มลงตะกร้า
+            </button>
+          </div>
         `
         : `
           <div style="margin-top:16px;color:#888;font-size:14px">
@@ -1284,8 +1303,6 @@ function renderProductSheet(){
     }
   `;
 }
-
-
 
 function renderCart(){
   cartSheet.innerHTML="<h3>ตะกร้า</h3>";
