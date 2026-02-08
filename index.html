@@ -3103,13 +3103,24 @@ function openProductEdit(p){
       <input id="editStock" type="number" value="${p.stock}">
     </div>
 
-    <div class="form-group">
-      <label>สถานะ</label>
-      <select id="editActive">
-        <option value="true" ${p.active ? "selected" : ""}>เปิดขาย</option>
-        <option value="false" ${!p.active ? "selected" : ""}>ปิดขาย</option>
-      </select>
-    </div>
+<div class="form-group">
+  <label>สถานะสินค้า</label>
+  <select id="editStatus">
+    <option value="ready" ${p.status === "ready" ? "selected" : ""}>
+      พร้อมส่ง
+    </option>
+    <option value="shipping" ${p.status === "shipping" ? "selected" : ""}>
+      อยู่ระหว่างจัดส่ง
+    </option>
+    <option value="warehouse" ${p.status === "warehouse" ? "selected" : ""}>
+      อยู่โกดังไทย
+    </option>
+    <option value="out" ${p.status === "out" ? "selected" : ""}>
+      หมด
+    </option>
+  </select>
+</div>
+
 
     <div class="form-group">
       <label>รูปสินค้า</label>
@@ -3215,7 +3226,7 @@ async function submitProductEdit(){
   const name   = document.getElementById("editName").value.trim();
   const price  = Number(document.getElementById("editPrice").value);
   const stock  = Number(document.getElementById("editStock").value);
-  const active = document.getElementById("editActive").value === "true";
+  const status = document.getElementById("editStatus").value;
 
   // 🔒 Validate
   if(!name || price < 0 || stock < 0){
@@ -3244,7 +3255,7 @@ async function submitProductEdit(){
     form.append("name", name);
     form.append("price", price);
     form.append("stock", stock);
-    form.append("active", active);
+    form.append("status", status);
     form.append("image", imageUrl);
     
     const res = await fetch(API_URL, {
