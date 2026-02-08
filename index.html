@@ -2844,7 +2844,6 @@ function openAdminMenu(){
   openOverlay(adminMenuSheet);
 }
 
-
 function openAddProduct(){
   state.addImageFile = null;
 
@@ -2875,18 +2874,21 @@ function openAddProduct(){
       <input id="addStock" type="number" placeholder="0">
     </div>
 
+    <!-- 🔴 สถานะสินค้า (เพื่อแจ้งลูกค้า) -->
     <div class="form-group">
-      <label>สถานะ</label>
-      <select id="addActive">
-        <option value="true">เปิดขาย</option>
-        <option value="false">ปิดขาย</option>
+      <label>สถานะสินค้า</label>
+      <select id="addStatus">
+        <option value="ready">พร้อมส่ง</option>
+        <option value="shipping">อยู่ระหว่างจัดส่ง</option>
+        <option value="warehouse">อยู่โกดังไทย</option>
+        <option value="out">หมด</option>
       </select>
     </div>
 
     <div class="form-group">
       <label>รูปสินค้า</label>
       <img id="addImagePreview"
-        style="width:100%;border-radius:12px;display:none;margin-bottom:6px">
+        style="width:120px;border-radius:12px;display:none;margin-bottom:6px">
       <input type="file"
         accept="image/*"
         onchange="handleAddImagePreview(this)">
@@ -2907,7 +2909,6 @@ function openAddProduct(){
 
   openOverlay(adminAddProductSheet);
 }
-
 
 
 function handleAddImagePreview(input){
@@ -3290,7 +3291,8 @@ async function submitAddProduct(btn){
     const name      = document.getElementById("addName").value.trim();
     const price     = Number(document.getElementById("addPrice").value);
     const stock     = Number(document.getElementById("addStock").value);
-    const active    = document.getElementById("addActive").value === "true";
+ const status    = document.getElementById("addStatus").value;
+ const active    = true; // 🔒 เพิ่มสินค้าใหม่ = ยังขายอยู่เสมอ
 
     /* ================= VALIDATE ================= */
 
@@ -3337,7 +3339,8 @@ async function submitAddProduct(btn){
     form.append("name", name);
     form.append("price", price);
     form.append("stock", stock);
-    form.append("active", active);
+  form.append("active", active);
+  form.append("status", status);
     form.append("image", imageUrl);
 
     const res = await fetch(API_URL, {
