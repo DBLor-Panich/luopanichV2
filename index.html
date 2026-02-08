@@ -1741,6 +1741,19 @@ function toggleViewerSearch(){
   }
 }
 
+/* 🔍 admin search toggle (ICON EXPAND) */
+function toggleAdminSearch(){
+  const wrap = document.getElementById("adminSearchWrap");
+  if (!wrap) return;
+
+  wrap.classList.toggle("active");
+
+  const input = wrap.querySelector("input");
+  if (wrap.classList.contains("active")) {
+    setTimeout(() => input && input.focus(), 60);
+  }
+}
+  
 function handleSearch(keyword){
   state.search = keyword.toLowerCase();
   renderProducts();
