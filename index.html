@@ -1484,8 +1484,8 @@ function renderCart(){
   const total=state.cart.reduce((s,i)=>s+i.price*i.qty,0);
   cartSheet.innerHTML+=`
       <div class="total">Total: ฿${total}</div>
-    <button class="btn btn-primary" style="width:100%;margin-top:12px"
-      onclick="openConfirm()">สร้างใบสั่งซื้อ</button>`;
+      <button class="btn btn-primary"
+       onclick="openConfirm()">สร้างใบสั่งซื้อ</button>
 }
 
 function renderBadge(){
