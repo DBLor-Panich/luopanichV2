@@ -676,7 +676,13 @@ textarea {
    -webkit-appearance: none;
    margin: 0;
  }
-  
+
+ /* ================= QTY ACTION (BOTTOM SAFE) ================= */
+.qty-action {
+  margin-top: 16px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+}
+ 
 </style>
 </head>
 <body>
@@ -1728,21 +1734,20 @@ function openQtySheet(){
       </div>
     </div>
 
-    <button
-      class="btn btn-primary"
-      style="width:100%;margin-top:12px"
-      onclick="confirmAddToCart()">
-      ยืนยันจำนวน
-    </button>
+    <div class="qty-action">
+      <button
+        class="btn btn-primary"
+        onclick="confirmAddToCart()">
+        ยืนยันจำนวน
+      </button>
+    </div>
   `;
 
   // ✅ เปิดผ่าน Overlay Manager เท่านั้น
   openOverlay(qtySheet);
 
-  // ✅ Feedback เชิง info
   showToast("เลือกระบุจำนวนสินค้า", "info", 1500);
 
-  // 🎯 focus input อย่างปลอดภัย
   setTimeout(() => {
     const input = qtySheet.querySelector("input");
     if (input) {
@@ -1751,6 +1756,7 @@ function openQtySheet(){
     }
   }, 100);
 }
+
   
 function confirmAddToCart(){
   const p = state.selectedProduct;
