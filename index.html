@@ -355,6 +355,10 @@ button:disabled {
   color: #555;
 }
 
+.sheet-product {
+  min-height: 70dvh;   /* 🔴 ปรับได้: 65–80 */
+}  
+
 /* ===== Status Badge ===== */
 .status {
   padding: 2px 8px;
@@ -643,7 +647,7 @@ textarea {
 <div id="globalBackdrop" class="backdrop" onclick="handleBackdropClick()"></div>
 
 <!-- ================= VIEWER SHEETS ================= -->
-<div id="productSheet" class="sheet"></div>
+<div id="productSheet" class="sheet sheet-product"></div>
 <div id="qtySheet" class="sheet"></div>
 <div id="cartSheet" class="sheet"></div>
 <div id="confirmSheet" class="sheet"></div>
