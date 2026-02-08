@@ -796,6 +796,36 @@ const state = {
   }
 };
 
+/* ================= CART STORAGE (VIEWER ONLY) ================= */
+
+const CART_KEY = "luopanich_cart";
+
+function saveCart() {
+  try {
+    localStorage.setItem(CART_KEY, JSON.stringify(state.cart));
+  } catch (e) {
+    console.warn("saveCart failed", e);
+  }
+}
+
+function loadCart() {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    if (!raw) return;
+
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      state.cart = parsed;
+    }
+  } catch (e) {
+    console.warn("loadCart failed", e);
+  }
+}
+
+function clearCartStorage() {
+  localStorage.removeItem(CART_KEY);
+}  
+  
   /* ===== Feedback & Loading Utilities ===== */
 
 function showToast(message, type = 'info', timeout = 2500) {
@@ -1897,6 +1927,7 @@ function confirmAddToCart(){
   }
 
   renderBadge();
+  saveCart();
 
   // ✅ Feedback สำเร็จ (หัวใจของ STEP 2️⃣)
   showToast(
@@ -2854,6 +2885,7 @@ async function submitOrder(){
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
 
     state.cart = [];
+    clearCartStorage();
     renderBadge();
 
     setTimeout(() => {
@@ -2894,7 +2926,11 @@ function closeCart(){
 }
 
 function removeItem(idx){
-  state.cart.splice(idx,1);
+  state.cart.splice(idx, 1);
+
+  // ✅ PERSIST: บันทึก cart ทุกครั้งที่มีการเปลี่ยน
+  saveCart();
+
   renderBadge();
 
   // 🔔 Feedback: แจ้งผู้ใช้ทันทีว่าลบแล้ว
@@ -2906,6 +2942,7 @@ function removeItem(idx){
     renderCart();
   }
 }
+
 
 function openProductEdit(p){
   state.selectedProduct = p;
@@ -3624,9 +3661,13 @@ async function restoreAdminSessionIfValid() {
       state.mode = "viewer";
     }
 
+    // ✅ RESTORE VIEWER STATE ก่อน render ทุกอย่าง
+    loadCart();
+
     // ✅ ค่อยโหลด data หลังรู้ mode แล้ว
     await refreshProducts();
 
+    // ✅ RENDER
     renderHeader();
     renderProducts();
     renderBadge?.();
@@ -3638,6 +3679,7 @@ async function restoreAdminSessionIfValid() {
     safeHideLoading();
   }
 })();
+
   
 </script>
   
