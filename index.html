@@ -1678,39 +1678,48 @@ function renderHeader(){
     `;
   }
 
-  if(state.mode === "admin"){
-    h.innerHTML = `
+ if(state.mode === "admin"){
+  h.innerHTML = `
+    <div class="header-left">
       <div style="flex:1">
         <div style="font-weight:600">Admin Panel</div>
         <div style="font-size:12px;color:#ff3b30">
           🛠 ADMIN MODE
         </div>
-
-        <!-- 🔍 SEARCH -->
-        <input
-          class="header-search"
-          placeholder="ค้นหาสินค้า / รหัส"
-          oninput="handleSearch(this.value)"
-          onfocus="focusInput(this)"
-        >
       </div>
 
-      <button
-        onclick="openAdminMenu()"
-        style="
-          width:40px;
-          height:40px;
-          border:none;
-          background:none;
-          font-size:26px;
-          cursor:pointer;
-          margin-left:12px;
-        ">
-        ☰
-      </button>
-    `;
-  }
+      <!-- 🔍 SEARCH (ICON EXPAND LIKE VIEWER) -->
+      <div class="search-wrap" id="adminSearchWrap">
+        <button
+          class="search-btn"
+          onclick="toggleAdminSearch()"
+          aria-label="Search">
+          🔍
+        </button>
+        <input
+          class="search-input"
+          placeholder="ค้นหาสินค้า / รหัส"
+          oninput="handleSearch(this.value)"
+        />
+      </div>
+    </div>
+
+    <button
+      onclick="openAdminMenu()"
+      style="
+        width:40px;
+        height:40px;
+        border:none;
+        background:none;
+        font-size:26px;
+        cursor:pointer;
+        margin-left:12px;
+      ">
+      ☰
+    </button>
+  `;
 }
+
 
 /* 🔍 viewer search toggle (เฉพาะ UI) */
 function toggleViewerSearch(){
