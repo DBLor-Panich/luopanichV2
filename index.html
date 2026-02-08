@@ -3291,7 +3291,7 @@ async function submitAddProduct(btn){
     const name      = document.getElementById("addName").value.trim();
     const price     = Number(document.getElementById("addPrice").value);
     const stock     = Number(document.getElementById("addStock").value);
- const status    = document.getElementById("addStatus").value;
+ let status      = document.getElementById("addStatus").value;
  const active    = true; // 🔒 เพิ่มสินค้าใหม่ = ยังขายอยู่เสมอ
 
     /* ================= VALIDATE ================= */
@@ -3318,6 +3318,11 @@ async function submitAddProduct(btn){
     if (dup) {
       document.getElementById("addProductId").focus();
       throw new Error("รหัสสินค้า (SKU) นี้มีอยู่แล้ว");
+    }
+
+    /* ================= AUTO STATUS ================= */
+    if (stock === 0) {
+      status = "out";
     }
 
     /* ================= IMAGE UPLOAD ================= */
