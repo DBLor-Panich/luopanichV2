@@ -336,49 +336,72 @@ button:disabled {
     text-align:right;
   }
 
- /* ================= HEADER SEARCH (ICON EXPAND) ================= */
- .header-left {
-   display: flex;
-   align-items: center;
-   gap: 8px;
-   flex: 1;
- }
+/* ================= HEADER SEARCH (iOS-LIKE) ================= */
 
- .search-wrap {
-   display: flex;
-   align-items: center;
-   position: relative;
-   max-width: calc(100% - 44px); /* 🔴 กันชนปุ่ม ☰ */
- }
+.search-wrap {
+  display: flex;
+  align-items: center;
+  position: relative;
+  max-width: calc(100% - 44px);
+}
 
- .search-btn {
-   width: 40px;
-   height: 40px;
-   border-radius: 50%;
-   border: none;
-   background: rgba(255,255,255,.6);
-   backdrop-filter: blur(10px);
-   font-size: 18px;
- }
+.search-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.6);
+  backdrop-filter: blur(10px);
+  font-size: 18px;
+  cursor: pointer;
 
- .search-input {
-   width: 0;
-   opacity: 0;
-   margin-left: 8px;
-   padding: 8px 12px;
-   height: 40px;
-   font-size: 16px;
-   border-radius: 12px;
-   border: 1px solid #ddd;
-   background: rgba(255,255,255,.85);
-   backdrop-filter: blur(12px);
-   transition: width .25s ease, opacity .2s ease;
- }
+  transition:
+    transform .18s cubic-bezier(.25,.46,.45,.94),
+    background .2s ease;
+}
 
- .search-wrap.active .search-input {
-   width: 100%;
-   opacity: 1;
- }
+.search-btn:active {
+  transform: scale(.92);
+}
+
+.search-input {
+  width: 0;
+  opacity: 0;
+  margin-left: 8px;
+  height: 40px;
+  padding: 8px 12px;
+
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(14px);
+
+  transform: translateX(-6px) scale(.96);
+  pointer-events: none;
+
+  transition:
+    width .35s cubic-bezier(.22,.61,.36,1),
+    opacity .18s ease,
+    transform .35s cubic-bezier(.22,.61,.36,1);
+}
+
+/* 🔥 ACTIVE STATE */
+.search-wrap.active .search-input {
+  width: 100%;
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+/* 🔹 subtle focus glow (iOS feel) */
+.search-input:focus {
+  border-color: #007aff;
+  box-shadow:
+    0 0 0 3px rgba(0,122,255,.18);
+  outline: none;
+}
 
 
   /* ================= PRODUCT CARD (HORIZONTAL) ================= */
@@ -1742,17 +1765,23 @@ function toggleViewerSearch(){
 }
 
 /* 🔍 admin search toggle (ICON EXPAND) */
+
 function toggleAdminSearch(){
   const wrap = document.getElementById("adminSearchWrap");
   if (!wrap) return;
 
+  const opening = !wrap.classList.contains("active");
+
   wrap.classList.toggle("active");
 
-  const input = wrap.querySelector("input");
-  if (wrap.classList.contains("active")) {
-    setTimeout(() => input && input.focus(), 60);
+  if (opening) {
+    const input = wrap.querySelector("input");
+    // 🕒 รอ animation เริ่มก่อน focus (iOS trick)
+    setTimeout(() => input && input.focus(), 120);
   }
 }
+
+
   
 function handleSearch(keyword){
   state.search = keyword.toLowerCase();
