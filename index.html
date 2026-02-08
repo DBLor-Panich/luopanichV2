@@ -783,7 +783,34 @@ textarea {
   margin-top: 16px;
   padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
 }
- 
+
+/* 🔒 จำกัดเฉพาะหน้าแก้ไขสินค้า (Admin) */
+#adminProductEditSheet img {
+  width: 100%;
+  max-width: 120px;        /* 🔴 ลดลงอย่างมาก */
+  height: auto;
+  aspect-ratio: 1 / 1;
+
+  object-fit: cover;
+  border-radius: 12px;
+
+  margin: 8px auto 12px;   /* กินพื้นที่น้อย */
+  display: block;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}
+
+/* ลดช่องว่างรอบ ๆ รูป */
+#adminProductEditSheet {
+  padding-top: 12px;
+}
+
+/* ให้ form ชิดขึ้น */
+#adminProductEditSheet .form-group {
+  margin-bottom: 10px;
+}
+
+  
 </style>
 </head>
 <body>
