@@ -1706,9 +1706,6 @@ function closeQty(){
 function openQtySheet(){
   // 🔒 GUARD: ห้ามเลือกจำนวนถ้า stock = 0
   if (!state.selectedProduct || Number(state.selectedProduct.stock) <= 0) {
-    // ❌ เดิม: alert("สินค้านี้หมดสต๊อก");
-
-    // ✅ ใหม่: toast error
     showToast("สินค้านี้หมดสต๊อก", "error");
     return;
   }
@@ -1719,13 +1716,20 @@ function openQtySheet(){
   qtySheet.innerHTML = `
     <h3>ระบุจำนวน</h3>
 
-    <input type="number"
-      min="1"
-      max="${state.selectedProduct.stock}"
-      value="1"
-      oninput="state.qty = Number(this.value) || 1">
+    <div class="form-group">
+      <label>จำนวนที่ต้องการ</label>
+      <div class="qty-input">
+        <input
+          type="number"
+          min="1"
+          max="${state.selectedProduct.stock}"
+          value="1"
+          oninput="state.qty = Number(this.value) || 1">
+      </div>
+    </div>
 
-    <button class="btn btn-primary"
+    <button
+      class="btn btn-primary"
       style="width:100%;margin-top:12px"
       onclick="confirmAddToCart()">
       ยืนยันจำนวน
@@ -1735,7 +1739,7 @@ function openQtySheet(){
   // ✅ เปิดผ่าน Overlay Manager เท่านั้น
   openOverlay(qtySheet);
 
-  // ✅ Feedback เชิง info (optional แต่ดีมาก)
+  // ✅ Feedback เชิง info
   showToast("เลือกระบุจำนวนสินค้า", "info", 1500);
 
   // 🎯 focus input อย่างปลอดภัย
