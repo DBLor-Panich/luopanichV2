@@ -1266,18 +1266,18 @@ function renderProductSheet(){
     </div>
 
     <!-- ✅ FIX IMAGE -->
-    <img 
-      src="${p.image || ''}"
-      alt="${p.name}"
-      style="
-        width:100%;
-        max-height:280px;
-        object-fit:cover;
-        border-radius:14px;
-        margin:12px 0;
-        background:#f0f0f0;
-      "
-    >
+<img 
+  src="${p.image || ''}"
+  alt="${p.name}"
+  style="
+    width:100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius:14px;
+    margin:12px 0;
+    background:#f0f0f0;
+  "
+>
 
     <div class="price">฿${p.price}</div>
     <div class="stock">คงเหลือ ${p.stock} ชิ้น</div>
