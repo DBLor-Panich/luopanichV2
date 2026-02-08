@@ -626,7 +626,7 @@ textarea {
 
 #toast-container {
   position: fixed;
-  top: env(safe-area-inset-top, 12px);
+  top: calc(env(safe-area-inset-top, 0px) + 24px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 3000;
