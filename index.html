@@ -2450,20 +2450,32 @@ function openStockAction(p){
 
     <div class="form-group">
       <label>จำนวน</label>
-      <input id="stockQty" type="number" placeholder="เช่น 10">
+      <div class="qty-input">
+        <input
+          id="stockQty"
+          type="number"
+          min="0"
+          placeholder="เช่น 10"
+        >
+      </div>
     </div>
 
     <div class="form-group">
       <label>หมายเหตุ</label>
-      <input id="stockReason" placeholder="ถ้ามี">
+      <input
+        id="stockReason"
+        placeholder="ถ้ามี"
+      >
     </div>
 
-    <button class="btn btn-secondary"
+    <button
+      class="btn btn-secondary"
       onclick="submitStockIn()">
       ➕ รับเข้า (IN)
     </button>
 
-    <button class="btn btn-primary"
+    <button
+      class="btn btn-primary"
       style="margin-top:8px"
       onclick="submitStockAdjust()">
       ✏️ ปรับยอด
