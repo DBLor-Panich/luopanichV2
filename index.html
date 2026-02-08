@@ -2836,7 +2836,6 @@ async function submitOrder(){
 
   state.isSubmitting = true;
   state.ui.backdropLocked = true;
-  renderConfirmSheet();
 
   let timeoutHit = false;
 
@@ -2884,10 +2883,12 @@ async function submitOrder(){
     exportOrderPNG();
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
 
+    // ✅ CLEAR CART (MEMORY + STORAGE)
     state.cart = [];
     clearCartStorage();
     renderBadge();
 
+    // ✅ UI RESET (delayed for UX)
     setTimeout(() => {
       hardResetUI();
     }, 300);
