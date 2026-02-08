@@ -2448,17 +2448,12 @@ function openStockAction(p){
     <div>${p.name}</div>
     <div>คงเหลือ: ${p.stock}</div>
 
-    <div class="form-group">
-      <label>จำนวน</label>
-      <div class="qty-input">
-        <input
-          id="stockQty"
-          type="number"
-          min="0"
-          placeholder="เช่น 10"
-        >
-      </div>
-    </div>
+ <div class="form-group">
+   <label>ระบุจำนวน</label>
+   <div class="qty-input">
+     <input id="qtyInput" type="number" min="1" value="1">
+   </div>
+ </div>
 
     <div class="form-group">
       <label>หมายเหตุ</label>
