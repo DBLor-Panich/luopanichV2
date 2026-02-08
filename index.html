@@ -289,18 +289,49 @@ button:disabled {
     text-align:right;
   }
 
-  /* ================= HEADER SEARCH ================= */
-.header-search {
-  width: 100%;
-  height: 40px;
-  padding: 8px 12px;
-  margin-top: 6px;
+ /* ================= HEADER SEARCH (ICON EXPAND) ================= */
+ .header-left {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   flex: 1;
+ }
 
-  font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  box-sizing: border-box;
-}
+ .search-wrap {
+   display: flex;
+   align-items: center;
+   position: relative;
+   max-width: calc(100% - 44px); /* 🔴 กันชนปุ่ม ☰ */
+ }
+
+ .search-btn {
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   border: none;
+   background: rgba(255,255,255,.6);
+   backdrop-filter: blur(10px);
+   font-size: 18px;
+ }
+
+ .search-input {
+   width: 0;
+   opacity: 0;
+   margin-left: 8px;
+   padding: 8px 12px;
+   height: 40px;
+   font-size: 16px;
+   border-radius: 12px;
+   border: 1px solid #ddd;
+   background: rgba(255,255,255,.85);
+   backdrop-filter: blur(12px);
+   transition: width .25s ease, opacity .2s ease;
+ }
+
+ .search-wrap.active .search-input {
+   width: 100%;
+   opacity: 1;
+ }
 
 
   /* ================= PRODUCT CARD (HORIZONTAL) ================= */
@@ -1460,6 +1491,7 @@ function renderConfirmSheet(){
 }
 
 /* ================= HEADER RENDER (UPGRADED) ================= */
+
 function renderHeader(){
   const h = document.getElementById("appHeader");
   if(!h) return;
@@ -1469,13 +1501,50 @@ function renderHeader(){
       <div style="flex:1">
         <div style="font-weight:600">รายการสินค้า</div>
 
-        <!-- 🔍 SEARCH -->
-        <input
-  class="header-search"
-  placeholder="ค้นหาสินค้า / รหัส"
-  oninput="handleSearch(this.value)"
-  onfocus="focusInput(this)"
->
+        <!-- 🔍 SEARCH ICON + EXPAND -->
+        <div
+          id="viewerSearchWrap"
+          style="
+            display:flex;
+            align-items:center;
+            margin-top:6px;
+            max-width:calc(100% - 44px); /* 🔴 กันชนปุ่ม ☰ */
+          "
+        >
+          <button
+            onclick="toggleViewerSearch()"
+            style="
+              width:40px;
+              height:40px;
+              border:none;
+              border-radius:50%;
+              background:rgba(255,255,255,.6);
+              backdrop-filter:blur(10px);
+              font-size:18px;
+              cursor:pointer;
+            "
+          >🔍</button>
+
+          <input
+            id="viewerSearchInput"
+            placeholder="ค้นหาสินค้า / รหัส"
+            oninput="handleSearch(this.value)"
+            onfocus="focusInput(this)"
+            style="
+              width:0;
+              opacity:0;
+              margin-left:8px;
+              height:40px;
+              padding:8px 12px;
+              font-size:16px;
+              border-radius:12px;
+              border:1px solid #ddd;
+              background:rgba(255,255,255,.85);
+              backdrop-filter:blur(12px);
+              transition:width .25s ease, opacity .2s ease;
+            "
+          >
+        </div>
       </div>
 
       <div style="
@@ -1520,11 +1589,11 @@ function renderHeader(){
 
         <!-- 🔍 SEARCH -->
         <input
-  class="header-search"
-  placeholder="ค้นหาสินค้า / รหัส"
-  oninput="handleSearch(this.value)"
-  onfocus="focusInput(this)"
->
+          class="header-search"
+          placeholder="ค้นหาสินค้า / รหัส"
+          oninput="handleSearch(this.value)"
+          onfocus="focusInput(this)"
+        >
       </div>
 
       <button
@@ -1541,6 +1610,26 @@ function renderHeader(){
         ☰
       </button>
     `;
+  }
+}
+
+/* 🔍 viewer search toggle (เฉพาะ UI) */
+function toggleViewerSearch(){
+  const wrap  = document.getElementById("viewerSearchWrap");
+  const input = document.getElementById("viewerSearchInput");
+  if(!wrap || !input) return;
+
+  const opened = input.style.width && input.style.width !== "0px";
+
+  if(opened){
+    input.style.width = "0";
+    input.style.opacity = "0";
+    input.value = "";
+    handleSearch("");
+  }else{
+    input.style.width = "100%";
+    input.style.opacity = "1";
+    setTimeout(()=>input.focus(),80);
   }
 }
 
