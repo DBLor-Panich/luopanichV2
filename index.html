@@ -2001,8 +2001,6 @@ function closeStockError(){
   closeOverlay(stockSheet);
   openOverlay(confirmSheet);
 }
-
-
   
 function openConfirm(){
   if (state.cart.length === 0) return;
@@ -2022,7 +2020,8 @@ function openConfirm(){
       ยกเลิก
     </button>
   `;
-
+} // ✅ ปิด openConfirm()
+  
 function cancelConfirm(){
   state.ui.backdropLocked = false;
   closeOverlay(confirmSheet);
