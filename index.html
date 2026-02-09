@@ -2023,16 +2023,6 @@ function openConfirm(){
     </button>
   `;
 
-    <!-- 🗑️ SOFT DELETE PRODUCT -->
-    <button class="btn btn-danger"
-      style="width:100%;margin-top:16px"
-      onclick="confirmDeleteProduct()">
-      🗑️ ลบสินค้า
-    </button>
-  // ✅ เปิดผ่าน Overlay Manager เท่านั้น
-  openOverlay(confirmSheet);
-}
-
 function cancelConfirm(){
   state.ui.backdropLocked = false;
   closeOverlay(confirmSheet);
@@ -3258,6 +3248,13 @@ function openProductEdit(p){
       onclick="closeProductEdit()">
       ยกเลิก
     </button>
+
+    <!-- 🔴 SOFT DELETE PRODUCT -->
+    <button class="btn btn-danger"
+      style="width:100%;margin-top:16px"
+      onclick="confirmDeleteProduct()">
+      🗑️ ลบสินค้า
+    </button>
   `;
 
   openOverlay(adminProductEditSheet); // ✅ ใช้ Overlay Manager
@@ -3432,12 +3429,19 @@ async function submitProductEdit(){
 }
 
 function confirmDeleteProduct() {
+  if (state.mode !== "admin") return;
   const p = state.selectedProduct;
   if (!p) return;
 
+  // 🔒 กันลบซ้ำ
+  if (p.active === false) {
+    showToast("สินค้านี้ถูกลบไปแล้ว", "warning");
+    return;
+  }
+  
   const ok = confirm(
     `ต้องการลบสินค้า "${p.name}" ใช่หรือไม่?\n\n` +
-    `สินค้า sẽไม่แสดงในหน้าร้าน แต่ยังสามารถกู้คืนได้`
+    `สินค้า จะไม่แสดงในหน้าร้าน แต่ยังสามารถกู้คืนได้`
   );
 
   if (!ok) return;
@@ -3446,8 +3450,11 @@ function confirmDeleteProduct() {
 }
 
 async function deleteProduct() {
+  if (state.isSubmitting) return;
   const p = state.selectedProduct;
   if (!p || !state.admin.token) return;
+
+  state.isSubmitting = true;
 
   try {
     showLoading("กำลังลบสินค้า...");
@@ -3463,13 +3470,18 @@ async function deleteProduct() {
     }).then(r => r.json());
 
     if (res.error || res.success === false) {
-      throw new Error(res.message || res.error || "ลบสินค้าไม่สำเร็จ");
+        throw new Error(
+        res.message || res.error || "ไม่สามารถลบสินค้าได้ (อาจถูกลบแล้ว)"
+      );
     }
 
     showToast("ลบสินค้าเรียบร้อย", "success");
 
     // 🧹 ปิดหน้าแก้ไข
     closeProductEdit();
+
+    // 🔒 clear selection (สำคัญ)
+    state.selectedProduct = null;
 
     // 🔄 refresh สินค้า
     await refreshProducts();
@@ -3480,6 +3492,7 @@ async function deleteProduct() {
 
   } finally {
     safeHideLoading();
+    state.isSubmitting = false;
   }
 }
   
