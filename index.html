@@ -2023,6 +2023,12 @@ function openConfirm(){
     </button>
   `;
 
+    <!-- 🗑️ SOFT DELETE PRODUCT -->
+    <button class="btn btn-danger"
+      style="width:100%;margin-top:16px"
+      onclick="confirmDeleteProduct()">
+      🗑️ ลบสินค้า
+    </button>
   // ✅ เปิดผ่าน Overlay Manager เท่านั้น
   openOverlay(confirmSheet);
 }
@@ -3424,6 +3430,59 @@ async function submitProductEdit(){
     }
   }
 }
+
+function confirmDeleteProduct() {
+  const p = state.selectedProduct;
+  if (!p) return;
+
+  const ok = confirm(
+    `ต้องการลบสินค้า "${p.name}" ใช่หรือไม่?\n\n` +
+    `สินค้า sẽไม่แสดงในหน้าร้าน แต่ยังสามารถกู้คืนได้`
+  );
+
+  if (!ok) return;
+
+  deleteProduct();
+}
+
+async function deleteProduct() {
+  const p = state.selectedProduct;
+  if (!p || !state.admin.token) return;
+
+  try {
+    showLoading("กำลังลบสินค้า...");
+
+    const form = new URLSearchParams();
+    form.append("action", "deleteProduct");
+    form.append("token", state.admin.token);
+    form.append("productId", p.productId);
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: form
+    }).then(r => r.json());
+
+    if (res.error || res.success === false) {
+      throw new Error(res.message || res.error || "ลบสินค้าไม่สำเร็จ");
+    }
+
+    showToast("ลบสินค้าเรียบร้อย", "success");
+
+    // 🧹 ปิดหน้าแก้ไข
+    closeProductEdit();
+
+    // 🔄 refresh สินค้า
+    await refreshProducts();
+
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "เกิดข้อผิดพลาดในการลบสินค้า", "error");
+
+  } finally {
+    safeHideLoading();
+  }
+}
+  
   
 async function submitAddProduct(btn){
   // 🔒 guard
