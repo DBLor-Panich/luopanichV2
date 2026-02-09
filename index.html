@@ -3451,10 +3451,13 @@ function confirmDeleteProduct() {
     return;
   }
   
-  const ok = confirm(
-    `ต้องการลบสินค้า "${p.name}" ใช่หรือไม่?\n\n` +
-    `สินค้าจะไม่แสดงในหน้าร้าน แต่ยังสามารถกู้คืนได้`
-  );
+ const ok = confirm(
+   `⚠️ ลบสินค้าแบบถาวร\n\n` +
+   `สินค้า: "${p.name}"\n` +
+   `รหัส: ${p.productId}\n\n` +
+   `การลบนี้ไม่สามารถกู้คืนได้\n\n` +
+   `กด OK เพื่อยืนยัน`
+ );
 
   if (!ok) return;
 
@@ -3497,9 +3500,6 @@ async function deleteProduct() {
         res.message || res.error || "ไม่สามารถลบสินค้าได้ (อาจถูกลบแล้ว)"
       );
     }
-
-    // ✅ mark local state ทันที (UX + safety)
-    p.active = false;
     
     showToast("ลบสินค้าเรียบร้อย", "success");
 
