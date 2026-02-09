@@ -3452,8 +3452,8 @@ function confirmDeleteProduct() {
   }
   
   const ok = confirm(
-    `ต้องการลบสินค้า "${p.name}" ใช่หรือไม่?\n\n` +
-    `สินค้า จะไม่แสดงในหน้าร้าน แต่ยังสามารถกู้คืนได้`
+    `ต้องการลบสินค้า "${p.name}" ใช่หรือไม่?\n\n` 
+    `สินค้าจะไม่แสดงในหน้าร้าน แต่ยังสามารถกู้คืนได้`
   );
 
   if (!ok) return;
@@ -3462,12 +3462,13 @@ function confirmDeleteProduct() {
 }
 
 async function deleteProduct() {
-  if (state.admin.isSubmitting) return;
+  if (state.admin.isSubmitting || state.isSubmitting) return;
 
   const p = state.selectedProduct;
   if (!p || !state.admin.token) return;
 
   state.admin.isSubmitting = true;
+  state.isSubmitting = true;
 
   try {
     showLoading("กำลังลบสินค้า...");
@@ -3483,6 +3484,14 @@ async function deleteProduct() {
     }).then(r => r.json());
 
     if (res.error || res.success === false) {
+      if (
+        res.error === "Session expired" ||
+        res.error === "Invalid token"
+      ) {
+        showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
+        exitAdmin();
+        return;
+      }
         throw new Error(
         res.message || res.error || "ไม่สามารถลบสินค้าได้ (อาจถูกลบแล้ว)"
       );
@@ -3490,14 +3499,13 @@ async function deleteProduct() {
 
     showToast("ลบสินค้าเรียบร้อย", "success");
 
-    // 🧹 ปิดหน้าแก้ไข
     closeProductEdit();
-
-    // 🔒 clear selection (สำคัญ)
-    state.selectedProduct = null;
 
     // 🔄 refresh สินค้า
     await refreshProducts();
+
+    // 🔒 clear selection หลัง sync เสร็จ
+    state.selectedProduct = null;
 
   } catch (err) {
     console.error(err);
@@ -3506,6 +3514,7 @@ async function deleteProduct() {
   } finally {
     safeHideLoading();
     state.admin.isSubmitting = false;
+    state.isSubmitting = false;
   }
 }
   
