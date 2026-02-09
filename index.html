@@ -2155,6 +2155,12 @@ function renderAdminLogin(){
   openOverlay(adminLoginSheet);
 }
 
+// 🔒 RATE LIMIT STUB (กัน ReferenceError)
+function isLoginRateLimited() {
+  return false;
+}
+  
+
 async function handleAdminLogin(btn){
   // 🔒 กันกดซ้ำ
   if (state.isSubmitting) return;
