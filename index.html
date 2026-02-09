@@ -1399,6 +1399,54 @@ async function checkStockBeforeSubmit() {
 
 
 /* ================= RENDER FUNCTIONS ================= */
+ function openProductInfoSheet(p){
+   const details = p.detailsText
+     ? p.detailsText.split("\n").filter(Boolean)
+     : [];
+
+   const images = p.compareImages
+     ? p.compareImages.split(",").map(s => s.trim())
+     : [];
+
+   const html = `
+     <h3>${p.name}</h3>
+
+     ${
+       images.length
+         ? `
+           <div class="product-info-images">
+             ${images.map(url => `<img src="${url}">`).join("")}
+           </div>
+         `
+         : ""
+     }
+
+     ${
+       details.length
+         ? `
+           <div class="product-info-block">
+             <ul>
+               ${details.map(d => `<li>${d}</li>`).join("")}
+             </ul>
+           </div>
+         `
+         : ""
+     }
+
+     <button class="btn btn-secondary"
+       onclick="closeTopSheet()">
+       ปิด
+     </button>
+   `;
+
+   const sheet = document.createElement("div");
+   sheet.className = "sheet";
+   sheet.innerHTML = html;
+
+   document.body.appendChild(sheet);
+   openOverlay(sheet);
+ }
+  
 function renderProducts(){
   // 🔒 GUARD สำคัญที่สุด
   if (!Array.isArray(state.products)) {
@@ -1553,6 +1601,20 @@ function renderProductSheet(){
 
     <div class="price">฿${p.price}</div>
     <div class="stock">คงเหลือ ${p.stock} ชิ้น</div>
+    
+     ${
+      p.detailsText || p.compareImages
+        ? `
+          <button
+            class="btn btn-outline"
+            style="margin-top:12px"
+            onclick="openProductInfoSheet(state.selectedProduct)">
+            📄 รายละเอียดสินค้า
+          </button>
+        `
+        : ""
+    }
+
      ${
    p.note
      ? `
@@ -3231,6 +3293,25 @@ function openProductEdit(p){
       >${p.note || ""}</textarea>
     </div>
 
+    <!-- 📄 PRODUCT DETAIL (VIEWER) -->
+    <div class="form-group">
+      <label>รายละเอียดสินค้า (แสดงในปุ่มรายละเอียด)</label>
+      <textarea
+        id="editDetailsText"
+        rows="4"
+        placeholder="ใส่ทีละบรรทัด"
+      >${p.detailsText || ""}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>รูปเทียบสินค้า (URL คั่นด้วย ,)</label>
+      <textarea
+        id="editCompareImages"
+        rows="2"
+        placeholder="https://img1.jpg, https://img2.jpg"
+      >${p.compareImages || ""}</textarea>
+    </div>
+
     <!-- รูปสินค้า -->
     <div class="form-group">
       <label>รูปสินค้า</label>
@@ -3371,6 +3452,11 @@ async function submitProductEdit(){
   const stock  = Number(document.getElementById("editStock").value);
   const status = document.getElementById("editStatus").value;
   const note   = document.getElementById("editNote")?.value.trim() || "";
+  const detailsText =
+  document.getElementById("editDetailsText")?.value.trim() || "";
+
+  const compareImages =
+  document.getElementById("editCompareImages")?.value.trim() || "";
 
   // 🔒 Validate
   if (!name || price < 0 || stock < 0) {
@@ -3409,6 +3495,8 @@ async function submitProductEdit(){
     form.append("status", status);
     form.append("image", imageUrl);
     form.append("note", note);
+    form.append("detailsText", detailsText);
+    form.append("compareImages", compareImages);
 
     const res = await fetch(API_URL, {
       method: "POST",
