@@ -3293,49 +3293,66 @@ async function uploadProductImage(file) {
 }
   
 async function submitProductEdit(){
+  // 🔒 GUARD: กันกดซ้ำ
+  if (state.isSubmitting) return;
+
   const p = state.selectedProduct;
-  if(!p) return;
+  if (!p) return;
+
+  state.isSubmitting = true;
+
+  // 🔒 LOCK BUTTON
+  const saveBtn = adminProductEditSheet.querySelector(".btn-primary");
+  const originalText = saveBtn?.textContent;
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "กำลังบันทึก...";
+  }
 
   const name   = document.getElementById("editName").value.trim();
   const price  = Number(document.getElementById("editPrice").value);
   const stock  = Number(document.getElementById("editStock").value);
   const status = document.getElementById("editStatus").value;
-  // 🔹 ดึงค่าหมายเหตุ
-  const note = document.getElementById("editNote")?.value.trim() || "";
-
+  const note   = document.getElementById("editNote")?.value.trim() || "";
 
   // 🔒 Validate
-  if(!name || price < 0 || stock < 0){
-    alert("ข้อมูลไม่ถูกต้อง");
+  if (!name || price < 0 || stock < 0) {
+    showToast("ข้อมูลไม่ถูกต้อง", "error");
+
+    // 🔓 คืนสภาพทันที
+    state.isSubmitting = false;
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+    }
     return;
   }
 
   let imageUrl = p.image || "";
 
   try {
-    // ================= STEP 7.5.3 =================
+    showLoading("กำลังบันทึกการแก้ไขสินค้า...");
+
     // ถ้ามีการเลือกภาพใหม่ → upload ก่อน
-    if(state.editImageFile){
+    if (state.editImageFile) {
       imageUrl = await uploadProductImage(state.editImageFile);
-      if(!imageUrl){
+      if (!imageUrl) {
         throw new Error("ไม่สามารถอัปโหลดรูปได้");
       }
     }
 
-    // ================= STEP 7.5.4 =================
-    // Update product data
+    // Update product
     const form = new URLSearchParams();
-    form.append("action", "updateProduct"); // ✅ FIX: ถูกต้องตาม backend
-    form.append("token", state.admin.token); // ✅ FIX: AUTH REQUIRED
+    form.append("action", "updateProduct");
+    form.append("token", state.admin.token);
     form.append("productId", p.productId);
     form.append("name", name);
     form.append("price", price);
     form.append("stock", stock);
     form.append("status", status);
     form.append("image", imageUrl);
-    // 📝 NEW
     form.append("note", note);
-    
+
     const res = await fetch(API_URL, {
       method: "POST",
       body: form
@@ -3345,16 +3362,29 @@ async function submitProductEdit(){
       throw new Error(res.message || res.error || "บันทึกไม่สำเร็จ");
     }
 
-    alert("บันทึกสินค้าเรียบร้อย");
+    showToast("บันทึกการแก้ไขเรียบร้อย", "success");
 
     // cleanup
     state.editImageFile = null;
     closeProductEdit();
     await refreshProducts();
 
-  } catch(err){
+  } catch (err) {
     console.error(err);
-    alert(err.message || "เกิดข้อผิดพลาดในการบันทึกสินค้า");
+    showToast(
+      err.message || "เกิดข้อผิดพลาดในการบันทึกสินค้า",
+      "error"
+    );
+
+  } finally {
+    // ✅ CLEANUP กลางเดียว (หัวใจ STEP 9)
+    safeHideLoading();
+    state.isSubmitting = false;
+
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+    }
   }
 }
   
