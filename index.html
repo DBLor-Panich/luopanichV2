@@ -3265,6 +3265,10 @@ function removeItem(idx){
 
 function openProductEdit(p){
   state.selectedProduct = p;
+  state.compareImagesDraft = (p.compareImages || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
 
   adminProductEditSheet.innerHTML = `
     <h3>แก้ไขสินค้า</h3>
@@ -3340,21 +3344,36 @@ function openProductEdit(p){
   <!-- preview -->
   <div id="comparePreview"
        style="display:flex;gap:8px;overflow-x:auto;margin-bottom:8px">
-    ${
-      (p.compareImages || "")
-        .split(",")
-        .filter(Boolean)
-        .map(url => `
-          <img src="${url.trim()}"
-               style="
-                 width:80px;
-                 height:80px;
-                 object-fit:cover;
-                 border-radius:10px;
-                 box-shadow:0 4px 10px rgba(0,0,0,.12)
-               ">
-        `).join("")
-    }
+  ${
+    state.compareImagesDraft.map((url, idx) => `
+      <div style="position:relative">
+        <img src="${url}"
+             style="
+               width:80px;
+               height:80px;
+               object-fit:cover;
+               border-radius:10px;
+               box-shadow:0 4px 10px rgba(0,0,0,.12)
+             ">
+        <button
+          onclick="removeCompareImage(${idx})"
+          style="
+            position:absolute;
+            top:-6px;
+            right:-6px;
+            width:20px;
+            height:20px;
+            border:none;
+            border-radius:50%;
+            background:#ff3b30;
+            color:#fff;
+            font-size:12px;
+            cursor:pointer;
+          "
+        >×</button>
+      </div>
+    `).join("")
+  }
   </div>
 
   <!-- upload -->
@@ -3411,6 +3430,44 @@ function openProductEdit(p){
   openOverlay(adminProductEditSheet); // ✅ ใช้ Overlay Manager
 }
 
+function removeCompareImage(index){
+  if (!Array.isArray(state.compareImagesDraft)) return;
+
+  state.compareImagesDraft.splice(index, 1);
+
+  // re-render preview อย่างเดียว
+  const wrap = document.getElementById("comparePreview");
+  if (!wrap) return;
+
+  wrap.innerHTML = state.compareImagesDraft.map((url, idx) => `
+    <div style="position:relative">
+      <img src="${url}"
+           style="
+             width:80px;
+             height:80px;
+             object-fit:cover;
+             border-radius:10px;
+             box-shadow:0 4px 10px rgba(0,0,0,.12)
+           ">
+      <button
+        onclick="removeCompareImage(${idx})"
+        style="
+          position:absolute;
+          top:-6px;
+          right:-6px;
+          width:20px;
+          height:20px;
+          border:none;
+          border-radius:50%;
+          background:#ff3b30;
+          color:#fff;
+          font-size:12px;
+          cursor:pointer;
+        "
+      >×</button>
+    </div>
+  `).join("");
+}
 
 function handleImagePreview(input){
   const file = input.files[0];
@@ -3574,8 +3631,10 @@ async function submitProductEdit(){
   const detailsText =
   document.getElementById("editDetailsText")?.value.trim() || "";
 
-  const compareImages =
-  document.getElementById("editCompareImages")?.value.trim() || "";
+ const compareImages =
+   Array.isArray(state.compareImagesDraft)
+     ? state.compareImagesDraft.join(",")
+     : "";
 
   // 🔒 Validate
   if (!name || price < 0 || stock < 0) {
