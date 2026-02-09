@@ -3442,6 +3442,7 @@ async function submitProductEdit(){
 
 function confirmDeleteProduct() {
   if (state.mode !== "admin") return;
+  if (state.admin.isSubmitting || state.isSubmitting) return;
   const p = state.selectedProduct;
   if (!p) return;
 
@@ -3486,7 +3487,8 @@ async function deleteProduct() {
     if (res.error || res.success === false) {
       if (
         res.error === "Session expired" ||
-        res.error === "Invalid token"
+        res.error === "Invalid token" ||
+        res.error === "Missing token"
       ) {
         showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
         exitAdmin();
@@ -3504,11 +3506,11 @@ async function deleteProduct() {
 
     closeProductEdit();
 
+    // 🔒 clear selection ก่อน sync
+    state.selectedProduct = null;
+
     // 🔄 refresh สินค้า
     await refreshProducts();
-
-    // 🔒 clear selection หลัง sync เสร็จ
-    state.selectedProduct = null; // 🔒 clear reference
 
   } catch (err) {
     console.error(err);
