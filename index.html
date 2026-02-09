@@ -1466,44 +1466,56 @@ function openImageViewer(url){
   const sheet = document.getElementById("imageViewerSheet");
   if (!sheet) return;
 
-  // 🔥 RESET ผลของ .sheet เดิมทั้งหมด (เฉพาะ viewer)
-  sheet.classList.remove("show");          // กัน transform เดิม
+  // 🔥 reset ผลของ .sheet เดิม
   sheet.style.position = "fixed";
   sheet.style.inset = "0";
   sheet.style.padding = "0";
   sheet.style.borderRadius = "0";
   sheet.style.maxHeight = "100dvh";
-  sheet.style.transform = "none";          // ❗ หัวใจ
-  sheet.style.zIndex = "9999";              // ❗ อยู่บนสุดจริง
-  sheet.style.background = "#000";
-  sheet.style.display = "flex";
-  sheet.style.alignItems = "center";
-  sheet.style.justifyContent = "center";
-  sheet.style.cursor = "zoom-out";
+  sheet.style.transform = "none";
+  sheet.style.zIndex = "9999";
+  sheet.style.background = "transparent";
 
   sheet.innerHTML = `
+    <!-- overlay background (รับ click เพื่อปิด) -->
+    <div
+      onclick="closeImageViewer()"
+      style="
+        position:absolute;
+        inset:0;
+        background:#000;
+      ">
+    </div>
+
     <!-- ปุ่มปิด -->
-    <button class="close-btn"
-      onclick="event.stopPropagation(); closeImageViewer()">
+    <button
+      class="close-btn"
+      onclick="event.stopPropagation(); closeImageViewer()"
+      style="
+        position:absolute;
+        top:16px;
+        right:16px;
+        z-index:2;
+      ">
       ×
     </button>
 
-    <!-- รูปเต็มจอจริง -->
+    <!-- รูปสินค้า -->
     <img
       src="${url}"
       alt="preview"
+      onclick="event.stopPropagation(); closeImageViewer()"
       style="
+        position:relative;
+        z-index:1;
         width:100%;
         height:100%;
         object-fit:contain;
+        cursor:zoom-out;
       "
     >
   `;
 
-  // คลิกตรงไหนก็ปิด
-  sheet.onclick = closeImageViewer;
-
-  // เปิดผ่าน Overlay Manager (นับ overlay ถูกต้อง)
   openOverlay(sheet);
 }
   
