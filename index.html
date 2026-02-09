@@ -990,28 +990,47 @@ function showLoading(message, timeoutMs = 60000) {
   }, timeoutMs);
 }
 
+<!-- ================= SAFE HIDE LOADING (SINGLE SOURCE OF TRUTH) ================= -->
+/**
+ * ❗ IMPORTANT
+ * - ต้องมี safeHideLoading แค่ตัวเดียวในระบบ
+ * - ตัวนี้คือเวอร์ชันเดียวที่อนุญาตให้ใช้
+ */
+
 function safeHideLoading(fromTimeout = false) {
   const overlay = document.getElementById("loading-overlay");
 
-  const elapsed = Date.now() - _loadingShownAt;
+  const elapsed = Date.now() - (_loadingShownAt || 0);
   const delay = Math.max(0, MIN_LOADING_MS - elapsed);
 
   setTimeout(() => {
-    if (overlay) overlay.classList.add("hidden");
+    try {
+      if (overlay) overlay.classList.add("hidden");
 
-    clearTimeout(_loadingTimer);
-    _loadingTimer = null;
+      // 🔥 หัวใจ: เคลียร์ timer ของ showLoading
+      if (_loadingTimer) {
+        clearTimeout(_loadingTimer);
+        _loadingTimer = null;
+      }
 
-    state.isSubmitting = false;
-    state.ui.backdropLocked = false;
-    if (backdrop) backdrop.style.display = "none";
+      state.isSubmitting = false;
+      state.ui.backdropLocked = false;
 
-    console.log(
-      "[safeHideLoading] loading closed",
-      fromTimeout ? "(timeout)" : ""
-    );
+      if (state.ui.overlayCount === 0 && backdrop) {
+        backdrop.style.display = "none";
+      }
+
+      console.log(
+        "[safeHideLoading] loading closed",
+        fromTimeout ? "(timeout)" : ""
+      );
+
+    } catch (e) {
+      console.error("[safeHideLoading] failed", e);
+    }
   }, delay);
 }
+
 
 // ---------- fetchWithTimeout ----------
 async function fetchWithTimeout(input, init = {}, ms = 15000) {
@@ -3725,24 +3744,6 @@ function loadAdminSession() {
 
 function clearAdminSession() {
   localStorage.removeItem("admin_session");
-}
-
-function safeHideLoading() {
-  try {
-    const overlay = document.getElementById("loading-overlay");
-    if (overlay) overlay.classList.add("hidden");
-
-    state.isSubmitting = false;
-    state.ui.backdropLocked = false;
-
-    if (state.ui.overlayCount === 0 && backdrop) {
-      backdrop.style.display = "none";
-    }
-
-    console.log("[safeHideLoading] loading closed");
-  } catch (e) {
-    console.error("[safeHideLoading] failed", e);
-  }
 }
 
 // ================= EMERGENCY UI UNLOCK =================
