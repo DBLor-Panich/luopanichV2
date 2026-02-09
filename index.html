@@ -844,6 +844,34 @@ textarea {
   margin-bottom: 10px;
 }
 
+/* ================= IMAGE FULLSCREEN VIEWER ================= */
+#imageViewerSheet img {
+  max-width: 100%;
+  max-height: 100dvh;
+  object-fit: contain;
+}
+
+#imageViewerSheet .close-btn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 14px);
+  right: 14px;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  font-size: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  z-index: 5;
+}
   
 </style>
 </head>
@@ -864,6 +892,17 @@ textarea {
 <div id="cartSheet" class="sheet"></div>
 <div id="confirmSheet" class="sheet"></div>
 <div id="stockSheet" class="sheet"></div>  
+
+<!-- 🖼️ IMAGE VIEWER (FULLSCREEN) -->
+<div id="imageViewerSheet" class="sheet"
+  style="
+    background:#000;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  ">
+</div>  
 
 <!-- ================= ADMIN SHEETS ================= -->
 <div id="adminLoginSheet" class="sheet"></div>
@@ -1419,6 +1458,29 @@ async function checkStockBeforeSubmit() {
 
 
 /* ================= RENDER FUNCTIONS ================= */
+function openImageViewer(url){
+  if (!url) return;
+
+  const sheet = document.getElementById("imageViewerSheet");
+  if (!sheet) return;
+
+  sheet.innerHTML = `
+    <button class="close-btn"
+      onclick="closeImageViewer()">×</button>
+
+    <img src="${url}" alt="preview">
+  `;
+
+  openOverlay(sheet);
+}
+
+function closeImageViewer(){
+  const sheet = document.getElementById("imageViewerSheet");
+  if (sheet && sheet.classList.contains("show")) {
+    closeOverlay(sheet);
+  }
+}
+ 
  function openProductInfoSheet(p){
    const details = p.detailsText
      ? p.detailsText.split("\n").filter(Boolean)
@@ -1435,7 +1497,11 @@ async function checkStockBeforeSubmit() {
        images.length
          ? `
            <div class="product-info-images">
-             ${images.map(url => `<img src="${url}">`).join("")}
+ ${images.map(url => `
+   <img src="${url}"
+        style="cursor:zoom-in"
+        onclick="openImageViewer('${url}')">
+ `).join("")}
            </div>
          `
          : ""
@@ -2045,6 +2111,7 @@ function handleBackdropClick(){
 function closeTopSheet(){
   const sheets = [
     // 🔴 ADMIN FLOW (top → bottom)
+    imageViewerSheet,
     adminMenuSheet,           // side menu
     adminProductActionSheet,
     adminProductEditSheet,
