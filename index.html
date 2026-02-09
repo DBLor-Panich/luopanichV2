@@ -3452,7 +3452,7 @@ function confirmDeleteProduct() {
   }
   
   const ok = confirm(
-    `ต้องการลบสินค้า "${p.name}" ใช่หรือไม่?\n\n` 
+    `ต้องการลบสินค้า "${p.name}" ใช่หรือไม่?\n\n` +
     `สินค้าจะไม่แสดงในหน้าร้าน แต่ยังสามารถกู้คืนได้`
   );
 
@@ -3497,6 +3497,9 @@ async function deleteProduct() {
       );
     }
 
+    // ✅ mark local state ทันที (UX + safety)
+    p.active = false;
+    
     showToast("ลบสินค้าเรียบร้อย", "success");
 
     closeProductEdit();
@@ -3505,7 +3508,7 @@ async function deleteProduct() {
     await refreshProducts();
 
     // 🔒 clear selection หลัง sync เสร็จ
-    state.selectedProduct = null;
+    state.selectedProduct = null; // 🔒 clear reference
 
   } catch (err) {
     console.error(err);
