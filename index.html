@@ -3250,11 +3250,23 @@ function openProductEdit(p){
     </button>
 
     <!-- 🔴 SOFT DELETE PRODUCT -->
-    <button class="btn btn-danger"
-      style="width:100%;margin-top:16px"
-      onclick="confirmDeleteProduct()">
-      🗑️ ลบสินค้า
-    </button>
+
+ ${p.active === false ? `
+   <div style="
+     margin-top:16px;
+     font-size:13px;
+     color:#888;
+     text-align:center
+   ">
+     ⛔ สินค้านี้ถูกลบแล้ว
+   </div>
+ ` : `
+   <button class="btn btn-danger"
+     style="width:100%;margin-top:16px"
+     onclick="confirmDeleteProduct()">
+     🗑️ ลบสินค้า
+   </button>
+ `}
   `;
 
   openOverlay(adminProductEditSheet); // ✅ ใช้ Overlay Manager
@@ -3450,11 +3462,12 @@ function confirmDeleteProduct() {
 }
 
 async function deleteProduct() {
-  if (state.isSubmitting) return;
+  if (state.admin.isSubmitting) return;
+
   const p = state.selectedProduct;
   if (!p || !state.admin.token) return;
 
-  state.isSubmitting = true;
+  state.admin.isSubmitting = true;
 
   try {
     showLoading("กำลังลบสินค้า...");
@@ -3492,7 +3505,7 @@ async function deleteProduct() {
 
   } finally {
     safeHideLoading();
-    state.isSubmitting = false;
+    state.admin.isSubmitting = false;
   }
 }
   
