@@ -3300,6 +3300,9 @@ async function submitProductEdit(){
   const price  = Number(document.getElementById("editPrice").value);
   const stock  = Number(document.getElementById("editStock").value);
   const status = document.getElementById("editStatus").value;
+  // 🔹 ดึงค่าหมายเหตุ
+  const note = document.getElementById("editNote")?.value.trim() || "";
+
 
   // 🔒 Validate
   if(!name || price < 0 || stock < 0){
@@ -3330,6 +3333,8 @@ async function submitProductEdit(){
     form.append("stock", stock);
     form.append("status", status);
     form.append("image", imageUrl);
+    // 📝 NEW
+    form.append("note", note);
     
     const res = await fetch(API_URL, {
       method: "POST",
