@@ -938,6 +938,12 @@ function clearCartStorage() {
 }  
   
   /* ===== Feedback & Loading Utilities ===== */
+function updateLoadingText(message){
+  const text = document.getElementById("loading-text");
+  if (text) {
+    text.textContent = message;
+  }
+}
 
 function showToast(message, type = 'info', timeout = 2500) {
   const container = document.getElementById('toast-container');
