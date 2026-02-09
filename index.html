@@ -456,6 +456,26 @@ button:disabled {
   color: #555;
 }
 
+ .product-info-images {
+   display: flex;
+   gap: 8px;
+   overflow-x: auto;
+   margin: 12px 0;
+ }
+
+ .product-info-images img {
+   height: 120px;
+   border-radius: 12px;
+   object-fit: cover;
+ }
+
+ .product-info-block {
+   background: #f9f9fb;
+   border-radius: 12px;
+   padding: 12px;
+   font-size: 14px;
+ }
+  
 .sheet-product {
   min-height: 60dvh;   /* 🔴 ปรับได้: 65–80 */
 }  
@@ -1439,12 +1459,15 @@ async function checkStockBeforeSubmit() {
      </button>
    `;
 
-   const sheet = document.createElement("div");
+ let sheet = document.getElementById("productInfoSheet");
+ if (!sheet) {
+   sheet = document.createElement("div");
+   sheet.id = "productInfoSheet";
    sheet.className = "sheet";
-   sheet.innerHTML = html;
-
    document.body.appendChild(sheet);
-   openOverlay(sheet);
+ }
+ sheet.innerHTML = html;
+ openOverlay(sheet);
  }
   
 function renderProducts(){
