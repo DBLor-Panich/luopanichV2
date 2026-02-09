@@ -1468,7 +1468,10 @@ function openImageViewer(url){
     <button class="close-btn"
       onclick="closeImageViewer()">×</button>
 
-    <img src="${url}" alt="preview">
+  <img src="${url}"
+       alt="preview"
+       onclick="closeImageViewer()"
+       style="cursor:zoom-out">
   `;
 
   openOverlay(sheet);
