@@ -1467,15 +1467,29 @@ function openImageViewer(url){
   if (!sheet) return;
 
   sheet.innerHTML = `
+    <!-- ปุ่มปิด (กัน event ซ้อน) -->
     <button class="close-btn"
-      onclick="closeImageViewer()">×</button>
+      onclick="event.stopPropagation(); closeImageViewer()">
+      ×
+    </button>
 
-  <img src="${url}"
-       alt="preview"
-       onclick="closeImageViewer()"
-       style="cursor:zoom-out">
+    <!-- รูปสินค้า (คลิกเพื่อปิด / zoom-out feeling) -->
+    <img
+      src="${url}"
+      alt="preview"
+      style="
+        max-width:100%;
+        max-height:100dvh;
+        object-fit:contain;
+        cursor:zoom-out;
+      "
+    >
   `;
 
+  // ✅ ให้ทั้ง sheet รับ click เพื่อปิด (mobile hit-area ชัวร์)
+  sheet.onclick = closeImageViewer;
+
+  // เปิดผ่าน Overlay Manager เท่านั้น
   openOverlay(sheet);
 }
 
