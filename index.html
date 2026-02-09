@@ -990,7 +990,7 @@ function showLoading(message, timeoutMs = 60000) {
   }, timeoutMs);
 }
 
-<!-- ================= SAFE HIDE LOADING (SINGLE SOURCE OF TRUTH) ================= -->
+/* ================= SAFE HIDE LOADING (SINGLE SOURCE OF TRUTH) ================= */
 /**
  * ❗ IMPORTANT
  * - ต้องมี safeHideLoading แค่ตัวเดียวในระบบ
@@ -1435,8 +1435,8 @@ const statusMap = {
 };
 
 const statusKey   = p.status || (Number(p.stock) === 0 ? "out" : "ready");
-const statusClass = statusKey;
-const statusText  = statusMap[statusKey] || "พร้อมส่ง";
+let statusClass = statusKey;
+let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
 
     if (Number(p.stock) <= 0) {
