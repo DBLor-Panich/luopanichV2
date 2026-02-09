@@ -3334,14 +3334,36 @@ function openProductEdit(p){
       >${p.detailsText || ""}</textarea>
     </div>
 
-    <div class="form-group">
-      <label>รูปเทียบสินค้า (URL คั่นด้วย ,)</label>
-      <textarea
-        id="editCompareImages"
-        rows="2"
-        placeholder="https://img1.jpg, https://img2.jpg"
-      >${p.compareImages || ""}</textarea>
-    </div>
+<div class="form-group">
+  <label>รูปเทียบสินค้า</label>
+
+  <!-- preview -->
+  <div id="comparePreview"
+       style="display:flex;gap:8px;overflow-x:auto;margin-bottom:8px">
+    ${
+      (p.compareImages || "")
+        .split(",")
+        .filter(Boolean)
+        .map(url => `
+          <img src="${url.trim()}"
+               style="
+                 width:80px;
+                 height:80px;
+                 object-fit:cover;
+                 border-radius:10px;
+                 box-shadow:0 4px 10px rgba(0,0,0,.12)
+               ">
+        `).join("")
+    }
+  </div>
+
+  <!-- upload -->
+  <input
+    type="file"
+    multiple
+    accept="image/*"
+    onchange="handleCompareImagesUpload(this)">
+</div>
 
     <!-- รูปสินค้า -->
     <div class="form-group">
@@ -3404,6 +3426,72 @@ function handleImagePreview(input){
   reader.readAsDataURL(file);
 }
 
+async function handleCompareImagesUpload(input){
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+
+  // 🔒 guard
+  if (!state.admin?.token) {
+    showToast("กรุณา login ใหม่", "warning");
+    return;
+  }
+
+  showLoading("กำลังอัปโหลดรูปเทียบสินค้า...");
+
+  try {
+    const urls = [];
+
+    for (const file of files) {
+      const url = await uploadProductImage(file);
+      if (url) urls.push(url);
+    }
+
+    // merge ของเดิม + ใหม่
+    const old =
+      document.getElementById("editCompareImages")?.value || "";
+
+    const merged = [
+      ...old.split(",").filter(Boolean),
+      ...urls
+    ];
+
+    // 🔒 hidden storage (reuse field เดิม)
+    let hidden = document.getElementById("editCompareImages");
+    if (!hidden) {
+      hidden = document.createElement("textarea");
+      hidden.id = "editCompareImages";
+      hidden.className = "hidden";
+      adminProductEditSheet.appendChild(hidden);
+    }
+
+    hidden.value = merged.join(",");
+
+    // 🔄 render preview
+    const preview = document.getElementById("comparePreview");
+    urls.forEach(url => {
+      const img = document.createElement("img");
+      img.src = url;
+      img.style.cssText = `
+        width:80px;
+        height:80px;
+        object-fit:cover;
+        border-radius:10px;
+        box-shadow:0 4px 10px rgba(0,0,0,.12)
+      `;
+      preview.appendChild(img);
+    });
+
+    showToast("อัปโหลดรูปเทียบสำเร็จ", "success");
+
+  } catch (err) {
+    console.error(err);
+    showToast("อัปโหลดรูปไม่สำเร็จ", "error");
+  } finally {
+    safeHideLoading();
+    input.value = "";
+  }
+}
+  
 function closeProductEdit(){
   state.editImageFile = null;
   closeOverlay(adminProductEditSheet);
