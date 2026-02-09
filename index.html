@@ -3503,41 +3503,42 @@ async function handleCompareImagesUpload(input){
       if (url) urls.push(url);
     }
 
-    // merge ของเดิม + ใหม่
-    const old =
-      document.getElementById("editCompareImages")?.value || "";
+   // ✅ STEP 8: merge เข้า state เดียว
+   state.compareImagesDraft.push(...urls);
 
-    const merged = [
-      ...old.split(",").filter(Boolean),
-      ...urls
-    ];
-
-    // 🔒 hidden storage (reuse field เดิม)
-    let hidden = document.getElementById("editCompareImages");
-    if (!hidden) {
-      hidden = document.createElement("textarea");
-      hidden.id = "editCompareImages";
-      hidden.className = "hidden";
-      adminProductEditSheet.appendChild(hidden);
-    }
-
-    hidden.value = merged.join(",");
-
-    // 🔄 render preview
-    const preview = document.getElementById("comparePreview");
-    urls.forEach(url => {
-      const img = document.createElement("img");
-      img.src = url;
-      img.style.cssText = `
-        width:80px;
-        height:80px;
-        object-fit:cover;
-        border-radius:10px;
-        box-shadow:0 4px 10px rgba(0,0,0,.12)
-      `;
-      preview.appendChild(img);
-    });
-
+   // 🔄 re-render preview ผ่าน state (มีปุ่ม ❌)
+   const wrap = document.getElementById("comparePreview");
+   if (wrap) {
+     wrap.innerHTML = state.compareImagesDraft.map((url, idx) => `
+       <div style="position:relative">
+         <img src="${url}"
+              style="
+                width:80px;
+                height:80px;
+                object-fit:cover;
+                border-radius:10px;
+                box-shadow:0 4px 10px rgba(0,0,0,.12)
+              ">
+         <button
+           onclick="removeCompareImage(${idx})"
+           style="
+             position:absolute;
+             top:-6px;
+             right:-6px;
+             width:20px;
+             height:20px;
+             border:none;
+             border-radius:50%;
+             background:#ff3b30;
+             color:#fff;
+             font-size:12px;
+             cursor:pointer;
+           "
+         >×</button>
+       </div>
+     `).join("");
+   }
+  
     showToast("อัปโหลดรูปเทียบสำเร็จ", "success");
 
   } catch (err) {
