@@ -3132,7 +3132,6 @@ function removeItem(idx){
   }
 }
 
-
 function openProductEdit(p){
   state.selectedProduct = p;
 
@@ -3159,25 +3158,42 @@ function openProductEdit(p){
       <input id="editStock" type="number" value="${p.stock}">
     </div>
 
-<div class="form-group">
-  <label>สถานะสินค้า</label>
-  <select id="editStatus">
-    <option value="ready" ${p.status === "ready" ? "selected" : ""}>
-      พร้อมส่ง
-    </option>
-    <option value="shipping" ${p.status === "shipping" ? "selected" : ""}>
-      อยู่ระหว่างจัดส่ง
-    </option>
-    <option value="warehouse" ${p.status === "warehouse" ? "selected" : ""}>
-      อยู่โกดังไทย
-    </option>
-    <option value="out" ${p.status === "out" ? "selected" : ""}>
-      หมด
-    </option>
-  </select>
-</div>
+    <div class="form-group">
+      <label>สถานะสินค้า</label>
+      <select id="editStatus">
+        <option value="ready" ${p.status === "ready" ? "selected" : ""}>
+          พร้อมส่ง
+        </option>
+        <option value="shipping" ${p.status === "shipping" ? "selected" : ""}>
+          อยู่ระหว่างจัดส่ง
+        </option>
+        <option value="warehouse" ${p.status === "warehouse" ? "selected" : ""}>
+          อยู่โกดังไทย
+        </option>
+        <option value="out" ${p.status === "out" ? "selected" : ""}>
+          หมด
+        </option>
+      </select>
+    </div>
 
+    <!-- 📝 NEW: NOTE FIELD -->
+    <div class="form-group">
+      <label>หมายเหตุสินค้า (สำหรับแอดมิน)</label>
+      <textarea
+        id="editNote"
+        rows="3"
+        placeholder="เช่น ตำหนิเล็กน้อย / ของแถม / หมายเหตุภายใน"
+        style="
+          resize: none;
+          font-size: 14px;
+          line-height: 1.4;
+          border-radius: 12px;
+          padding: 10px 12px;
+        "
+      >${p.note || ""}</textarea>
+    </div>
 
+    <!-- รูปสินค้า -->
     <div class="form-group">
       <label>รูปสินค้า</label>
       <img id="imagePreview"
@@ -3201,8 +3217,9 @@ function openProductEdit(p){
     </button>
   `;
 
-  openOverlay(adminProductEditSheet); // ✅ จุดเดียวพอ
+  openOverlay(adminProductEditSheet); // ✅ ใช้ Overlay Manager
 }
+
 
 function handleImagePreview(input){
   const file = input.files[0];
