@@ -3537,10 +3537,12 @@ async function submitAddProduct(btn){
   // ✅ ใช้ปุ่มจาก parameter
   if(btn){
     btn.disabled = true;
-    btn.textContent = "กำลังบันทึก...";
+    btn.textContent = "กำลังบันทึกสินค้า...";
   }
 
   try {
+    // 🔔 UX: แจ้งเริ่มกระบวนการ
+    showLoading("กำลังตรวจสอบข้อมูลสินค้า...");
     const productId = document.getElementById("addProductId").value.trim();
     const name      = document.getElementById("addName").value.trim();
     const price     = Number(document.getElementById("addPrice").value);
@@ -3584,6 +3586,7 @@ async function submitAddProduct(btn){
 
     let imageUrl = "";
     if (state.addImageFile) {
+      showLoading("กำลังอัปโหลดรูปสินค้า...");
       imageUrl = await uploadProductImage(state.addImageFile);
       if (!imageUrl) {
         throw new Error("อัปโหลดรูปไม่สำเร็จ");
@@ -3591,7 +3594,8 @@ async function submitAddProduct(btn){
     }
 
     /* ================= SEND TO BACKEND ================= */
-
+    showLoading("กำลังบันทึกข้อมูลสินค้า...");
+    
     const form = new URLSearchParams();
     form.append("action", "addProduct"); // ✅ FIX จุดเดียวที่เป็นปัญหา
     form.append("token", state.admin.token);
@@ -3613,7 +3617,7 @@ async function submitAddProduct(btn){
       throw new Error(res.message || res.error || "เพิ่มสินค้าไม่สำเร็จ");
     }
 
-    alert("เพิ่มสินค้าเรียบร้อย 🎉");
+    showToast("เพิ่มสินค้าเรียบร้อย 🎉", "success");
 
     // 🧹 cleanup
     state.addImageFile = null;
@@ -3622,8 +3626,9 @@ async function submitAddProduct(btn){
 
   } catch(err){
     console.error(err);
-    alert(err.message || "เกิดข้อผิดพลาด");
+    showToast(err.message || "เกิดข้อผิดพลาด", "error");
   } finally {
+    safeHideLoading(); // 🔒 สำคัญ: ปิด loading ทุกกรณี
     state.isSubmitting = false;
 
     if(btn){
