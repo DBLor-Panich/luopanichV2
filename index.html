@@ -1163,9 +1163,24 @@ async function createOrder() {
   const res = await fetchWithTimeout(API_URL, {
     method: "POST",
     body: form
-  }, 15000); // 15s timeout
+  }, 15000);
 
-  return await res.json();
+  // 🔴 FIX: เช็ค HTTP status ก่อน
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(
+      `CreateOrder HTTP ${res.status}: ${text}`
+    );
+  }
+
+  const json = await res.json();
+
+  // 🔴 FIX: validate response shape
+  if (!json || json.success !== true || !json.data?.orderId) {
+    throw new Error("Invalid createOrder response");
+  }
+
+  return json;
 }
 
 function openOverlay(el){
