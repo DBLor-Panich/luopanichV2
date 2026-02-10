@@ -1918,13 +1918,19 @@ function renderConfirmSheet(){
   confirmSheet.innerHTML += `
     <div class="total">ยอดรวม: ฿${total}</div>
 
-    <button class="btn btn-primary"
-      id="submitBtn"
-      ${state.isSubmitting ? "disabled" : ""}
-      onclick="submitOrder()">
-      ${state.isSubmitting ? "กำลังสร้างใบสั่งซื้อ..." : "ยืนยันสร้างใบสั่งซื้อ"}
-    </button>
+<button class="btn btn-primary"
+  id="submitBtn"
+  ${state.isSubmitting ? "disabled" : ""}>
+  ยืนยันสร้างใบสั่งซื้อ
+</button>
   `;
+  setTimeout(() => {
+  const btn = document.getElementById("submitBtn");
+  if (btn) {
+    btn.onclick = submitOrder; // 🔥 bind กับ DOM จริง
+  }
+}, 0);
+  
 }
 
 /* ================= HEADER RENDER (UPGRADED) ================= */
