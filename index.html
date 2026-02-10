@@ -3310,7 +3310,7 @@ function closeProduct(){
 }
 
 async function submitOrder(){
-  if (state.loading) return;
+  // ❌ ห้ามใช้ state.loading เป็น guard
   if (state.isSubmitting || state.cart.length === 0) return;
 
   state.isSubmitting = true;
@@ -3333,7 +3333,7 @@ async function submitOrder(){
     if (!res || res.success !== true || !res.data?.orderId) {
       throw new Error("Invalid order response");
     }
-    
+
     // ================= SUCCESS =================
     state.lastOrder = {
       orderId: res.data.orderId,
@@ -3345,7 +3345,6 @@ async function submitOrder(){
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
     showToast("แตะเพื่อดาวน์โหลดใบสั่งซื้อ", "info", 3000);
 
-    // 🟢 export แยกจาก flow หลัก (ไม่ block UI)
     setTimeout(() => {
       try {
         exportOrderPNG();
@@ -3354,29 +3353,23 @@ async function submitOrder(){
       }
     }, 0);
 
-    // ✅ CLEAR CART (MEMORY + STORAGE)
     state.cart = [];
     clearCartStorage();
     renderBadge();
 
-    // ✅ UI RESET (delayed for UX)
- setTimeout(() => {
-   if (!state.ui.backdropLocked) {
-     hardResetUI();
-   }
- }, 300);
+    setTimeout(() => {
+      if (!state.ui.backdropLocked) {
+        hardResetUI();
+      }
+    }, 300);
 
   } catch(err){
     console.error(err);
-
-    // ❗ timeout จะไม่ซ้ำ toast
-  showToast(
-    err.message || 'เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ',
-    'error'
-  );
-
+    showToast(
+      err.message || 'เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ',
+      'error'
+    );
   } finally {
-    // ================= SINGLE CLEANUP POINT =================
     safeHideLoading();
     state.isSubmitting = false;
     state.ui.backdropLocked = false;
