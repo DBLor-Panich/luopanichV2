@@ -875,7 +875,89 @@ textarea {
    --shadow-image:   0 4px 12px rgba(0,0,0,.12);
    --shadow-float:   0 12px 36px rgba(0,0,0,.12);
  }
-  
+
+/* =================================================
+   📦 PRODUCT SHEET – SHARED UI CLASSES
+   ใช้แทน inline-style ใน renderProductSheet
+   (ไม่กระทบ logic / flow)
+   ================================================= */
+
+/* ❌ ปุ่มปิด Sheet (มุมขวาบน) */
+.sheet-close-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 12px);
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 50%;
+  border: none;
+
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.sheet-close-btn:active {
+  transform: scale(0.95);
+}
+
+/* 🏷️ ชื่อสินค้าใน Product Sheet */
+.product-title {
+  margin-top: 4px;
+}
+
+/* 🖼️ รูปสินค้า (มาตรฐาน) */
+.product-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+
+  object-fit: cover;
+
+  border-radius: 14px;
+  margin: 12px 0;
+
+  background: #f0f0f0;
+}
+
+/* 📝 หมายเหตุสินค้า (Note) */
+.product-note {
+  margin-top: 10px;
+  padding: 10px 12px;
+
+  font-size: 14px;
+  line-height: 1.45;
+  color: #555;
+
+  background: #f9f9fb;
+  border-radius: 12px;
+  border: 1px dashed rgba(0,0,0,.12);
+}
+
+/* 🔹 Action Zone (ปุ่มล่างสุด) */
+.product-action-zone {
+  margin-top: 20px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+}
+
+/* 🔧 ข้อความโหมดแอดมิน */
+.product-admin-hint {
+  margin-top: 16px;
+  color: #888;
+  font-size: 14px;
+}
+
+ 
 </style>
 </head>
 <body>
@@ -1730,51 +1812,26 @@ function renderProductSheet(){
 
   productSheet.innerHTML = `
     <!-- ❌ CLOSE BUTTON (TOP-RIGHT) -->
-    <button
-      class="sheet-close"
-      onclick="closeOverlay(productSheet)"
-      aria-label="Close"
-      style="
-        position: absolute;
-        top: calc(env(safe-area-inset-top) + 12px);
-        right: 12px;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: none;
-        background: rgba(0,0,0,0.55);
-        color: #fff;
-        font-size: 22px;
-        font-weight: 500;
-        line-height: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-      "
-    >
+ <button
+   class="sheet-close sheet-close-btn"
+   onclick="closeOverlay(productSheet)"
+   aria-label="Close"
+ >
       ×
     </button>
 
-    <h3 style="margin-top:4px">${p.name}</h3>
+    <h3 class="product-title">${p.name}</h3>
 
     <div style="color:#888;font-size:13px;margin-bottom:8px">
       รหัสสินค้า: ${p.productId}
     </div>
 
     <!-- ✅ FIX IMAGE -->
-    <img 
-      src="${p.image || ''}"
-      alt="${p.name}"
-      style="
-        width:100%;
-        aspect-ratio: 1 / 1;
-        object-fit: cover;
-        border-radius:14px;
-        margin:12px 0;
-        background:#f0f0f0;
-      "
-    >
+ <img 
+   src="${p.image || ''}"
+   alt="${p.name}"
+   class="product-image"
+ >
 
     <div class="price">฿${p.price}</div>
     <div class="stock">คงเหลือ ${p.stock} ชิ้น</div>
@@ -1795,16 +1852,7 @@ function renderProductSheet(){
      ${
    p.note
      ? `
-       <div style="
-         margin-top:10px;
-         padding:10px 12px;
-         font-size:14px;
-         line-height:1.45;
-         color:#555;
-         background:#f9f9fb;
-         border-radius:12px;
-         border:1px dashed rgba(0,0,0,.12);
-       ">
+<div class="product-note">
          📝 ${String(p.note)
        .replace(/</g, "&lt;")
        .replace(/>/g, "&gt;")}
@@ -1817,10 +1865,7 @@ function renderProductSheet(){
       state.mode === "viewer"
         ? `
           <!-- 🔹 ACTION ZONE -->
-          <div style="
-            margin-top:20px;
-            padding-bottom:calc(env(safe-area-inset-bottom) + 12px);
-          ">
+<div class="product-action-zone">
             <button
               class="btn btn-primary"
               style="width:100%"
@@ -1831,9 +1876,9 @@ function renderProductSheet(){
           </div>
         `
         : `
-          <div style="margin-top:16px;color:#888;font-size:14px">
-            🔧 โหมดแอดมิน
-          </div>
+ <div class="product-admin-hint">
+   🔧 โหมดแอดมิน
+ </div>
         `
     }
   `;
