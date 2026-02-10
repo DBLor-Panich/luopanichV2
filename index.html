@@ -2265,12 +2265,13 @@ function openConfirm(){
 
   state.ui.backdropLocked = true; // 🔒 ล็อก backdrop ระหว่าง confirm
 
-  // ❌ ห้าม close ด้วย classList
+  // ปิด cart ก่อน
   closeOverlay(cartSheet);
 
+  // render เนื้อหา
   renderConfirmSheet();
 
-  // ➕ ปุ่มยกเลิก
+  // ปุ่มยกเลิก
   confirmSheet.innerHTML += `
     <button class="btn btn-secondary"
       style="width:100%;margin-top:8px"
@@ -2278,7 +2279,11 @@ function openConfirm(){
       ยกเลิก
     </button>
   `;
-} // ✅ ปิด openConfirm()
+
+  // 🔥 หัวใจ: ต้องเปิด sheet จริง
+  openOverlay(confirmSheet);
+}
+
   
 function cancelConfirm(){
   state.ui.backdropLocked = false;
