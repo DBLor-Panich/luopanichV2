@@ -1099,14 +1099,27 @@ function safeHideLoading(fromTimeout = false) {
 
 
 // ---------- fetchWithTimeout ----------
-async function fetchWithTimeout(input, init = {}, ms = 15000) {
+async function fetchWithTimeout(input, init = {}, ms = 30000) {
   const controller = new AbortController();
   const signal = controller.signal;
   const id = setTimeout(() => controller.abort(), ms);
 
   try {
     const res = await fetch(input, { ...init, signal });
+
+    // 🔒 เช็ค HTTP status ชัดเจน
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+
     return res;
+
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("การเชื่อมต่อช้าเกินไป กรุณาลองใหม่อีกครั้ง");
+    }
+    throw err;
   } finally {
     clearTimeout(id);
   }
@@ -3291,6 +3304,7 @@ function closeProduct(){
 }
 
 async function submitOrder(){
+  if (state.loading) return;
   if (state.isSubmitting || state.cart.length === 0) return;
 
   state.isSubmitting = true;
