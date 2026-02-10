@@ -3335,12 +3335,10 @@ async function submitOrder(){
     console.error(err);
 
     // ❗ timeout จะไม่ซ้ำ toast
-    if (!timeoutHit) {
-      showToast(
-        err.message || 'เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ',
-        'error'
-      );
-    }
+  showToast(
+    err.message || 'เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ',
+    'error'
+  );
 
   } finally {
     // ================= SINGLE CLEANUP POINT =================
