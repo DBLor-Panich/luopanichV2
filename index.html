@@ -1477,14 +1477,13 @@ function openImageViewer(url){
 
   sheet.innerHTML = `
     <!-- overlay background (รับ click เพื่อปิด) -->
-    <div
-      onclick="closeImageViewer()"
-      style="
-        position:absolute;
-        inset:0;
-        background:#000;
-      ">
-    </div>
+ <div
+   style="
+     position:absolute;
+     inset:0;
+     background:#000;
+   ">
+ </div>
 
     <!-- ปุ่มปิด -->
     <button
@@ -1500,19 +1499,18 @@ function openImageViewer(url){
     </button>
 
     <!-- รูปสินค้า -->
-    <img
-      src="${url}"
-      alt="preview"
-      onclick="event.stopPropagation(); closeImageViewer()"
-      style="
-        position:relative;
-        z-index:1;
-        width:100%;
-        height:100%;
-        object-fit:contain;
-        cursor:zoom-out;
-      "
-    >
+ <img
+   src="${url}"
+   alt="preview"
+   style="
+     position:relative;
+     z-index:1;
+     width:100%;
+     height:100%;
+     object-fit:contain;
+     cursor:default;
+   "
+ >
   `;
 
   openOverlay(sheet);
