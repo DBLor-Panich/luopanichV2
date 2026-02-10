@@ -3318,6 +3318,8 @@ async function submitOrder(){
     }
     
     orderCreated = true;
+    timeoutHit = false;
+    clearTimeout(timeoutId);
     // ================= SUCCESS =================
     state.lastOrder = {
       orderId: res.data.orderId,
