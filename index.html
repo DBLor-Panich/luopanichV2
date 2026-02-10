@@ -3282,6 +3282,7 @@ async function submitOrder(){
   state.ui.backdropLocked = true;
 
   let timeoutHit = false;
+  let orderCreated = false;
 
   // ⛑️ TIMEOUT SAFETY
   const timeoutId = setTimeout(() => {
@@ -3303,19 +3304,20 @@ async function submitOrder(){
 
     if (!stockCheck.ok) {
       showToast(stockCheck.message, 'warning');
-      return;
+      throw new Error("STOCK_CHECK_FAILED");
     }
 
     // ================= STEP 2: CREATE ORDER =================
     showLoading('กำลังสร้างใบสั่งซื้อ...');
     const res = await createOrder();
 
-    if (timeoutHit) throw new Error("Request timeout");
+    if (timeoutHit && !orderCreated) throw new Error("Request timeout");
 
     if (!res || res.success !== true || !res.data?.orderId) {
       throw new Error("Invalid order response");
     }
-
+    
+    orderCreated = true;
     // ================= SUCCESS =================
     state.lastOrder = {
       orderId: res.data.orderId,
@@ -3333,9 +3335,11 @@ async function submitOrder(){
     renderBadge();
 
     // ✅ UI RESET (delayed for UX)
-    setTimeout(() => {
-      hardResetUI();
-    }, 300);
+ setTimeout(() => {
+   if (!state.ui.backdropLocked) {
+     hardResetUI();
+   }
+ }, 300);
 
   } catch(err){
     console.error(err);
