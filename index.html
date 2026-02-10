@@ -4265,9 +4265,9 @@ function exportOrderPNG(type = "A4") {
   a.href = canvas.toDataURL("image/png");
 
   // 🔴 FIX: ต้อง append เข้า DOM (Mobile Safari / Chrome policy)
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
 }
 
 function finishAdminAction({ refresh = true } = {}) {
