@@ -3281,26 +3281,10 @@ async function submitOrder(){
   state.isSubmitting = true;
   state.ui.backdropLocked = true;
 
-  let timeoutHit = false;
-  let orderCreated = false;
-
-  // ⛑️ TIMEOUT SAFETY
-  const timeoutId = setTimeout(() => {
-    timeoutHit = true;
-    console.warn('[submitOrder] timeout');
-
-    showToast("การเชื่อมต่อล่าช้า กรุณาลองใหม่", "warning");
-
-    // ❗ ไม่เรียก hideLoading ที่นี่
-    // ให้ flow หลักจัดการ cleanup ที่ finally เท่านั้น
-  }, 15000);
-
   try {
     // ================= STEP 1: CHECK STOCK =================
     showLoading('กำลังตรวจสอบสต๊อก...');
     const stockCheck = await checkStockBeforeSubmit();
-
-    if (timeoutHit) throw new Error("Request timeout");
 
     if (!stockCheck.ok) {
       showToast(stockCheck.message, 'warning');
@@ -3311,15 +3295,10 @@ async function submitOrder(){
     showLoading('กำลังสร้างใบสั่งซื้อ...');
     const res = await createOrder();
 
-    if (timeoutHit && !orderCreated) throw new Error("Request timeout");
-
     if (!res || res.success !== true || !res.data?.orderId) {
       throw new Error("Invalid order response");
     }
     
-    orderCreated = true;
-    timeoutHit = false;
-    clearTimeout(timeoutId);
     // ================= SUCCESS =================
     state.lastOrder = {
       orderId: res.data.orderId,
@@ -3356,8 +3335,6 @@ async function submitOrder(){
 
   } finally {
     // ================= SINGLE CLEANUP POINT =================
-    clearTimeout(timeoutId);
-
     safeHideLoading();
     state.isSubmitting = false;
     state.ui.backdropLocked = false;
