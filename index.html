@@ -50,7 +50,6 @@
   .container{padding:16px;display:grid;gap:16px;}
   .card{
     background:#fff;border-radius:18px;
-    box-shadow:0 8px 24px rgba(0,0,0,.06);
     padding:14px;cursor:pointer;
   }
   .name{
@@ -168,13 +167,6 @@ select:focus {
   border-color: #007aff;
   outline: none;
 }
-
-  
-
-  .btn{
-    padding:12px;border:none;border-radius:12px;
-    font-weight:600;
-  }
 
   /* ✅ เพิ่มตรงนี้ */
 button:disabled {
@@ -411,7 +403,7 @@ button:disabled {
   background: #fff;
   border-radius: 16px;
   padding: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  box-shadow: var(--shadow-card);
   align-items: center;
   cursor: pointer;
 }
@@ -750,6 +742,7 @@ textarea {
   background: #fff;
   padding: 20px 24px;
   border-radius: 12px;
+  box-shadow: var(--shadow-float);
   text-align: center;
   min-width: 200px;
 }
@@ -792,7 +785,7 @@ textarea {
 
    box-shadow:
      inset 0 1px 2px rgba(0,0,0,.05),
-     0 6px 16px rgba(0,0,0,.08);
+     var(--shadow-control);
 
    transition: box-shadow .2s ease, border-color .2s ease;
  }
@@ -831,7 +824,7 @@ textarea {
   margin: 8px auto 12px;   /* กินพื้นที่น้อย */
   display: block;
 
-  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+  box-shadow: var(--shadow-image);
 }
 
 /* ลดช่องว่างรอบ ๆ รูป */
@@ -872,6 +865,14 @@ textarea {
   cursor: pointer;
   z-index: 5;
 }
+
+ :root {
+   /* Shadow system (Premium / Consistent) */
+   --shadow-card:    0 10px 30px rgba(0,0,0,.08);
+   --shadow-control: 0 6px 16px rgba(0,0,0,.08);
+   --shadow-image:   0 4px 12px rgba(0,0,0,.12);
+   --shadow-float:   0 12px 36px rgba(0,0,0,.12);
+ }
   
 </style>
 </head>
@@ -3501,7 +3502,7 @@ function openProductEdit(p){
                height:80px;
                object-fit:cover;
                border-radius:10px;
-               box-shadow:0 4px 10px rgba(0,0,0,.12)
+               box-shadow: var(--shadow-image)
              ">
         <button
           onclick="removeCompareImage(${idx})"
