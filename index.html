@@ -3307,8 +3307,17 @@ async function submitOrder(){
       createdAt: new Date()
     };
 
-    exportOrderPNG();
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
+    showToast("แตะเพื่อดาวน์โหลดใบสั่งซื้อ", "info", 3000);
+
+    // 🟢 export แยกจาก flow หลัก (ไม่ block UI)
+    setTimeout(() => {
+      try {
+        exportOrderPNG();
+      } catch (e) {
+        console.warn("export PNG failed", e);
+      }
+    }, 0);
 
     // ✅ CLEAR CART (MEMORY + STORAGE)
     state.cart = [];
