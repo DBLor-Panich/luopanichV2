@@ -4124,91 +4124,89 @@ function exportOrderPNG(type = "A4") {
     }
   };
 
-const cfg = PRESET[type];
-if (!cfg) throw new Error("Unknown receipt type");
+  const cfg = PRESET[type];
+  if (!cfg) throw new Error("Unknown receipt type");
 
-/* ================= CANVAS SIZE ================= */
-const headerLines = 6;
-const itemLines = order.items.length * 2;
-const footerLines = 4;
+  /* ================= CANVAS SIZE ================= */
+  const headerLines = 6;
+  const itemLines = order.items.length * 2;
+  const footerLines = 4;
 
-const height =
-  cfg.padding * 2 +
-  (headerLines + itemLines + footerLines) * cfg.lineHeight;
+  const height =
+    cfg.padding * 2 +
+    (headerLines + itemLines + footerLines) * cfg.lineHeight;
 
-const canvas = document.createElement("canvas");
-canvas.width = cfg.width;
-canvas.height = height;
+  const canvas = document.createElement("canvas");
+  canvas.width = cfg.width;
+  canvas.height = height;
 
-const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d");
 
-/* ================= BACKGROUND ================= */
-ctx.fillStyle = "#f2f2f7";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+  /* ================= BACKGROUND ================= */
+  ctx.fillStyle = "#f2f2f7";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-/* ================= CARD ================= */
-ctx.fillStyle = "#ffffff";
-ctx.shadowColor = "rgba(0,0,0,0.08)";
-ctx.shadowBlur = 20;
-ctx.shadowOffsetY = 6;
+  /* ================= CARD ================= */
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "rgba(0,0,0,0.08)";
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetY = 6;
 
-ctx.beginPath();
+  ctx.beginPath();
 
-if (typeof ctx.roundRect === "function") {
-  // ✅ Modern browsers
-  ctx.roundRect(8, 8, canvas.width - 16, canvas.height - 16, 18);
-} else {
-  // 🔁 Fallback for old Safari / WebView
-  const x = 8;
-  const y = 8;
-  const w = canvas.width - 16;
-  const h = canvas.height - 16;
-  const r = 18;
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(8, 8, canvas.width - 16, canvas.height - 16, 18);
+  } else {
+    const x = 8;
+    const y0 = 8;
+    const w = canvas.width - 16;
+    const h = canvas.height - 16;
+    const r = 18;
 
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-}
+    ctx.moveTo(x + r, y0);
+    ctx.lineTo(x + w - r, y0);
+    ctx.quadraticCurveTo(x + w, y0, x + w, y0 + r);
+    ctx.lineTo(x + w, y0 + h - r);
+    ctx.quadraticCurveTo(x + w, y0 + h, x + w - r, y0 + h);
+    ctx.lineTo(x + r, y0 + h);
+    ctx.quadraticCurveTo(x, y0 + h, x, y0 + h - r);
+    ctx.lineTo(x, y0 + r);
+    ctx.quadraticCurveTo(x, y0, x + r, y0);
+  }
 
-ctx.fill();
-ctx.shadowColor = "transparent";
+  ctx.fill();
+  ctx.shadowColor = "transparent";
 
-/* ================= TEXT ================= */
-let y = cfg.padding + cfg.lineHeight;
-ctx.fillStyle = "#000";
+  /* ================= TEXT ================= */
+  let y = cfg.padding + cfg.lineHeight;
+  ctx.fillStyle = "#000";
 
-/* ===== TITLE ===== */
-ctx.font = `700 ${cfg.titleSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
-ctx.fillText("ใบสั่งซื้อ", cfg.padding, y);
-y += cfg.lineHeight + 8;
+  /* ===== TITLE ===== */
+  ctx.font = `700 ${cfg.titleSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.fillText("ใบสั่งซื้อ", cfg.padding, y);
+  y += cfg.lineHeight + 8;
 
-/* ===== META ===== */
-ctx.font = `${cfg.textSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
-ctx.fillText(`เลขที่: ${order.orderId}`, cfg.padding, y);
-y += cfg.lineHeight;
+  /* ===== META ===== */
+  ctx.font = `${cfg.textSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.fillText(`เลขที่: ${order.orderId}`, cfg.padding, y);
+  y += cfg.lineHeight;
 
-ctx.fillText(
-  `วันที่: ${order.createdAt.toLocaleString()}`,
-  cfg.padding,
-  y
-);
-y += cfg.lineHeight;
+  ctx.fillText(
+    `วันที่: ${order.createdAt.toLocaleString()}`,
+    cfg.padding,
+    y
+  );
+  y += cfg.lineHeight;
 
-/* ===== DIVIDER ===== */
-ctx.strokeStyle = "#dddddd";
-ctx.beginPath();
-ctx.moveTo(cfg.padding, y);
-ctx.lineTo(canvas.width - cfg.padding, y);
-ctx.stroke();
-y += cfg.lineHeight;
+  /* ===== DIVIDER ===== */
+  ctx.strokeStyle = "#dddddd";
+  ctx.beginPath();
+  ctx.moveTo(cfg.padding, y);
+  ctx.lineTo(canvas.width - cfg.padding, y);
+  ctx.stroke();
+  y += cfg.lineHeight;
 
-  /* ================= ITEMS (2 LINES / SAFE WRAP) ================= */
+  /* ================= ITEMS ================= */
   ctx.font = `${cfg.textSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
 
   order.items.forEach(i => {
@@ -4219,7 +4217,6 @@ y += cfg.lineHeight;
     const maxNameWidth = canvas.width - cfg.padding * 2;
     const priceWidth = ctx.measureText(priceText).width;
 
-    // --- Line 1: SKU + NAME (wrap) ---
     let line = "";
     for (const ch of nameText) {
       const test = line + ch;
@@ -4234,14 +4231,12 @@ y += cfg.lineHeight;
     ctx.fillText(line, cfg.padding, y);
     y += cfg.lineHeight;
 
-    // --- Line 2: QTY (left) + PRICE (right) ---
     ctx.fillText(qtyText, cfg.padding, y);
     ctx.fillText(
       priceText,
       canvas.width - cfg.padding - priceWidth,
       y
     );
-
     y += cfg.lineHeight;
   });
 
@@ -4264,11 +4259,15 @@ y += cfg.lineHeight;
     y
   );
 
-  /* ================= DOWNLOAD ================= */
+  /* ================= DOWNLOAD (FIXED) ================= */
   const a = document.createElement("a");
   a.download = `order-${order.orderId}-${type}.png`;
   a.href = canvas.toDataURL("image/png");
+
+  // 🔴 FIX: ต้อง append เข้า DOM (Mobile Safari / Chrome policy)
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 }
 
 function finishAdminAction({ refresh = true } = {}) {
