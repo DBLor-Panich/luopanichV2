@@ -24,8 +24,8 @@
   font-weight:500;
 
   /* 🔹 Visual */
-  background:rgba(255,255,255,.85);
-  backdrop-filter:blur(12px);
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(18px) saturate(160%);
   border-bottom: 1px solid rgba(0,0,0,.06);
 
   /* 🔹 Position */
@@ -407,6 +407,7 @@ button:disabled {
   box-shadow: var(--shadow-card);
   align-items: center;
   cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
 .product-card .thumb {
@@ -448,6 +449,11 @@ button:disabled {
   font-size: 13px;
   color: #555;
 }
+
+.product-card:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-control);
+}  
 
  .product-info-images {
    display: flex;
@@ -1742,14 +1748,14 @@ function renderProducts(){
     }
 
    // 🔍 STATUS FILTER (Viewer only, use resolved status)
+   const resolvedStatus =
+     stockNum <= 0 ? "out" : (p.status || "ready");
+
    if (
      state.mode === "viewer" &&
      state.viewerFilter &&
      state.viewerFilter.status !== "all"
    ) {
-     const resolvedStatus =
-      stockNum <= 0 ? "out" : (p.status || "ready");
-
      if (resolvedStatus !== state.viewerFilter.status) return;
    }
     
@@ -1761,9 +1767,7 @@ const statusMap = {
   out:       "หมด"
 };
 
-const statusKey = stockNum <= 0
-   ? "out"
-   : (p.status || "ready");
+const statusKey = resolvedStatus;
 let statusClass = statusKey;
 let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
@@ -2152,7 +2156,8 @@ function toggleViewerSearch(){
     input.style.width = "0";
     input.style.opacity = "0";
     input.value = "";
-    handleSearch("");
+    state.search = "";
+    renderProducts();
   }else{
     input.style.width = "100%";
     input.style.opacity = "1";
