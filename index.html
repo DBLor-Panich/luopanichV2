@@ -3487,7 +3487,7 @@ function openProductEdit(p){
 
     <div class="form-group">
       <label>รหัสสินค้า (SKU)</label>
-      <input value="${p.productId}" disabled>
+      <input id="editProductId" value="${p.productId}">
     </div>
 
     <div class="form-group">
@@ -3840,6 +3840,8 @@ async function submitProductEdit(){
   const price  = Number(document.getElementById("editPrice").value);
   const stock  = Number(document.getElementById("editStock").value);
   const status = document.getElementById("editStatus").value;
+  const newProductId = document.getElementById("editProductId").value.trim();
+  const oldProductId = p.productId;
   const note   = document.getElementById("editNote")?.value.trim() || "";
   const detailsText =
   document.getElementById("editDetailsText")?.value.trim() || "";
@@ -3850,10 +3852,32 @@ async function submitProductEdit(){
      : "";
 
   // 🔒 Validate
-  if (!name || price < 0 || stock < 0) {
+  if (
+   !name ||
+   !newProductId ||
+   !Number.isFinite(price) ||
+   !Number.isFinite(stock) ||
+   price < 0 ||
+   stock < 0
+ ) {
     showToast("ข้อมูลไม่ถูกต้อง", "error");
 
     // 🔓 คืนสภาพทันที
+    state.isSubmitting = false;
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+    }
+    return;
+  }
+
+  // 🔒 SKU Duplicate Check (วางตรงนี้เท่านั้น)
+  const duplicate = state.products.find(
+    x => x.productId === newProductId && x.productId !== oldProductId
+  );
+ 
+  if (duplicate) {
+    showToast("รหัสสินค้านี้มีอยู่แล้ว", "error");
     state.isSubmitting = false;
     if (saveBtn) {
       saveBtn.disabled = false;
@@ -3879,7 +3903,8 @@ async function submitProductEdit(){
     const form = new URLSearchParams();
     form.append("action", "updateProduct");
     form.append("token", state.admin.token);
-    form.append("productId", p.productId);
+    form.append("oldProductId", oldProductId);
+    form.append("newProductId", newProductId);
     form.append("name", name);
     form.append("price", price);
     form.append("stock", stock);
@@ -3899,6 +3924,8 @@ async function submitProductEdit(){
     }
 
     showToast("บันทึกการแก้ไขเรียบร้อย", "success");
+
+    state.selectedProduct = null;
 
     // cleanup
     state.editImageFile = null;
