@@ -4537,7 +4537,9 @@ async function restoreAdminSessionIfValid() {
     // ✅ RENDER
     renderHeader();
     renderProducts();
-    renderBadge?.();
+    if (typeof renderBadge === "function") {
+      renderBadge();
+    }
 
   } catch (err) {
     console.error("[INIT ERROR]", err);
