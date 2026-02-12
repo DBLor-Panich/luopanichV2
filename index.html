@@ -4353,45 +4353,48 @@ function exportOrderPNG() {
   ctx.fillText("ใบสั่งซื้อ", cfg.padding, y);
   y += cfg.lineHeight + 8;
 
+  /* ===== HEADER BASE LINE ===== */
+  const headerTopY = y;
+
   /* ===== COMPANY BLOCK ===== */
 ctx.font = `700 ${cfg.textSize + 4}px -apple-system`;
-ctx.fillText("ร้านล้อพาณิชย์", cfg.padding, y);
-y += cfg.lineHeight;
+ctx.fillText("ร้านล้อพาณิชย์", cfg.padding, headerTopY);
 
 ctx.font = `${cfg.textSize}px -apple-system`;
-ctx.fillText("7/13 หมู่ 5 ต.หนองแขม อ.หนองแค จ.สระบุรี 18140", cfg.padding, y);
-y += cfg.lineHeight;
-
-y += cfg.lineHeight / 2;
+ctx.fillText(
+   "7/13 หมู่ 5 ต.หนองแขม อ.หนองแค จ.สระบุรี 18140",
+   cfg.padding,
+   headerTopY + cfg.lineHeight
+);
 
 /* ===== CUSTOMER BLOCK ===== */
 ctx.font = `700 ${cfg.textSize}px -apple-system`;
-ctx.fillText("ลูกค้า:", cfg.padding, y);
-y += cfg.lineHeight;
+ctx.fillText("ลูกค้า:", cfg.padding, headerTopY + cfg.lineHeight * 3);
 
 ctx.font = `${cfg.textSize}px -apple-system`;
-ctx.fillText(customerName, cfg.padding, y);
-y += cfg.lineHeight;
+ctx.fillText(customerName, cfg.padding, headerTopY + cfg.lineHeight * 4);
 
-ctx.fillText(`เลขผู้เสียภาษี: ${customerTaxId}`, cfg.padding, y);
-y += cfg.lineHeight;
+ctx.fillText(
+   `เลขผู้เสียภาษี: ${customerTaxId}`,
+   cfg.padding,
+   headerTopY + cfg.lineHeight * 5
+ );
 
-y += cfg.lineHeight / 2;
 
 /* ===== DOCUMENT META ===== */
 const rightX = canvas.width - cfg.padding;
 
   ctx.textAlign = "right";
-  ctx.fillText(`เลขที่: ${order.orderId}`, rightX, cfg.padding + cfg.lineHeight * 2);
-  ctx.fillText(`PO: ${po}`, rightX, cfg.padding + cfg.lineHeight * 3);
-  ctx.fillText(
-    `วันที่: ${order.createdAt.toLocaleDateString("th-TH")}`,
-    rightX,
-    cfg.padding + cfg.lineHeight * 4
-  );
+  ctx.fillText(`เลขที่: ${order.orderId}`, rightX, headerTopY);
+ ctx.fillText(`PO: ${po}`, rightX, headerTopY + cfg.lineHeight);
+ ctx.fillText(
+   `วันที่: ${order.createdAt.toLocaleDateString("th-TH")}`,
+   rightX,
+   headerTopY + cfg.lineHeight * 2
+ );
 
   ctx.textAlign = "left";
-y += cfg.lineHeight;
+y = headerTopY + cfg.lineHeight * 7;
 
 
   /* ===== DIVIDER ===== */
