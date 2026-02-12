@@ -2268,12 +2268,9 @@ function handleBackdropClick(){
 
    // 🔴 FIX: force reset overlay system (emergency exit)
    state.ui.backdropLocked = false;
+   const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
+   openEls.forEach(el => el.classList.remove("show"));
    state.ui.overlayCount = 0;
-
-   // ปิด sheet ที่ค้างทั้งหมด
-   document
-     .querySelectorAll(".sheet.show, .side-menu.show")
-     .forEach(el => el.classList.remove("show"));
 
     safeHideLoading();   // ✅ ไม่มีทาง error
     showToast("ยกเลิกการดำเนินการ", "warning", 1200);
