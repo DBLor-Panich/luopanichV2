@@ -7,6 +7,13 @@
 
 <!-- ================= UI STYLE ================= -->
 <style>
+  :root {
+   --shadow-card:    0 10px 30px rgba(0,0,0,.08);
+   --shadow-control: 0 6px 16px rgba(0,0,0,.08);
+   --shadow-image:   0 4px 12px rgba(0,0,0,.12);
+   --shadow-float:   0 12px 36px rgba(0,0,0,.12);
+ }
+  
   html, body {
   margin: 0;
   padding: 0;
@@ -174,8 +181,7 @@ button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-  .btn-primary{background:#007aff;color:#fff;}
-  .btn-secondary{background:#34c759;color:#fff;}
+
  .btn-remove{
   padding:6px 12px;
   border-radius:10px;
@@ -192,12 +198,6 @@ button:disabled {
   /* ✅ เพิ่มตรงนี้ */
 .btn-remove:active {
   transform: scale(0.95);
-}
-
-/* 🔴 DANGER / DELETE / EXIT */
-.btn-danger {
-  background: #ff3b30;
-  color: #fff;
 }
 
 /* ⚪ OUTLINE / CANCEL */
@@ -237,12 +237,6 @@ button:disabled {
 /* Secondary (soft green) */
 .btn-secondary {
   background: #34c759;
-  color: #fff;
-}
-
-/* Danger (soft red) */
-.btn-danger {
-  background: #ff3b30;
   color: #fff;
 }
 
@@ -605,11 +599,6 @@ button:disabled {
   margin-top: 12px;
 }
 
-.btn-danger {
-  background: #ff3b30;
-  color: #fff;
-}
-
 .btn-danger:active {
   transform: scale(0.97);
 }
@@ -873,14 +862,6 @@ textarea {
   cursor: pointer;
   z-index: 5;
 }
-
- :root {
-   /* Shadow system (Premium / Consistent) */
-   --shadow-card:    0 10px 30px rgba(0,0,0,.08);
-   --shadow-control: 0 6px 16px rgba(0,0,0,.08);
-   --shadow-image:   0 4px 12px rgba(0,0,0,.12);
-   --shadow-float:   0 12px 36px rgba(0,0,0,.12);
- }
 
 /* =================================================
    📦 PRODUCT SHEET – SHARED UI CLASSES
