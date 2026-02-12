@@ -4408,8 +4408,9 @@ const rightX = canvas.width - cfg.padding;
   ctx.textAlign = "right";
   ctx.fillText(`เลขที่: ${order.orderId}`, rightX, headerTopY);
  ctx.fillText(`PO: ${po}`, rightX, headerTopY + cfg.lineHeight);
+ const docDate = new Date(order.createdAt);
  ctx.fillText(
-   `วันที่: ${order.createdAt.toLocaleDateString("th-TH")}`,
+   `วันที่: ${docDate.toLocaleDateString("th-TH")}`,
    rightX,
    headerTopY + cfg.lineHeight * 2
  );
