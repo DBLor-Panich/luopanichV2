@@ -1230,7 +1230,11 @@ async function fetchWithTimeout(input, init = {}, ms = 30000) {
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
 const fetchProducts = async () => {
-  const res = await fetch(`${API_URL}?action=products`);
+  const res = await fetchWithTimeout(
+   `${API_URL}?action=products`,
+   {},
+   15000
+ );
   const json = await res.json();
 
   // 🔒 enforce standard response
@@ -4670,7 +4674,7 @@ function exportOrderPrint() {
           ${items.map((i, index) => `
             <tr>
               <td>${index + 1}</td>
-              <td>[${i.productId}] ${i.name}</td>
+              <td>[${esc(i.productId)}] ${esc(i.name)}</td>
               <td>${i.qty}</td>
               <td>฿${Number(i.price).toLocaleString()}</td>
               <td>฿${(i.price * i.qty).toLocaleString()}</td>
@@ -4686,14 +4690,14 @@ function exportOrderPrint() {
       <div class="sign">
         <div class="sign-block">
           <div class="line"></div>
-          ในาม บริษัท ออร์เดอร์พลัส 88 จำกัด<br>
+          ในนาม บริษัท ออร์เดอร์พลัส 88 จำกัด<br>
           ผู้รับวางบิล<br>
           วันที่ ${today}
         </div>
 
         <div class="sign-block">
           <div class="line"></div>
-          ในาม ร้านล้อพาณิชย์<br>
+          ในนาม ร้านล้อพาณิชย์<br>
           ผู้วางบิล<br>
           วันที่ ${today}
         </div>
