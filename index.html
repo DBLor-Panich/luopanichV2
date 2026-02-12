@@ -4294,22 +4294,35 @@ function exportOrderPNG() {
   };
 
   /* ================= CANVAS SIZE ================= */
-  const headerLines = 20;
   const items = Array.isArray(order.items) ? order.items : [];
-  
- const po = order.poNumber
-   ? String(order.poNumber)
-   : "-";
 
- const customerName = "บริษัท ออร์เดอร์พลัส 88 จำกัด";
- const customerTaxId = "0195566000907";
-  const itemLines = items.length * 4;
-  const footerLines = 4;
+  const po = order.poNumber
+    ? String(order.poNumber)
+    : "-";
+
+  const customerName = "บริษัท ออร์เดอร์พลัส 88 จำกัด";
+  const customerTaxId = "0195566000907";
+
+  // 🔥 Dynamic line estimation
+  const headerLines =
+    1 + // title
+    3 + // company block
+    3 + // customer block
+    3;  // document meta
+
+  const itemLines = items.reduce((sum, i) => {
+    const baseLines = 2; // name + qty/price
+    const extraWrap =
+      Math.ceil((i.name?.length || 0) / 35); // approx wrap
+    return sum + baseLines + extraWrap;
+  }, 0);
+
+  const footerLines = 2; // divider + total
 
   const height =
     cfg.padding * 2 +
     (headerLines + itemLines + footerLines) * cfg.lineHeight;
-
+  
   const canvas = document.createElement("canvas");
   canvas.width = cfg.width;
   canvas.height = height;
