@@ -1588,8 +1588,13 @@ async function checkStockBeforeSubmit() {
   return { ok:true };
 }
 
-
 /* ================= RENDER FUNCTIONS ================= */
+ // 🔒 Global HTML Escape (XSS Guard)
+ const esc = s =>
+   String(s)
+     .replace(/</g, "&lt;")
+     .replace(/>/g, "&gt;");  
+  
 function openImageViewer(url){
   if (!url) return;
 
@@ -1671,7 +1676,7 @@ function closeImageViewer(){
      : [];
 
    const html = `
-     <h3>${p.name}</h3>
+     <h3>${esc(p.name)}</h3>
 
      ${
        images.length
@@ -1692,7 +1697,7 @@ function closeImageViewer(){
          ? `
            <div class="product-info-block">
              <ul>
-               ${details.map(d => `<li>${d}</li>`).join("")}
+               ${details.map(d => `<li>${esc(d)}</li>`).join("")}
              </ul>
            </div>
          `
