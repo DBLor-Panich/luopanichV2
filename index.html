@@ -4286,13 +4286,13 @@ function exportOrderPNG() {
 
   /* ================= A4 CONFIG (FIXED) ================= */
   const cfg = {
-    width: 794,
-    padding: 48,
-    titleSize: 28,
-    textSize: 16,
-    lineHeight: 32
+    width: 794,          // A4 width @96dpi
+    height: 1123,        // 🔥 A4 height fixed
+    padding: 64,
+    titleSize: 32,
+    textSize: 18,
+    lineHeight: 34
   };
-
   /* ================= CANVAS SIZE ================= */
   const items = Array.isArray(order.items) ? order.items : [];
 
@@ -4303,29 +4303,9 @@ function exportOrderPNG() {
   const customerName = "บริษัท ออร์เดอร์พลัส 88 จำกัด";
   const customerTaxId = "0195566000907";
 
-  // 🔥 Dynamic line estimation
-  const headerLines =
-    1 + // title
-    3 + // company block
-    3 + // customer block
-    3;  // document meta
-
-  const itemLines = items.reduce((sum, i) => {
-    const baseLines = 2; // name + qty/price
-    const extraWrap =
-      Math.ceil((i.name?.length || 0) / 35); // approx wrap
-    return sum + baseLines + extraWrap;
-  }, 0);
-
-  const footerLines = 6; // divider + total + signature section
-
-  const height =
-    cfg.padding * 2 +
-    (headerLines + itemLines + footerLines) * cfg.lineHeight;
-  
   const canvas = document.createElement("canvas");
   canvas.width = cfg.width;
-  canvas.height = height;
+  canvas.height = cfg.height;  // 🔥 FIXED A4
 
   const ctx = canvas.getContext("2d");
 
@@ -4399,17 +4379,18 @@ y += cfg.lineHeight;
 y += cfg.lineHeight / 2;
 
 /* ===== DOCUMENT META ===== */
-ctx.fillText(`เลขที่: ${order.orderId}`, cfg.padding, y);
-y += cfg.lineHeight;
+const rightX = canvas.width - cfg.padding;
 
-ctx.fillText(`PO: ${po}`, cfg.padding, y);
-y += cfg.lineHeight;
+  ctx.textAlign = "right";
+  ctx.fillText(`เลขที่: ${order.orderId}`, rightX, cfg.padding + cfg.lineHeight * 2);
+  ctx.fillText(`PO: ${po}`, rightX, cfg.padding + cfg.lineHeight * 3);
+  ctx.fillText(
+    `วันที่: ${order.createdAt.toLocaleDateString("th-TH")}`,
+    rightX,
+    cfg.padding + cfg.lineHeight * 4
+  );
 
-ctx.fillText(
-  `วันที่: ${order.createdAt.toLocaleDateString("th-TH")}`,
-  cfg.padding,
-  y
-);
+  ctx.textAlign = "left";
 y += cfg.lineHeight;
 
 
@@ -4475,32 +4456,32 @@ y += cfg.lineHeight;
     y
   );
 
- /* ================= SIGNATURE SECTION ================= */
- y += cfg.lineHeight * 2;
+/* ================= SIGNATURE SECTION ================= */
+  y = canvas.height - 200;  // 🔥 ล็อกท้ายหน้า A4
 
- ctx.strokeStyle = "#000";
+  const signWidth = 260;
 
- // เส้นผู้อนุมัติ
- ctx.beginPath();
- ctx.moveTo(cfg.padding, y);
- ctx.lineTo(cfg.padding + 250, y);
- ctx.stroke();
+  // LEFT SIGN
+  ctx.beginPath();
+  ctx.moveTo(cfg.padding, y);
+  ctx.lineTo(cfg.padding + signWidth, y);
+  ctx.stroke();
 
- ctx.font = `${cfg.textSize}px -apple-system`;
- ctx.fillText("ผู้อนุมัติ", cfg.padding, y + cfg.lineHeight);
+  ctx.fillText("ในนาม บริษัท ออร์เดอร์พลัส 88 จำกัด", cfg.padding, y + 28);
+  ctx.fillText("ผู้รับวางบิล", cfg.padding, y + 56);
+  ctx.fillText("วันที่ 10/02/2026", cfg.padding, y + 84);
 
- // เส้นผู้รับสินค้า
- const rightStart = canvas.width - cfg.padding - 250;
- ctx.beginPath();
- ctx.moveTo(rightStart, y);
- ctx.lineTo(canvas.width - cfg.padding, y);
- ctx.stroke();
+  // RIGHT SIGN
+  const rightStart = canvas.width - cfg.padding - signWidth;
 
- ctx.fillText(
-   "ผู้รับสินค้า",
-   rightStart,
-   y + cfg.lineHeight
- );
+  ctx.beginPath();
+  ctx.moveTo(rightStart, y);
+  ctx.lineTo(canvas.width - cfg.padding, y);
+  ctx.stroke();
+
+  ctx.fillText("ในนาม ร้านล้อพาณิชย์", rightStart, y + 28);
+  ctx.fillText("ผู้วางบิล", rightStart, y + 56);
+  ctx.fillText("วันที่ 10/02/2026", rightStart, y + 84);
 
   /* ================= DOWNLOAD (FIXED) ================= */
   const a = document.createElement("a");
