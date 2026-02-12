@@ -4426,40 +4426,68 @@ y = headerTopY + cfg.lineHeight * 11;
   ctx.stroke();
   y += cfg.lineHeight;
 
-  /* ================= ITEMS ================= */
-  ctx.font = `${cfg.textSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+/* ================= ITEMS (GRID TABLE) ================= */
+  const tableTopY = y;
+  const rowHeight = 42;
 
-  items.forEach(i => {
-    const nameText = `[${i.productId}] ${i.name}`;
-    const qtyText = `x ${i.qty}`;
-    const priceText = `฿${(i.price * i.qty).toLocaleString()}`;
+  const col = {
+    no: cfg.padding,
+    name: cfg.padding + 60,
+    qty: canvas.width - cfg.padding - 260,
+    price: canvas.width - cfg.padding - 180,
+    total: canvas.width - cfg.padding - 90
+  };
 
-    const maxNameWidth = canvas.width - cfg.padding * 2;
-    const priceWidth = ctx.measureText(priceText).width;
+  ctx.font = `700 ${cfg.textSize}px -apple-system`;
 
-    let line = "";
-    for (const ch of nameText) {
-      const test = line + ch;
-      if (ctx.measureText(test).width > maxNameWidth) {
-        ctx.fillText(line, cfg.padding, y);
-        y += cfg.lineHeight;
-        line = ch;
-      } else {
-        line = test;
-      }
+  // HEADER
+  ctx.fillText("ลำดับ", col.no, y);
+  ctx.fillText("รายการสินค้า", col.name, y);
+  ctx.fillText("จำนวน", col.qty, y);
+  ctx.fillText("ราคา", col.price, y);
+  ctx.fillText("รวม", col.total, y);
+
+  y += 16;
+
+  ctx.strokeStyle = "#000";
+  ctx.beginPath();
+  ctx.moveTo(cfg.padding, y);
+  ctx.lineTo(canvas.width - cfg.padding, y);
+  ctx.stroke();
+
+  y += rowHeight - 16;
+
+  ctx.font = `${cfg.textSize}px -apple-system`;
+
+  items.forEach((i, index) => {
+    const total = Number(i.price) * Number(i.qty);
+
+    ctx.fillText(String(index + 1), col.no, y);
+
+    // truncate name (single line grid)
+    let name = `[${i.productId}] ${i.name}`;
+    while (ctx.measureText(name).width > (col.qty - col.name - 20)) {
+      name = name.slice(0, -1);
     }
-    ctx.fillText(line, cfg.padding, y);
-    y += cfg.lineHeight;
 
-    ctx.fillText(qtyText, cfg.padding, y);
-    ctx.fillText(
-      priceText,
-      canvas.width - cfg.padding - priceWidth,
-      y
-    );
-    y += cfg.lineHeight;
+    ctx.fillText(name, col.name, y);
+
+    ctx.textAlign = "right";
+    ctx.fillText(String(i.qty), col.qty + 40, y);
+    ctx.fillText(`฿${Number(i.price).toLocaleString()}`, col.price + 60, y);
+    ctx.fillText(`฿${total.toLocaleString()}`, col.total + 80, y);
+    ctx.textAlign = "left";
+
+    // horizontal line
+    ctx.beginPath();
+    ctx.moveTo(cfg.padding, y + 16);
+    ctx.lineTo(canvas.width - cfg.padding, y + 16);
+    ctx.strokeStyle = "#ddd";
+    ctx.stroke();
+
+    y += rowHeight;
   });
-
+  
   /* ===== DIVIDER ===== */
   y += 4;
   ctx.strokeStyle = "#dddddd";
