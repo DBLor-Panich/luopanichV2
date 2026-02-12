@@ -1265,7 +1265,10 @@ async function refreshProducts() {
 }
 
 async function createOrder() {
-  const total = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const total = state.cart.reduce(
+   (s,i)=> s + Number(i.price) * Number(i.qty),
+   0
+ );
 
   const form = new URLSearchParams();
   form.append("action", "createOrder");
@@ -1722,6 +1725,11 @@ function closeProductInfoSheet(){
 }  
   
 function renderProducts(){
+  const app = document.getElementById("app");
+
+  const escapeHTML = (str="") =>
+    str.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  
   // 🔒 GUARD สำคัญที่สุด
   if (!Array.isArray(state.products)) {
     console.error("renderProducts: products is not array", state.products);
@@ -1791,13 +1799,13 @@ let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
     card.innerHTML = `
       <img class="thumb"
-        src="${p.image || ""}"
+        src="${p.image ? p.image : "about:blank"}"
         alt="${p.name}"
         onerror="this.style.display='none'">
 
       <div class="info">
-        <div class="name">${p.name}</div>
-        <div class="sku">รหัส: ${p.productId}</div>
+        <div class="name">${escapeHTML(p.name)}</div>
+        <div class="sku">รหัส: ${escapeHTML(p.productId)}</div>
         <div class="price">ราคา: ฿${Number(p.price).toLocaleString()}</div>
 
         <div class="meta">
@@ -1989,17 +1997,12 @@ function renderConfirmSheet(){
 
 <button class="btn btn-primary"
   id="submitBtn"
-  ${state.isSubmitting ? "disabled" : ""}>
+  ${state.isSubmitting ? "disabled" : ""}
+  onclick="submitOrder()">
   ยืนยันสร้างใบสั่งซื้อ
 </button>
   `;
-  setTimeout(() => {
-  const btn = document.getElementById("submitBtn");
-  if (btn) {
-    btn.onclick = submitOrder; // 🔥 bind กับ DOM จริง
-  }
-}, 0);
-  
+ 
 }
 
 /* ================= HEADER RENDER (UPGRADED) ================= */
@@ -3411,7 +3414,7 @@ async function submitOrder(){
     }
 
     // ================= STEP 2: CREATE ORDER =================
-    showLoading('กำลังสร้างใบสั่งซื้อ...');
+    updateLoadingText('กำลังสร้างใบสั่งซื้อ...');
     const res = await createOrder();
 
     if (!res || res.success !== true || !res.data?.orderId) {
@@ -4290,7 +4293,7 @@ function exportOrderPNG(type = "A4") {
 
   /* ================= CANVAS SIZE ================= */
   const headerLines = 6;
-  const itemLines = order.items.length * 2;
+  const itemLines = order.items.length * 4; // buffer กัน wrap
   const footerLines = 4;
 
   const height =
@@ -4497,8 +4500,8 @@ window.forceUnlockUI = function(){
   // reset flags
   state.isSubmitting = false;
   state.ui.backdropLocked = false;
-  state.ui.overlayCount = 0;
-
+  state.ui.overlayCount =
+    document.querySelectorAll(".sheet.show, .side-menu.show").length;
   // close all overlays
   document
     .querySelectorAll(".sheet.show, .side-menu.show")
