@@ -2005,6 +2005,15 @@ function renderConfirmSheet(){
   confirmSheet.innerHTML += `
     <div class="total">ยอดรวม: ฿${total}</div>
 
+    <div class="form-group" style="margin-top:12px">
+     <label>เลข PO (ถ้ามี)</label>
+     <input
+       id="poInput"
+       placeholder="กรอกเลข PO"
+       oninput="state.poNumber = this.value.trim()">
+   </div>
+
+
 <button class="btn btn-primary"
   id="submitBtn"
   ${state.isSubmitting ? "disabled" : ""}
@@ -3437,6 +3446,7 @@ async function submitOrder(){
         0
       ),
       createdAt: new Date()
+      poNumber: state.poNumber || ""
     };
 
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
@@ -3452,6 +3462,7 @@ async function submitOrder(){
 
     state.cart = [];
     clearCartStorage();
+    state.poNumber = "";
     renderBadge();
 
     setTimeout(() => {
@@ -4269,41 +4280,29 @@ function isAdminSessionExpired(expiredAt = state.admin.expiredAt) {
 }  
 
 /* ================= EXPORT ORDER PNG (FINAL) ================= */
-function exportOrderPNG(type = "A4") {
+function exportOrderPNG() {
   const order = state.lastOrder;
   if (!order) return;
 
-  /* ================= PRESET ================= */
-  const PRESET = {
-    A4: {
-      width: 794,
-      padding: 48,
-      titleSize: 28,
-      textSize: 16,
-      lineHeight: 32
-    },
-    THERMAL_80: {
-      width: 384,
-      padding: 16,
-      titleSize: 20,
-      textSize: 13,
-      lineHeight: 24
-    },
-    THERMAL_58: {
-      width: 280,
-      padding: 14,
-      titleSize: 18,
-      textSize: 12,
-      lineHeight: 22
-    }
+  /* ================= A4 CONFIG (FIXED) ================= */
+  const cfg = {
+    width: 794,
+    padding: 48,
+    titleSize: 28,
+    textSize: 16,
+    lineHeight: 32
   };
 
-  const cfg = PRESET[type];
-  if (!cfg) throw new Error("Unknown receipt type");
-
   /* ================= CANVAS SIZE ================= */
-  const headerLines = 6;
+  const headerLines = 20;
   const items = Array.isArray(order.items) ? order.items : [];
+  
+ const po = order.poNumber
+   ? String(order.poNumber)
+   : "-";
+
+ const customerName = "บริษัท ออร์เดอร์พลัส 88 จำกัด";
+ const customerTaxId = "0195566000907";
   const itemLines = items.length * 4;
   const footerLines = 4;
 
@@ -4361,17 +4360,45 @@ function exportOrderPNG(type = "A4") {
   ctx.fillText("ใบสั่งซื้อ", cfg.padding, y);
   y += cfg.lineHeight + 8;
 
-  /* ===== META ===== */
-  ctx.font = `${cfg.textSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
-  ctx.fillText(`เลขที่: ${order.orderId}`, cfg.padding, y);
-  y += cfg.lineHeight;
+  /* ===== COMPANY BLOCK ===== */
+ctx.font = `700 ${cfg.textSize + 4}px -apple-system`;
+ctx.fillText("ร้านล้อพาณิชย์", cfg.padding, y);
+y += cfg.lineHeight;
 
-  ctx.fillText(
-    `วันที่: ${order.createdAt.toLocaleString()}`,
-    cfg.padding,
-    y
-  );
-  y += cfg.lineHeight;
+ctx.font = `${cfg.textSize}px -apple-system`;
+ctx.fillText("7/13 หมู่ 5 ต.หนองแขม อ.หนองแค จ.สระบุรี 18140", cfg.padding, y);
+y += cfg.lineHeight;
+
+y += cfg.lineHeight / 2;
+
+/* ===== CUSTOMER BLOCK ===== */
+ctx.font = `700 ${cfg.textSize}px -apple-system`;
+ctx.fillText("ลูกค้า:", cfg.padding, y);
+y += cfg.lineHeight;
+
+ctx.font = `${cfg.textSize}px -apple-system`;
+ctx.fillText(customerName, cfg.padding, y);
+y += cfg.lineHeight;
+
+ctx.fillText(`เลขผู้เสียภาษี: ${customerTaxId}`, cfg.padding, y);
+y += cfg.lineHeight;
+
+y += cfg.lineHeight / 2;
+
+/* ===== DOCUMENT META ===== */
+ctx.fillText(`เลขที่: ${order.orderId}`, cfg.padding, y);
+y += cfg.lineHeight;
+
+ctx.fillText(`PO: ${po}`, cfg.padding, y);
+y += cfg.lineHeight;
+
+ctx.fillText(
+  `วันที่: ${order.createdAt.toLocaleDateString("th-TH")}`,
+  cfg.padding,
+  y
+);
+y += cfg.lineHeight;
+
 
   /* ===== DIVIDER ===== */
   ctx.strokeStyle = "#dddddd";
@@ -4437,7 +4464,7 @@ function exportOrderPNG(type = "A4") {
 
   /* ================= DOWNLOAD (FIXED) ================= */
   const a = document.createElement("a");
-  a.download = `order-${order.orderId}-${type}.png`;
+  a.download = `order-${order.orderId}.png`;
   a.href = canvas.toDataURL("image/png");
 
   // 🔴 FIX: ต้อง append เข้า DOM (Mobile Safari / Chrome policy)
