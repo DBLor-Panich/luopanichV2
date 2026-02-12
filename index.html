@@ -4567,6 +4567,7 @@ function exportOrderPrint() {
           font-family: -apple-system, BlinkMacSystemFont, sans-serif;
           font-size: 14px;
           color: #111827; /* Dark Accent */
+          margin: 0;
 
           display: flex;
           flex-direction: column;
@@ -4646,7 +4647,11 @@ function exportOrderPrint() {
     <body>
 
   <div class="top-meta">
-    <div>${new Date().toLocaleString("en-US")}</div>
+    <div>${new Date().toLocaleString("th-TH", {
+  dateStyle: "short",
+  timeStyle: "short"
+})}
+</div>
     <div>Order ${order.orderId}</div>
   </div>
 
