@@ -4566,6 +4566,7 @@ function exportOrderPrint() {
         body {
           font-family: -apple-system, BlinkMacSystemFont, sans-serif;
           font-size: 14px;
+          color: #111827; /* Dark Accent */
 
           display: flex;
           flex-direction: column;
@@ -4585,19 +4586,26 @@ function exportOrderPrint() {
           margin-bottom: 24px;
         }
 
+        h2 {
+          color: #1E3A8A; /* Navy Blue */
+          margin: 0 0 8px 0;
+        }
+        
         table {
           width: 100%;
           border-collapse: collapse;
         }
 
         th, td {
-          border-bottom: 1px solid #ddd;
+          border-bottom: 1px solid #E5E7EB; /* Soft Gray */
           padding: 8px;
           text-align: left;
         }
 
         th {
           font-weight: 600;
+          background: #F9FAFB; /* very soft header tint */
+          color: #1E3A8A; /* Navy Blue */
         }
 
         .total {
@@ -4605,6 +4613,7 @@ function exportOrderPrint() {
           font-weight: bold;
           font-size: 16px;
           margin-top: 16px;
+          color: #111827; /* Dark Accent */ 
         }
 
 .sign {
@@ -4619,7 +4628,7 @@ function exportOrderPrint() {
         }
 
         .line {
-          border-top: 1px solid #000;
+          border-top: 1px solid #E5E7EB; /* Soft Gray */
           margin-bottom: 8px;
         }
       </style>
