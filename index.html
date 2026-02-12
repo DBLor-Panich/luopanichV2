@@ -3309,6 +3309,14 @@ function openAddProduct(){
         onchange="handleAddImagePreview(this)">
     </div>
 
+    <!-- 🔁 CONTINUE MODE -->
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="addContinueMode">
+        เพิ่มต่อเนื่อง (คัดลอกข้อมูลเดิม)
+      </label>
+    </div>
+
     <button class="btn btn-primary"
       style="width:100%;margin-top:16px"
       onclick="submitAddProduct(this)">
@@ -4061,6 +4069,8 @@ async function submitAddProduct(btn){
     const stock     = Number(document.getElementById("addStock").value);
  let status      = document.getElementById("addStatus").value;
  const note      = document.getElementById("addNote")?.value.trim() || "";
+ const continueMode =
+   document.getElementById("addContinueMode")?.checked === true;   
  const active    = true; // 🔒 เพิ่มสินค้าใหม่ = ยังขายอยู่เสมอ
 
     /* ================= VALIDATE ================= */
@@ -4131,10 +4141,24 @@ async function submitAddProduct(btn){
 
     showToast("เพิ่มสินค้าเรียบร้อย 🎉", "success");
 
-    // 🧹 cleanup
     state.addImageFile = null;
-    closeAddProduct();
-    await refreshProducts();
+ await refreshProducts();
+
+ if (continueMode) {
+   // 🔁 ยิงรัว: ล้างเฉพาะ SKU + รูป
+   document.getElementById("addProductId").value = "";
+   document.getElementById("addStock").value = "0";
+
+   const img = document.getElementById("addImagePreview");
+   if (img) {
+     img.src = "";
+     img.style.display = "none";
+   }
+
+   document.getElementById("addProductId").focus();
+ } else {
+   closeAddProduct();
+ }
 
   } catch(err){
     console.error(err);
