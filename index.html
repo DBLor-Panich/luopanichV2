@@ -3445,8 +3445,8 @@ async function submitOrder(){
         (s,i)=> s + Number(i.price) * Number(i.qty),
         0
       ),
-      createdAt: new Date()
-      poNumber: state.poNumber || ""
+ createdAt: new Date(),
+ poNumber: state.poNumber || ""
     };
 
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
@@ -4317,7 +4317,7 @@ function exportOrderPNG() {
     return sum + baseLines + extraWrap;
   }, 0);
 
-  const footerLines = 2; // divider + total
+  const footerLines = 6; // divider + total + signature section
 
   const height =
     cfg.padding * 2 +
@@ -4474,6 +4474,33 @@ y += cfg.lineHeight;
     canvas.width - cfg.padding - tw,
     y
   );
+
+ /* ================= SIGNATURE SECTION ================= */
+ y += cfg.lineHeight * 2;
+
+ ctx.strokeStyle = "#000";
+
+ // เส้นผู้อนุมัติ
+ ctx.beginPath();
+ ctx.moveTo(cfg.padding, y);
+ ctx.lineTo(cfg.padding + 250, y);
+ ctx.stroke();
+
+ ctx.font = `${cfg.textSize}px -apple-system`;
+ ctx.fillText("ผู้อนุมัติ", cfg.padding, y + cfg.lineHeight);
+
+ // เส้นผู้รับสินค้า
+ const rightStart = canvas.width - cfg.padding - 250;
+ ctx.beginPath();
+ ctx.moveTo(rightStart, y);
+ ctx.lineTo(canvas.width - cfg.padding, y);
+ ctx.stroke();
+
+ ctx.fillText(
+   "ผู้รับสินค้า",
+   rightStart,
+   y + cfg.lineHeight
+ );
 
   /* ================= DOWNLOAD (FIXED) ================= */
   const a = document.createElement("a");
