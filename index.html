@@ -4631,9 +4631,24 @@ function exportOrderPrint() {
           border-top: 1px solid #E5E7EB; /* Soft Gray */
           margin-bottom: 8px;
         }
+
+ .top-meta {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   font-size: 12px;
+   color: #6B7280;
+   margin-bottom: 12px;
+ }
+
       </style>
     </head>
     <body>
+
+  <div class="top-meta">
+    <div>${new Date().toLocaleString("en-US")}</div>
+    <div>Order ${order.orderId}</div>
+  </div>
 
      <div class="content">
      
