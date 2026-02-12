@@ -3452,13 +3452,13 @@ async function submitOrder(){
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
     showToast("แตะเพื่อดาวน์โหลดใบสั่งซื้อ", "info", 3000);
 
-    setTimeout(() => {
-      try {
-        exportOrderPNG();
-      } catch (e) {
-        console.warn("export PNG failed", e);
-      }
-    }, 0);
+   setTimeout(() => {
+   try {
+     exportOrderPrint();
+   } catch (e) {
+     console.warn("export print failed", e);
+   }
+ }, 0);
 
     state.cart = [];
     clearCartStorage();
@@ -4550,6 +4550,171 @@ y = headerTopY + cfg.lineHeight * 11;
  document.body.removeChild(a);
 }
 
+function exportOrderPrint() {
+  const order = state.lastOrder;
+  if (!order) return;
+
+  const items = Array.isArray(order.items) ? order.items : [];
+
+  const po = order.poNumber
+    ? String(order.poNumber)
+    : "-";
+
+  const today = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString("th-TH")
+    : new Date().toLocaleDateString("th-TH");
+
+  const total = Number(order.total || 0).toLocaleString();
+
+  const printWindow = window.open("", "_blank");
+
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>Order ${order.orderId}</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 14px;
+        }
+
+        .header {
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .section {
+          margin-bottom: 24px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        th, td {
+          border-bottom: 1px solid #ddd;
+          padding: 8px;
+          text-align: left;
+        }
+
+        th {
+          font-weight: 600;
+        }
+
+        .total {
+          text-align: right;
+          font-weight: bold;
+          font-size: 16px;
+          margin-top: 16px;
+        }
+
+        .sign {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 80px;
+        }
+
+        .sign-block {
+          width: 40%;
+          text-align: center;
+        }
+
+        .line {
+          border-top: 1px solid #000;
+          margin-bottom: 8px;
+        }
+      </style>
+    </head>
+    <body>
+
+      <div class="header section">
+        <div>
+          <h2>ใบสั่งซื้อ</h2>
+          <div>ร้านล้อพาณิชย์</div>
+          <div>7/13 หมู่ 5 ต.หนองแขม</div>
+          <div>อ.หนองแค จ.สระบุรี 18140</div>
+        </div>
+
+        <div>
+          <div>เลขที่: ${order.orderId}</div>
+          <div>PO: ${po}</div>
+          <div>วันที่: ${today}</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <strong>ลูกค้า:</strong><br>
+        บริษัท ออร์เดอร์พลัส 88 จำกัด<br>
+        99 หมู่ 5 ต.ห้วยทราย อ.หนองแค<br>
+        จ.สระบุรี 18230<br>
+        เลขผู้เสียภาษี 0195566000907
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>รายการ</th>
+            <th>จำนวน</th>
+            <th>ราคา</th>
+            <th>รวม</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((i, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>[${i.productId}] ${i.name}</td>
+              <td>${i.qty}</td>
+              <td>฿${Number(i.price).toLocaleString()}</td>
+              <td>฿${(i.price * i.qty).toLocaleString()}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <div class="total">
+        ยอดรวม: ฿${total}
+      </div>
+
+      <div class="sign">
+        <div class="sign-block">
+          <div class="line"></div>
+          ในาม บริษัท ออร์เดอร์พลัส 88 จำกัด<br>
+          ผู้รับวางบิล<br>
+          วันที่ ${today}
+        </div>
+
+        <div class="sign-block">
+          <div class="line"></div>
+          ในาม ร้านล้อพาณิชย์<br>
+          ผู้วางบิล<br>
+          วันที่ ${today}
+        </div>
+      </div>
+
+      <script>
+        window.onload = function() {
+          window.print();
+          window.onafterprint = function() {
+            window.close();
+          }
+        }
+      <\/script>
+
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+}
+  
 function finishAdminAction({ refresh = true } = {}) {
   // 🔒 ปิดทุก overlay ผ่านศูนย์กลาง (Overlay Manager)
   document.querySelectorAll(".sheet.show, .side-menu.show")
