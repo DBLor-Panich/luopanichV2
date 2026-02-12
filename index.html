@@ -1843,6 +1843,8 @@ let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
 function renderProductSheet(){
   const p = state.selectedProduct;
+  const productSheet = document.getElementById("productSheet");
+  if (!productSheet || !p) return;
 
   productSheet.innerHTML = `
     <!-- ❌ CLOSE BUTTON (TOP-RIGHT) -->
