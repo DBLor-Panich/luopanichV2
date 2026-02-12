@@ -1944,7 +1944,10 @@ function renderCart(){
     </div>`;
   });
 
-const total = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+const total = state.cart.reduce(
+   (s,i)=> s + Number(i.price) * Number(i.qty),
+   0
+ );
 
 cartSheet.innerHTML += `
   <div class="total">Total: ฿${total}</div>
@@ -3425,7 +3428,10 @@ async function submitOrder(){
     state.lastOrder = {
       orderId: res.data.orderId,
       items: JSON.parse(JSON.stringify(state.cart)),
-      total: state.cart.reduce((s,i)=>s+i.price*i.qty,0),
+      total: state.cart.reduce(
+        (s,i)=> s + Number(i.price) * Number(i.qty),
+        0
+      ),
       createdAt: new Date()
     };
 
