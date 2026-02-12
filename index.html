@@ -4481,6 +4481,9 @@ y = headerTopY + cfg.lineHeight * 11;
   );
 
 /* ================= SIGNATURE SECTION ================= */
+  const todayText = order.createdAt
+   ? new Date(order.createdAt).toLocaleDateString("th-TH")
+   : new Date().toLocaleDateString("th-TH");
   y = canvas.height - 200;  // 🔥 ล็อกท้ายหน้า A4
 
   const signWidth = 260;
@@ -4493,7 +4496,7 @@ y = headerTopY + cfg.lineHeight * 11;
 
   ctx.fillText("ในนาม บริษัท ออร์เดอร์พลัส 88 จำกัด", cfg.padding, y + 28);
   ctx.fillText("ผู้รับวางบิล", cfg.padding, y + 56);
-  ctx.fillText("วันที่ 10/02/2026", cfg.padding, y + 84);
+  ctx.fillText(`วันที่ ${todayText}`, cfg.padding, y + 84);
 
   // RIGHT SIGN
   const rightStart = canvas.width - cfg.padding - signWidth;
@@ -4505,7 +4508,7 @@ y = headerTopY + cfg.lineHeight * 11;
 
   ctx.fillText("ในนาม ร้านล้อพาณิชย์", rightStart, y + 28);
   ctx.fillText("ผู้วางบิล", rightStart, y + 56);
-  ctx.fillText("วันที่ 10/02/2026", rightStart, y + 84);
+  ctx.fillText(`วันที่ ${todayText}`, rightStart, y + 84);
 
   /* ================= DOWNLOAD (FIXED) ================= */
   const a = document.createElement("a");
