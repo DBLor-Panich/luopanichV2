@@ -1854,7 +1854,7 @@ function renderProductSheet(){
       ×
     </button>
 
-    <h3 class="product-title">${p.name}</h3>
+    <h3 class="product-title">${esc(p.name)}</h3>
 
     <div style="color:#888;font-size:13px;margin-bottom:8px">
       รหัสสินค้า: ${p.productId}
@@ -1931,7 +1931,7 @@ function renderCart(){
   cartSheet.innerHTML+=`
     <div class="cart-item">
       <div>
-        <div class="name">${i.name}</div>
+        <div class="name">${esc(i.name)}</div>
         <div style="font-size:12px;color:#888">
           รหัส: ${i.productId}
         </div>
@@ -1991,7 +1991,7 @@ function renderConfirmSheet(){
     confirmSheet.innerHTML += `
       <div class="cart-item">
         <div>
-          <div class="name">${i.name}</div>
+          <div class="name">${esc(i.name)}</div>
           <div style="font-size:12px;color:#888">รหัส: ${i.productId}</div>
           <div style="font-size:13px">จำนวน ${i.qty}</div>
         </div>
