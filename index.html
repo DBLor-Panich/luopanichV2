@@ -4585,6 +4585,14 @@ function exportOrderPrint() {
         body {
           font-family: -apple-system, BlinkMacSystemFont, sans-serif;
           font-size: 14px;
+
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          }
+
+          .content {
+          flex: 1;
         }
 
         .header {
@@ -4618,11 +4626,11 @@ function exportOrderPrint() {
           margin-top: 16px;
         }
 
-        .sign {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 80px;
-        }
+.sign {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;   /* 🔥 หัวใจ */
+}
 
         .sign-block {
           width: 40%;
@@ -4637,6 +4645,8 @@ function exportOrderPrint() {
     </head>
     <body>
 
+     <div class="content">
+     
       <div class="header section">
         <div>
           <h2>ใบสั่งซื้อ</h2>
@@ -4683,9 +4693,11 @@ function exportOrderPrint() {
         </tbody>
       </table>
 
-      <div class="total">
-        ยอดรวม: ฿${total}
-      </div>
+<div class="total">
+  ยอดรวม: ฿${total}
+</div>
+
+</div> <!-- ปิด content -->
 
       <div class="sign">
         <div class="sign-block">
