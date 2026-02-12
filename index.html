@@ -4303,7 +4303,8 @@ function exportOrderPNG(type = "A4") {
 
   /* ================= CANVAS SIZE ================= */
   const headerLines = 6;
-  const itemLines = order.items.length * 4; // buffer กัน wrap
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemLines = items.length * 4;
   const footerLines = 4;
 
   const height =
@@ -4383,7 +4384,7 @@ function exportOrderPNG(type = "A4") {
   /* ================= ITEMS ================= */
   ctx.font = `${cfg.textSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
 
-  order.items.forEach(i => {
+  items.forEach(i => {
     const nameText = `[${i.productId}] ${i.name}`;
     const qtyText = `x ${i.qty}`;
     const priceText = `฿${(i.price * i.qty).toLocaleString()}`;
@@ -4425,7 +4426,8 @@ function exportOrderPNG(type = "A4") {
 
   /* ================= TOTAL ================= */
   ctx.font = `700 ${cfg.textSize + 4}px -apple-system, BlinkMacSystemFont, sans-serif`;
-  const totalText = `ยอดรวม: ฿${order.total.toLocaleString()}`;
+  const safeTotal = Number(order.total) || 0;
+  const totalText = `ยอดรวม: ฿${safeTotal.toLocaleString()}`;
   const tw = ctx.measureText(totalText).width;
   ctx.fillText(
     totalText,
