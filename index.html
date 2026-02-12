@@ -1044,19 +1044,25 @@ const state = {
   admin: {
     loggedIn: false,
     user: null,
-    token: null,          // ✅ เผื่อบางจุดใช้อยู่แล้ว / future-proof
+    token: null,
     orders: [],
     selectedOrder: null,
     logs: [],
 
-    // 🔒 admin submit guard (approve / reject / stock)
+    // 🔒 admin submit guard
     isSubmitting: false
+  },
+
+  // 🧠 SMART ADD PRODUCT DRAFT
+  smartAddDraft: {
+    price: "",
+    stock: "",
+    status: "ready",
+    note: ""
   },
 
   ui: {
     overlayCount: 0,
-
-    // 🔒 ใช้ร่วมกับ loading / overlay
     backdropLocked: false
   }
 };
@@ -3244,6 +3250,7 @@ function openAdminMenu(){
 
 function openAddProduct(){
   state.addImageFile = null;
+  const draft = state.smartAddDraft || {};
 
   adminAddProductSheet.innerHTML = `
     <h3>➕ เพิ่มสินค้าใหม่</h3>
@@ -3264,22 +3271,22 @@ function openAddProduct(){
 
     <div class="form-group">
       <label>ราคา</label>
-      <input id="addPrice" type="number" placeholder="0">
+      <input id="addPrice" type="number" value="${draft.price || ""}" placeholder="0">
     </div>
 
     <div class="form-group">
       <label>จำนวน (สต๊อกเริ่มต้น)</label>
-      <input id="addStock" type="number" placeholder="0">
+      <input id="addStock" type="number" value="${draft.stock || ""}" placeholder="0">
     </div>
 
     <!-- 🔴 สถานะสินค้า (เพื่อแจ้งลูกค้า) -->
     <div class="form-group">
       <label>สถานะสินค้า</label>
       <select id="addStatus">
-        <option value="ready">พร้อมส่ง</option>
-        <option value="shipping">อยู่ระหว่างจัดส่ง</option>
-        <option value="warehouse">อยู่โกดังไทย</option>
-        <option value="out">หมด</option>
+        <option value="ready" ${draft.status==="ready"?"selected":""}>พร้อมส่ง</option>
+        <option value="shipping" ${draft.status==="shipping"?"selected":""}>อยู่ระหว่างจัดส่ง</option>
+        <option value="warehouse" ${draft.status==="warehouse"?"selected":""}>อยู่โกดังไทย</option>
+        <option value="out" ${draft.status==="out"?"selected":""}>หมด</option>
       </select>
     </div>
 
@@ -3297,7 +3304,7 @@ function openAddProduct(){
       border-radius:12px;
       padding:10px 12px;
     "
-  ></textarea>
+  >${draft.note || ""}</textarea>
 </div>
 
     <div class="form-group">
@@ -4142,12 +4149,19 @@ async function submitAddProduct(btn){
     showToast("เพิ่มสินค้าเรียบร้อย 🎉", "success");
 
     state.addImageFile = null;
+ // 🧠 SMART MODE SAVE (จำค่าล่าสุดเสมอ)
+ state.smartAddDraft = {
+   price,
+   stock,
+   status,
+   note
+ };
  await refreshProducts();
 
  if (continueMode) {
    // 🔁 ยิงรัว: ล้างเฉพาะ SKU + รูป
    document.getElementById("addProductId").value = "";
-   document.getElementById("addStock").value = "0";
+   document.getElementById("addStock").value = state.smartAddDraft.stock ?? "";
 
    const img = document.getElementById("addImagePreview");
    if (img) {
