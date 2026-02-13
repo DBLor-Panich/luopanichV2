@@ -1216,12 +1216,13 @@ textarea {
 
 #floatingBar{
   position:fixed;
-  left:50%;
-  transform:translateX(-50%) translateY(120%);
+  left:16px;
+  right:16px;
+  transform:translateY(120%);
   bottom:calc(env(safe-area-inset-bottom) + 18px);
 
-  width:calc(100% - 32px);
   max-width:520px;
+  margin:0 auto;
 
   padding:12px 16px;   /* 🔴 smaller + tighter */
 
@@ -1275,14 +1276,14 @@ textarea {
 } 
 
 #floatingBar.show{
-  transform:translateX(-50%) translateY(0);
+  transform:translateY(0);
   opacity:1;
   pointer-events:auto;
 }
 
 /* 🔴 NEW: Smart Scroll Hide */
 #floatingBar.scroll-hide{
-  transform:translateX(-50%) translateY(120%);
+  transform:translateY(120%);
   opacity:0;
   pointer-events:none;
 }  
