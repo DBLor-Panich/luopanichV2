@@ -1146,19 +1146,21 @@ textarea {
   }
   
   header{
-    background: rgba(28,28,30,.55);
-    border-bottom: 1px solid rgba(255,255,255,.06);
+    background: rgba(255,255,255,.65);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-bottom: 1px solid rgba(255,255,255,.4);
 
     box-shadow:
-      0 8px 32px rgba(0,0,0,.5),
-      inset 0 -1px 0 rgba(255,255,255,.06);
+      0 8px 28px rgba(0,0,0,.06),
+      inset 0 -1px 0 rgba(255,255,255,.35);
   }
 
   header.scrolled{
-    background: rgba(28,28,30,.75);
+    background: rgba(255,255,255,.85);
     box-shadow:
-      0 16px 42px rgba(0,0,0,.65),
-      inset 0 -1px 0 rgba(255,255,255,.08);
+      0 12px 36px rgba(0,0,0,.12),
+      inset 0 -1px 0 rgba(255,255,255,.5);
   }
 }
  
