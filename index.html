@@ -5246,6 +5246,11 @@ function exportOrderPrint() {
       if (sheet) {
         window.opener.closeOverlay(sheet);
       }
+      // 🔥 เลื่อนกลับบนสุดอย่างนุ่มนวล
+       window.opener.scrollTo({
+         top: 0,
+         behavior: "smooth"
+       });
     }
           }
         }
