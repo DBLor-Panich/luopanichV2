@@ -174,7 +174,24 @@ select {
   outline: none;
   font-family: inherit;
   background: rgba(255,255,255,.9);
+  color: #111;                 /* 🔴 FIX: text มองเห็นชัดใน light mode */
 }
+
+/* 🔴 NEW: textarea base style (Light mode fix) */
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  background: #fff;
+  color: #111;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+}
+  
+input::placeholder,
+textarea::placeholder {
+  color: #999;                 /* 🔴 FIX: placeholder ไม่จางเกินไป */
+}  
 
 input:focus,
 select:focus {
@@ -407,6 +424,7 @@ button:disabled {
   border: 1px solid rgba(0,0,0,.12);
 
   background: rgba(255,255,255,.85);
+  color: #111;                 /* 🔴 FIX: search text ชัด */
   backdrop-filter: blur(14px);
 
   transform: translateX(-6px) scale(.96);
