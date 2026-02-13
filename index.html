@@ -848,16 +848,19 @@ textarea {
   font-size: 14px;
   font-weight: 500;
 
-  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  box-shadow: var(--shadow-float);              /* 🔴 ใช้ token เดียวกับระบบ */
+
+  backdrop-filter: blur(18px) saturate(160%);   /* 🔴 เพิ่ม glass */
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 
   animation: toast-slide-down .25s ease;
 }
 
 /* ===== Toast Variants ===== */
-.toast.success { background: #34c759; }
-.toast.error   { background: #ff3b30; }
-.toast.warning { background: #ff9f0a; }
-.toast.info    { background: #007aff; }
+.toast.success { background: rgba(52,199,89,.92); }
+.toast.error   { background: rgba(255,59,48,.92); }
+.toast.warning { background: rgba(255,159,10,.92); }
+.toast.info    { background: rgba(0,122,255,.92); }
 
 /* ===== Animation (namespaced) ===== */
 @keyframes toast-slide-down {
@@ -1113,6 +1116,11 @@ textarea {
      background: #0f0f12;
    }
 
+   .toast{
+    box-shadow:
+      0 12px 36px rgba(0,0,0,.65);
+   }
+   
   /* 🔹 FLOATING BAR (DARK) */
   #floatingBar{
     background:rgba(28,28,30,.55);
