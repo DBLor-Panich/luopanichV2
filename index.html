@@ -5219,16 +5219,17 @@ async function restoreAdminSessionIfValid() {
  function handleHeaderScroll(){
    const header = document.getElementById("appHeader");
    const bar    = document.getElementById("floatingBar");
-   if (!header) return;
-
+   
    const currentY = window.scrollY;
    const delta    = currentY - _lastScrollY;
 
-   if (currentY > 10) {
-     header.classList.add("scrolled");
-   } else {
-     header.classList.remove("scrolled");
-   }
+if (header){
+    if (currentY > 10) {
+      header.classList.add("scrolled");
+    } else {
+      header.classList.remove("scrolled");
+    }
+  }
 
   /* ================= FLOATING BAR SMART HIDE ================= */
   if (bar && bar.classList.contains("show")) {
