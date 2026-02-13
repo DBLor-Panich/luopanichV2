@@ -394,6 +394,10 @@ button:disabled {
   }
 
 /* ================= HEADER SEARCH (iOS-LIKE) ================= */
+.viewer-search-wrap{
+   margin-top:6px;
+   max-width:calc(100% - 44px);
+ }  
 
 .search-wrap {
   display: flex;
@@ -2513,11 +2517,7 @@ function renderHeader(){
         <!-- 🔍 SEARCH ICON + EXPAND -->
 <div
    id="viewerSearchWrap"
-   class="search-wrap"
-   style="
-     margin-top:6px;
-     max-width:calc(100% - 44px);
-   "
+   class="search-wrap viewer-search-wrap"
  >
           <button
             onclick="toggleViewerSearch()"
