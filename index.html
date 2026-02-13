@@ -3435,27 +3435,30 @@ async function submitOrder(){
     };
 
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
-    showToast("แตะเพื่อดาวน์โหลดใบสั่งซื้อ", "info", 3000);
+    showToast("กดปุ่มเพื่อดาวน์โหลดใบสั่งซื้อ", "info", 3000);
 
-   setTimeout(() => {
-   try {
-     exportOrderPrint();
-   } catch (e) {
-     console.warn("export print failed", e);
-   }
- }, 0);
+ // เปิด confirmSheet ใหม่พร้อมปุ่มดาวน์โหลด
+ confirmSheet.innerHTML = `
+   <h3>สร้างใบสั่งซื้อสำเร็จ</h3>
+   <div style="margin-top:12px">
+     เลขที่ใบสั่งซื้อ: ${res.data.orderId}
+   </div>
+   <button class="btn btn-primary"
+     style="margin-top:16px"
+     onclick="exportOrderPrint()">
+     ดาวน์โหลดใบสั่งซื้อ
+   </button>
+ `;
+
+// confirmSheet เปิดอยู่แล้ว ไม่ต้อง reopen
 
     state.cart = [];
     clearCartStorage();
     state.poNumber = "";
     renderBadge();
-
-    setTimeout(() => {
-      if (!state.ui.backdropLocked) {
-        hardResetUI();
-      }
-    }, 300);
-
+    
+  // ❌ ห้าม auto reset หลังสร้าง order สำเร็จ
+    
   } catch(err){
     console.error(err);
     showToast(
@@ -3465,7 +3468,10 @@ async function submitOrder(){
   } finally {
     safeHideLoading();
     state.isSubmitting = false;
-    state.ui.backdropLocked = false;
+    // 🔒 ปลด lock เฉพาะเมื่อไม่มี sheet เปิดอยู่ (กัน race condition)
+    if (state.ui.overlayCount === 0) {
+      state.ui.backdropLocked = false;
+    }
   }
 }
 
