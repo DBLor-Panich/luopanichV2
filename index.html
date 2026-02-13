@@ -2064,8 +2064,59 @@ function renderHeader(){
             "
           >
         </div>
-      </div>
-
+        
+          <!-- 🔹 FILTER BAR (STEP 5.2) -->
+          ${
+            state.search
+              ? ""
+              : `
+          <div style="
+            display:flex;
+            gap:8px;
+            margin-top:8px;
+            overflow-x:auto;
+            padding-bottom:2px;
+          ">
+            ${["all","ready","shipping","warehouse","out"].map(key => `
+              <button
+                onclick="setViewerStatus('${key}')"
+                style="
+                  padding:6px 12px;
+                  border-radius:999px;
+                  border:none;
+                  font-size:13px;
+                  white-space:nowrap;
+                  backdrop-filter:blur(8px);
+                  cursor:pointer;
+                  background:${
+                    state.viewerFilter?.status===key
+                      ? '#007aff'
+                      : 'rgba(255,255,255,.7)'
+                  };
+                  color:${
+                    state.viewerFilter?.status===key
+                      ? '#fff'
+                      : '#333'
+                  };
+                "
+              >
+                ${
+                  {
+                    all:"ทั้งหมด",
+                    ready:"พร้อมส่ง",
+                    shipping:"ระหว่างจัดส่ง",
+                    warehouse:"โกดังไทย",
+                    out:"หมด"
+                  }[key]
+                }
+              </button>
+            `).join("")}
+          </div>
+          `
+          }
+          
+          </div>
+          
       <div style="
         display:flex;
         align-items:center;
