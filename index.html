@@ -1036,7 +1036,18 @@ textarea {
    justify-content: center;    /* 🔴 moved from inline */
    cursor: zoom-out;           /* 🔴 moved from inline */
  }
-  
+
+ .image-viewer-fullscreen{
+   position: fixed;
+   inset: 0;
+   padding: 0;
+   border-radius: 0;
+   max-height: 100dvh;
+   transform: none;
+   z-index: 9999;
+   background: transparent;
+ }
+ 
 /* =================================================
    📦 PRODUCT SHEET – SHARED UI CLASSES
    ใช้แทน inline-style ใน renderProductSheet
@@ -1149,9 +1160,8 @@ textarea {
    }
 
    .toast{
-    box-shadow:
-      0 12px 36px rgba(0,0,0,.65);
-   }
+    box-shadow: var(--shadow-float);
+  }
    
   /* 🔹 FLOATING BAR (DARK) */
   #floatingBar{
@@ -1338,6 +1348,11 @@ textarea {
 
  /* ================= REDUCED MOTION SUPPORT ================= */
  @media (prefers-reduced-motion: reduce){
+
+   /* 🔴 Disable global transitions */
+   * {
+     transition: none !important;
+   }
 
    /* 🔴 Disable product card motion */
    .product-card{
@@ -2015,14 +2030,7 @@ function openImageViewer(url){
   if (!sheet) return;
 
   // 🔥 reset ผลของ .sheet เดิม
-  sheet.style.position = "fixed";
-  sheet.style.inset = "0";
-  sheet.style.padding = "0";
-  sheet.style.borderRadius = "0";
-  sheet.style.maxHeight = "100dvh";
-  sheet.style.transform = "none";
-  sheet.style.zIndex = "9999";
-  sheet.style.background = "transparent";
+  sheet.classList.add("image-viewer-fullscreen");
 
   sheet.innerHTML = `
     <!-- overlay background (รับ click เพื่อปิด) -->
@@ -2071,8 +2079,7 @@ function closeImageViewer(){
 
  // 🔒 force close (ไม่สน state ค้าง)
  sheet.innerHTML = "";
- sheet.style.transform = "";
- sheet.style.background = "#000";
+ sheet.classList.remove("image-viewer-fullscreen");
 
  if (sheet.classList.contains("show")) {
    closeOverlay(sheet);
