@@ -2422,11 +2422,27 @@ function setViewerStatus(status){
    const el = document.getElementById("filterDropdown");
    if(!el) return;
 
- // 🔒 close other dropdowns (future proof)
+ const isOpen = el.classList.contains("show");
+
  document.querySelectorAll(".filter-dropdown.show")
    .forEach(d => d.classList.remove("show"));
 
- el.classList.toggle("show");
+ if(!isOpen){
+   el.classList.add("show");
+
+   // 🔴 auto close on outside click
+   setTimeout(()=>{
+     document.addEventListener("click", closeFilterOnOutside, { once:true });
+   }, 0);
+ }
+}
+
+  function closeFilterOnOutside(e){
+   const wrap = document.querySelector(".filter-wrap");
+   if(!wrap || wrap.contains(e.target)) return;
+
+   const el = document.getElementById("filterDropdown");
+   if(el) el.classList.remove("show");
  }
 
  function selectFilter(status){
