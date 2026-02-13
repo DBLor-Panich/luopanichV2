@@ -1091,6 +1091,19 @@ textarea {
      color: #f5f5f7;
    }
 
+   .filter-btn{
+   background: rgba(44,44,46,.7);
+ }
+
+ .filter-dropdown{
+   background: rgba(44,44,46,.9);
+   color:#f5f5f7;
+ }
+
+ .filter-item:hover{
+   background: rgba(255,255,255,.08);
+ }
+   
    .search-btn {
      background: rgba(44,44,46,.7);
    }
@@ -2247,27 +2260,27 @@ function renderHeader(){
             class="search-input"
           >
         </div>          
-          </div>
+         </div>
 
- <div class="filter-wrap">
-   <button class="filter-btn"
-    onclick="toggleFilterDropdown()">⚙️</button>
+ <div style="
+   display:flex;
+   align-items:center;
+   gap:14px;
+   margin-left:12px;
+ ">
 
-   <div id="filterDropdown" class="filter-dropdown">
-     <div class="filter-item" onclick="selectFilter('all')">📦 ทั้งหมด</div>
-     <div class="filter-item" onclick="selectFilter('ready')">✅ พร้อมส่ง</div>
-     <div class="filter-item" onclick="selectFilter('shipping')">🚚 ระหว่างจัดส่ง</div>
-     <div class="filter-item" onclick="selectFilter('warehouse')">🏬 โกดังไทย</div>
-     <div class="filter-item" onclick="selectFilter('out')">❌ หมด</div>
+   <div class="filter-wrap">
+     <button class="filter-btn"
+       onclick="toggleFilterDropdown()">⚙️</button>
+
+     <div id="filterDropdown" class="filter-dropdown">
+       <div class="filter-item" onclick="selectFilter('all')">📦 ทั้งหมด</div>
+       <div class="filter-item" onclick="selectFilter('ready')">✅ พร้อมส่ง</div>
+       <div class="filter-item" onclick="selectFilter('shipping')">🚚 ระหว่างจัดส่ง</div>
+       <div class="filter-item" onclick="selectFilter('warehouse')">🏬 โกดังไทย</div>
+       <div class="filter-item" onclick="selectFilter('out')">❌ หมด</div>
+     </div>
    </div>
- </div>
-          
-      <div style="
-        display:flex;
-        align-items:center;
-        gap:14px;
-        margin-left:12px;
-      ">
       
 <div id="cartButton"
      onclick="openCart()"
