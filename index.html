@@ -1019,6 +1019,14 @@ textarea {
   z-index: 5;
 }
 
+ .image-viewer-sheet{
+   padding: 0;                 /* 🔴 moved from inline */
+   display: flex;              /* 🔴 moved from inline */
+   align-items: center;        /* 🔴 moved from inline */
+   justify-content: center;    /* 🔴 moved from inline */
+   cursor: zoom-out;           /* 🔴 moved from inline */
+ }
+  
 /* =================================================
    📦 PRODUCT SHEET – SHARED UI CLASSES
    ใช้แทน inline-style ใน renderProductSheet
@@ -1309,14 +1317,7 @@ textarea {
 <div id="stockSheet" class="sheet"></div>  
 
 <!-- 🖼️ IMAGE VIEWER (FULLSCREEN) -->
-<div id="imageViewerSheet" class="sheet"
-   style="
-     padding:0;
-     display:flex;
-     align-items:center;
-     justify-content:center;
-     cursor: zoom-out;
-   ">
+<div id="imageViewerSheet" class="sheet image-viewer-sheet">
 </div>
 
 <!-- ================= ADMIN SHEETS ================= -->
