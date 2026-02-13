@@ -2242,15 +2242,14 @@ function renderHeader(){
         <div class="shop-title">ร้านค้า Luopanich</div>
 
         <!-- 🔍 SEARCH ICON + EXPAND -->
-        <div
-          id="viewerSearchWrap"
-          style="
-            display:flex;
-            align-items:center;
-            margin-top:6px;
-            max-width:calc(100% - 44px); /* 🔴 กันชนปุ่ม ☰ */
-          "
-        >
+<div
+   id="viewerSearchWrap"
+   class="search-wrap"
+   style="
+     margin-top:6px;
+     max-width:calc(100% - 44px);
+   "
+ >
           <button
             onclick="toggleViewerSearch()"
             class="search-btn"
@@ -2364,21 +2363,17 @@ function toggleViewerSearch(){
   const input = document.getElementById("viewerSearchInput");
   if(!wrap || !input) return;
 
-  const opened = input.style.width && input.style.width !== "0px";
+  const opened = wrap.classList.contains("active");
 
   if(opened){
-    input.style.width = "0";
-    input.style.opacity = "0";
     input.value = "";
     state.search = "";
     state.viewerSearchOpen = false;
     renderProducts();
-    renderHeader();
+    wrap.classList.remove("active");
   }else{
-    input.style.width = "100%";
-    input.style.opacity = "1";
     state.viewerSearchOpen = true;
-    renderHeader();
+    wrap.classList.add("active");
     setTimeout(()=>input.focus(),80);
   }
 }
