@@ -80,6 +80,17 @@
      0 0 8px rgba(255,255,255,.6),
      0 0 16px rgba(255,255,255,.35);
  }
+
+/* ================= ADMIN TITLE GLOW ================= */
+.admin-title{
+  font-weight:700;
+  font-size:22px;
+  color:#fff;
+  letter-spacing:.3px;
+  text-shadow:
+    0 0 6px rgba(255,255,255,.65),
+    0 0 18px rgba(255,255,255,.35);
+}
   
   .badge{
     background:#ff3b30;color:#fff;
@@ -2323,7 +2334,9 @@ function renderHeader(){
   h.innerHTML = `
     <div class="header-left">
       <div style="flex:1">
-        <div style="font-weight:600; margin-left:7px;">การจัดการสินค้า</div>
+        <div class="admin-title" style="margin-left:7px;">
+   การจัดการสินค้า
+ </div>
  <div style="font-size:15px;margin-left:7px;color:#ff3b30">
    ❤️ สู้ ๆ ที่รัก
  </div>
