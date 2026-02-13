@@ -2367,15 +2367,15 @@ function renderFloatingBar(){
   }
 
   /* ===== Total Change Animation ===== */
-  const totalEl = document.getElementById("floatingTotal");
-  if (totalEl){
-    const prev = totalEl.dataset.prevTotal;
-    if (prev !== String(total)) {
-    totalEl.dataset.prevTotal = String(total);
-    totalEl.classList.remove("total-animate");
-    void totalEl.offsetWidth;
-    totalEl.classList.add("total-animate");
-    }  
+ const totalEl = document.getElementById("floatingTotal");
+ if (totalEl){
+   const prev = bar.dataset.prevTotal;
+   if (prev !== String(total)) {
+     bar.dataset.prevTotal = String(total);
+     totalEl.classList.remove("total-animate");
+     void totalEl.offsetWidth;
+     totalEl.classList.add("total-animate");
+    }
   }
 }  
 
