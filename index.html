@@ -2420,7 +2420,13 @@ function setViewerStatus(status){
 
  function toggleFilterDropdown(){
    const el = document.getElementById("filterDropdown");
-   if(el) el.classList.toggle("show");
+   if(!el) return;
+
+ // 🔒 close other dropdowns (future proof)
+ document.querySelectorAll(".filter-dropdown.show")
+   .forEach(d => d.classList.remove("show"));
+
+ el.classList.toggle("show");
  }
 
  function selectFilter(status){
