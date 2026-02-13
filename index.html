@@ -69,6 +69,17 @@
      0 12px 36px rgba(0,0,0,.12),
      inset 0 -1px 0 rgba(255,255,255,.5);
  } 
+
+/* ================= SHOP TITLE GLOW ================= */
+ .shop-title{
+   font-weight:700;
+   font-size:22px;
+   color:#fff;
+   letter-spacing:.3px;
+   text-shadow:
+     0 0 8px rgba(255,255,255,.6),
+     0 0 16px rgba(255,255,255,.35);
+ }
   
   .badge{
     background:#ff3b30;color:#fff;
@@ -412,6 +423,44 @@ button:disabled {
   outline: none;
 }
 
+ /* ================= FILTER ICON DROPDOWN ================= */
+ .filter-wrap{ position:relative; }
+
+ .filter-btn{
+   width:40px;
+   height:40px;
+   border-radius:50%;
+   border:none;
+   background:rgba(255,255,255,.6);
+   backdrop-filter:blur(12px);
+   font-size:18px;
+   cursor:pointer;
+ }
+
+ .filter-dropdown{
+   position:absolute;
+   top:52px;
+   right:0;
+   min-width:200px;
+   padding:10px;
+   border-radius:18px;
+   background:rgba(255,255,255,.85);
+   backdrop-filter:blur(24px);
+   box-shadow:var(--shadow-float);
+   display:none;
+   flex-direction:column;
+   gap:6px;
+ }
+
+ .filter-dropdown.show{ display:flex; }
+
+ .filter-item{
+   padding:8px 12px;
+   border-radius:12px;
+   font-size:14px;
+   cursor:pointer;
+ }
+  
 /* ================= HEADER MENU BUTTON (iOS TACTILE) ================= */
 .menu-btn{
   width:40px;
@@ -2173,7 +2222,7 @@ function renderHeader(){
   if(state.mode === "viewer"){
     h.innerHTML = `
       <div style="flex:1">
-        <div style="font-weight:600; margin-left:7px;">ร้านค้า Luopanich</div>
+        <div class="shop-title">ร้านค้า Luopanich</div>
 
         <!-- 🔍 SEARCH ICON + EXPAND -->
         <div
@@ -2197,59 +2246,21 @@ function renderHeader(){
             onfocus="focusInput(this)"
             class="search-input"
           >
-        </div>
-        
-          <!-- 🔹 FILTER BAR (STEP 5.2) -->
-          ${
-            state.viewerSearchOpen
-              ? ""
-              : `
-          <div style="
-            display:flex;
-            gap:8px;
-            margin-top:8px;
-            overflow-x:auto;
-            padding-bottom:2px;
-          ">
-            ${["all","ready","shipping","warehouse","out"].map(key => `
-              <button
-                onclick="setViewerStatus('${key}')"
-                style="
-                  padding:6px 12px;
-                  border-radius:999px;
-                  border:none;
-                  font-size:13px;
-                  white-space:nowrap;
-                  backdrop-filter:blur(8px);
-                  cursor:pointer;
-                  background:${
-                    state.viewerFilter?.status===key
-                      ? '#007aff'
-                      : 'rgba(255,255,255,.7)'
-                  };
-                  color:${
-                    state.viewerFilter?.status===key
-                      ? '#fff'
-                      : '#333'
-                  };
-                "
-              >
-                ${
-                  {
-                    all:"ทั้งหมด",
-                    ready:"พร้อมส่ง",
-                    shipping:"ระหว่างจัดส่ง",
-                    warehouse:"โกดังไทย",
-                    out:"หมด"
-                  }[key]
-                }
-              </button>
-            `).join("")}
+        </div>          
           </div>
-          `
-          }
-          
-          </div>
+
+ <div class="filter-wrap">
+   <button class="filter-btn"
+    onclick="toggleFilterDropdown()">⚙️</button>
+
+   <div id="filterDropdown" class="filter-dropdown">
+     <div class="filter-item" onclick="selectFilter('all')">📦 ทั้งหมด</div>
+     <div class="filter-item" onclick="selectFilter('ready')">✅ พร้อมส่ง</div>
+     <div class="filter-item" onclick="selectFilter('shipping')">🚚 ระหว่างจัดส่ง</div>
+     <div class="filter-item" onclick="selectFilter('warehouse')">🏬 โกดังไทย</div>
+     <div class="filter-item" onclick="selectFilter('out')">❌ หมด</div>
+   </div>
+ </div>
           
       <div style="
         display:flex;
@@ -2394,6 +2405,17 @@ function setViewerStatus(status){
   renderProducts();
 }
 
+ function toggleFilterDropdown(){
+   const el = document.getElementById("filterDropdown");
+   if(el) el.classList.toggle("show");
+ }
+
+ function selectFilter(status){
+   setViewerStatus(status); // 🔒 ไม่แตะ logic เดิม
+   const el = document.getElementById("filterDropdown");
+   if(el) el.classList.remove("show");
+ }
+  
 function openAdminEntry(){
   // 🔒 ถ้ามี session อยู่แล้ว → เข้า admin ทันที
   if (state.admin.loggedIn && state.admin.token) {
