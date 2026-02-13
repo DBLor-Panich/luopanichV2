@@ -426,8 +426,7 @@ button:disabled {
 }
 
 .search-input {
-   width: 100%;                /* 🔴 FIX: ไม่ animate layout */
-   max-width: 0;               /* 🔴 FIX: ใช้ max-width control แทน */
+   width: 260px;
    opacity: 0;
    margin-left: 8px;
    height: 40px;
@@ -444,17 +443,18 @@ button:disabled {
    transform: translateX(-6px) scale(.96);
    pointer-events: none;
 
-   transition:
-     max-width .45s cubic-bezier(.34,1.56,.64,1),
-     opacity .18s ease,
-     transform .45s cubic-bezier(.34,1.56,.64,1);
+  transform: translateX(-6px) scaleX(.6);
+  transform-origin: left center;
+
+  transition:
+    opacity .18s ease,
+    transform .45s cubic-bezier(.34,1.56,.64,1);
 }
 
 /* 🔥 ACTIVE STATE */
 .search-wrap.active .search-input {
-  max-width: 260px; /* 🔴 FIX: คุมความกว้างจริง ไม่เต็ม flex */
   opacity: 1;
-  transform: translateX(0) scale(1);
+  transform: translateX(0) scaleX(1);
   pointer-events: auto;
 }
 
@@ -614,6 +614,10 @@ button:disabled {
    margin: 12px 0;
  }
 
+ .product-info-zoom{
+   cursor: zoom-in;
+ }
+ 
  .product-info-images img {
    height: 120px;
    border-radius: 12px;
@@ -1064,7 +1068,16 @@ textarea {
    right:16px;
    z-index:2;
  }
- 
+
+ .image-viewer-img{
+   position:relative;
+   z-index:1;
+   width:100%;
+   height:100%;
+   object-fit:contain;
+   cursor:default;
+ }
+
  
 /* =================================================
    📦 PRODUCT SHEET – SHARED UI CLASSES
@@ -1116,7 +1129,12 @@ textarea {
  .product-detail-btn {
    margin-top: 12px;
  }
-  
+
+ .product-info-close-btn{
+   font-size:16px;
+   color:#fff;
+ }
+   
 /* 🖼️ รูปสินค้า (มาตรฐาน) */
 .product-image {
   width: 100%;
@@ -2052,17 +2070,10 @@ function openImageViewer(url){
     </button>
 
     <!-- รูปสินค้า -->
- <img
+<img
    src="${url}"
    alt="preview"
-   style="
-     position:relative;
-     z-index:1;
-     width:100%;
-     height:100%;
-     object-fit:contain;
-     cursor:default;
-   "
+   class="image-viewer-img"
  >
   `;
 
@@ -2099,9 +2110,9 @@ function closeImageViewer(){
          ? `
            <div class="product-info-images">
  ${images.map(url => `
-   <img src="${url}"
-        style="cursor:zoom-in"
-        onclick="openImageViewer('${url}')">
+<img src="${url}"
+      class="product-info-zoom"
+      onclick="openImageViewer('${url}')">
  `).join("")}
            </div>
          `
@@ -2120,8 +2131,7 @@ function closeImageViewer(){
          : ""
      }
 
- <button class="btn btn-secondary"
-   style="color:#fff;font-size:16px"
+<button class="btn btn-secondary product-info-close-btn"
    onclick="closeProductInfoSheet()">
    ปิด
  </button>
