@@ -416,32 +416,33 @@ button:disabled {
 }
 
 .search-input {
-  width: 0;
-  opacity: 0;
-  margin-left: 8px;
-  height: 40px;
-  padding: 8px 12px;
+   width: 100%;                /* 🔴 FIX: ไม่ animate layout */
+   max-width: 0;               /* 🔴 FIX: ใช้ max-width control แทน */
+   opacity: 0;
+   margin-left: 8px;
+   height: 40px;
+   padding: 8px 12px;
 
-  font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,.12);
+   font-size: 16px;
+   border-radius: 12px;
+   border: 1px solid rgba(0,0,0,.12);
 
-  background: rgba(255,255,255,.85);
-  color: #111;                 /* 🔴 FIX: search text ชัด */
-  backdrop-filter: blur(14px);
+   background: rgba(255,255,255,.85);
+   color: #111;
+   backdrop-filter: blur(14px);
 
-  transform: translateX(-6px) scale(.96);
-  pointer-events: none;
+   transform: translateX(-6px) scale(.96);
+   pointer-events: none;
 
-transition:
-    width .45s cubic-bezier(.34,1.56,.64,1),
-    opacity .18s ease,
-    transform .45s cubic-bezier(.34,1.56,.64,1);
+   transition:
+     max-width .45s cubic-bezier(.34,1.56,.64,1),
+     opacity .18s ease,
+     transform .45s cubic-bezier(.34,1.56,.64,1);
 }
 
 /* 🔥 ACTIVE STATE */
 .search-wrap.active .search-input {
-  width: 100%;
+  max-width: 260px; /* 🔴 FIX: คุมความกว้างจริง ไม่เต็ม flex */
   opacity: 1;
   transform: translateX(0) scale(1);
   pointer-events: auto;
