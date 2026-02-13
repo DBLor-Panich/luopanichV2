@@ -5215,8 +5215,7 @@ async function restoreAdminSessionIfValid() {
  /* ================= LIQUID HEADER SCROLL EFFECT ================= */
  let _lastScrollY = 0;
  let _headerTicking = false;
- let _lastDirection = "up";   // 🔴 NEW: track direction
-
+ 
  function handleHeaderScroll(){
    const header = document.getElementById("appHeader");
    const bar    = document.getElementById("floatingBar");
@@ -5240,12 +5239,10 @@ async function restoreAdminSessionIfValid() {
     }
     else if (delta > 8) {
       // ⬇️ scroll ลง
-      _lastDirection = "down";
       bar.classList.add("scroll-hide");
     }
     else if (delta < -8) {
       // ⬆️ scroll ขึ้น
-      _lastDirection = "up";
       bar.classList.remove("scroll-hide");
     }
   }
