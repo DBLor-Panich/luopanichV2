@@ -5240,17 +5240,28 @@ function exportOrderPrint() {
           window.onafterprint = function() {
             window.close();
 
-    // 🔥 ปิด confirmSheet อัตโนมัติ
+// 🔥 ปิด confirmSheet อัตโนมัติ (Safe + Clear State)
     if (window.opener && window.opener.closeOverlay) {
       const sheet = window.opener.document.getElementById("confirmSheet");
       if (sheet) {
         window.opener.closeOverlay(sheet);
       }
+
+      // 🔴 NEW: clear lastOrder เพื่อกัน reopen state ค้าง
+      if (window.opener.state) {
+        window.opener.state.lastOrder = null;
+      }
+
+      // 🔴 NEW: reset backdrop lock กันค้าง
+      if (window.opener.state?.ui) {
+        window.opener.state.ui.backdropLocked = false;
+      }
+
       // 🔥 เลื่อนกลับบนสุดอย่างนุ่มนวล
-       window.opener.scrollTo({
-         top: 0,
-         behavior: "smooth"
-       });
+      window.opener.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
     }
           }
         }
