@@ -1331,6 +1331,7 @@ textarea {
 <script>
 /* ================= STEP 2: ประกาศ backdrop (UPGRADED) ================= */
 const backdrop = document.getElementById("globalBackdrop");
+const cartSheet = document.getElementById("cartSheet");
 
 // 🔒 ใช้ state.ui.backdropLocked เป็นตัวเดียว (single source of truth)
 let allowOpenOrders = false;
@@ -2362,6 +2363,8 @@ function renderFloatingBar(){
 }
   
 function renderConfirmSheet(){
+  const confirmSheet = document.getElementById("confirmSheet");
+  if (!confirmSheet) return;
   let total = 0;
 
   confirmSheet.innerHTML = "<h3>ยืนยันใบสั่งซื้อ</h3>";
