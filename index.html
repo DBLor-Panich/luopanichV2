@@ -46,7 +46,7 @@
   align-items:center;
 
   /* 🔴 FIX สำคัญ */
-  min-height:56px;      /* กัน iOS / mobile ไม่ render ปุ่ม */
+  min-height:110px;     /* รองรับ Search + Filter (STEP 5.2) */  
   box-sizing:border-box;
 }
 
@@ -1753,7 +1753,11 @@ function renderProducts(){
 
    // 🔍 STATUS FILTER (Viewer only, use resolved status)
    const resolvedStatus =
-     stockNum <= 0 ? "out" : (p.status || "ready");
+   stockNum <= 0
+     ? "out"
+     : String(p.status || "ready")
+         .trim()
+         .toLowerCase();
 
    if (
      state.mode === "viewer" &&
@@ -2245,15 +2249,28 @@ function toggleAdminSearch(){
     setTimeout(() => input && input.focus(), 120);
   }
 }
-
-
   
 function handleSearch(keyword){
   state.search = keyword.toLowerCase();
   renderProducts();
 }
 
+// ================= VIEWER FILTER =================
+function setViewerStatus(status){
+  // 🔒 guard: ใช้เฉพาะ viewer mode
+  if(state.mode !== "viewer") return;
 
+  // 🔒 guard: ป้องกันค่า undefined
+  if(!status) return;
+
+  state.viewerFilter.status = status;
+
+  // 🔄 sync UI pill
+  renderHeader();
+
+  // 🔄 re-filter product list
+  renderProducts();
+}
 
 function openAdminEntry(){
   // 🔒 ถ้ามี session อยู่แล้ว → เข้า admin ทันที
