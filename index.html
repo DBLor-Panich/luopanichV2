@@ -1013,6 +1013,7 @@ const state = {
     status: "all"
   },
   search: "",
+  viewerSearchOpen: false,
   products: [],
   selectedProduct: null,
   qty: 1,
@@ -2070,8 +2071,8 @@ function renderHeader(){
         </div>
         
           <!-- 🔹 FILTER BAR (STEP 5.2) -->
-          ${
-            state.search
+          $${
+            state.viewerSearchOpen
               ? ""
               : `
           <div style="
@@ -2225,10 +2226,14 @@ function toggleViewerSearch(){
     input.style.opacity = "0";
     input.value = "";
     state.search = "";
+    state.viewerSearchOpen = false;
     renderProducts();
+    renderHeader();
   }else{
     input.style.width = "100%";
     input.style.opacity = "1";
+    state.viewerSearchOpen = true;
+    renderHeader();
     setTimeout(()=>input.focus(),80);
   }
 }
@@ -2287,6 +2292,7 @@ function openAdminEntry(){
 function enterAdmin(){
   state.mode = "admin";
   state.search = ""; // ✅ reset
+  state.viewerSearchOpen = false;
   renderHeader();
   renderProducts();
 }
