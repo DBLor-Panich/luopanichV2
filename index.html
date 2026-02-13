@@ -1051,6 +1051,20 @@ textarea {
    z-index: 9999;
    background: transparent;
  }
+
+ .image-viewer-bg{
+   position:absolute;
+   inset:0;
+   background:#000;
+ }
+
+ .image-viewer-close{
+   position:absolute;
+   top:16px;
+   right:16px;
+   z-index:2;
+ }
+ 
  
 /* =================================================
    📦 PRODUCT SHEET – SHARED UI CLASSES
@@ -1345,6 +1359,7 @@ textarea {
    /* 🔴 Disable global transitions */
    * {
      transition: none !important;
+     animation: none !important;   /* 🔴 ADD */
    }
 
    /* 🔴 Disable product card motion */
@@ -2027,24 +2042,12 @@ function openImageViewer(url){
 
   sheet.innerHTML = `
     <!-- overlay background (รับ click เพื่อปิด) -->
- <div
-   style="
-     position:absolute;
-     inset:0;
-     background:#000;
-   ">
- </div>
+    <div class="image-viewer-bg"></div>
 
     <!-- ปุ่มปิด -->
     <button
-      class="close-btn"
-      onclick="event.stopPropagation(); closeImageViewer()"
-      style="
-        position:absolute;
-        top:16px;
-        right:16px;
-        z-index:2;
-      ">
+       class="close-btn image-viewer-close"
+       onclick="event.stopPropagation(); closeImageViewer()">
       ×
     </button>
 
