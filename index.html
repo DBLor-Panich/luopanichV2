@@ -1272,7 +1272,7 @@ textarea {
 }
 
 #floatingBar:active{
-  scale:.97;
+  transform: translateY(0) scale(.97);
 } 
 
 #floatingBar.show{
@@ -2359,6 +2359,7 @@ function renderFloatingBar(){
 
   /* ===== First Appear Bounce ===== */
   if (!wasVisible){
+    bar.classList.remove("bounce-in");
     bar.classList.add("bounce-in");
     setTimeout(()=>{
       bar.classList.remove("bounce-in");
@@ -2368,11 +2369,15 @@ function renderFloatingBar(){
   /* ===== Total Change Animation ===== */
   const totalEl = document.getElementById("floatingTotal");
   if (totalEl){
+    const prev = totalEl.dataset.prevTotal;
+    if (prev !== String(total)) {
+    totalEl.dataset.prevTotal = String(total);
     totalEl.classList.remove("total-animate");
     void totalEl.offsetWidth;
     totalEl.classList.add("total-animate");
+    }  
   }
-}
+
   
 function renderConfirmSheet(){
   const confirmSheet = document.getElementById("confirmSheet");
