@@ -1303,6 +1303,45 @@ textarea {
   opacity:0;
   pointer-events:none;
 }  
+
+ /* ================= REDUCED MOTION SUPPORT ================= */
+ @media (prefers-reduced-motion: reduce){
+
+   /* 🔴 Disable product card motion */
+   .product-card{
+     transition: none !important;
+   }
+
+   .product-card:hover{
+     transform: none !important;
+     box-shadow: var(--shadow-card) !important;
+   }
+
+   .product-card:active{
+     transform: none !important;
+   }
+
+   /* 🔴 Disable floating bar animations */
+   #floatingBar,
+   #floatingBar.bounce-in{
+     transition: none !important;
+     animation: none !important;
+   }
+
+   #floatingBar .total-animate{
+     animation: none !important;
+   }
+
+   /* 🔴 Disable toast slide animation */
+   .toast{
+     animation: none !important;
+   }
+
+   /* 🔴 Disable spinner rotation */
+   .spinner{
+     animation: none !important;
+   }
+ }
   
 </style>
 </head>
