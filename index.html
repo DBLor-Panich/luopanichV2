@@ -1118,6 +1118,21 @@ textarea {
   font-size: 14px;
 }
 
+ .admin-motto{
+   font-size:13px;
+   margin-left:7px;
+   margin-top:4px;
+   color:#ff3b30;
+   opacity:.9;
+   letter-spacing:.3px;
+ }
+
+ @media (prefers-color-scheme: dark){
+   .admin-motto{
+     color:#ff6b6b;
+   }
+ }
+  
  @media (prefers-color-scheme: dark) {
    body {
      background: #0f0f12;
@@ -2552,7 +2567,7 @@ function renderHeader(){
         <div class="admin-title" style="margin-left:7px;">
    การจัดการสินค้า
  </div>
- <div style="font-size:15px;margin-left:7px;color:#ff3b30">
+ <div class="admin-motto">
    ❤️ สู้ ๆ ที่รัก
  </div>
       </div>
