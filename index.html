@@ -790,7 +790,9 @@ textarea {
 }
 
 .loading-box {
-  background: #fff;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   padding: 20px 24px;
   border-radius: 12px;
   box-shadow: var(--shadow-float);
@@ -2143,16 +2145,7 @@ function renderHeader(){
         >
           <button
             onclick="toggleViewerSearch()"
-            style="
-              width:40px;
-              height:40px;
-              border:none;
-              border-radius:50%;
-              background:rgba(255,255,255,.6);
-              backdrop-filter:blur(10px);
-              font-size:18px;
-              cursor:pointer;
-            "
+            class="search-btn"
           >🔍</button>
 
           <input
@@ -2160,22 +2153,7 @@ function renderHeader(){
             placeholder="ค้นหาสินค้า / รหัส"
             oninput="handleSearch(this.value)"
             onfocus="focusInput(this)"
-            style="
-              width:0;
-              opacity:0;
-              margin-left:8px;
-              height:40px;
-              padding:8px 12px;
-              font-size:16px;
-              border-radius:12px;
-              border:1px solid #ddd;
-              background:rgba(255,255,255,.85);
-              backdrop-filter:blur(12px);
-              transition:
-    width .35s cubic-bezier(.22,.61,.36,1),
-    opacity .18s ease,
-    transform .35s cubic-bezier(.22,.61,.36,1);
-            "
+            class="search-input"
           >
         </div>
         
