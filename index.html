@@ -5239,6 +5239,14 @@ function exportOrderPrint() {
           window.print();
           window.onafterprint = function() {
             window.close();
+
+    // 🔥 ปิด confirmSheet อัตโนมัติ
+    if (window.opener && window.opener.closeOverlay) {
+      const sheet = window.opener.document.getElementById("confirmSheet");
+      if (sheet) {
+        window.opener.closeOverlay(sheet);
+      }
+    }
           }
         }
       <\/script>
