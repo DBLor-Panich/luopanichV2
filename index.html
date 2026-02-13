@@ -2295,15 +2295,16 @@ function renderBadge(){
   const cartButton = document.getElementById("cartButton");
   const cartBadge  = document.getElementById("cartBadge");
 
-  if (!cartButton || !cartBadge) return;
+  // 🔴 CHANGED: allow floating bar to sync even if header cart button removed
+  if (cartButton && cartBadge) {
+    const count = state.cart.length;
 
-  const count = state.cart.length;
-
-  if (count > 0) {
-    cartButton.style.display = "block";
-    cartBadge.textContent = count;
-  } else {
-    cartButton.style.display = "none";
+    if (count > 0) {
+      cartButton.style.display = "block";
+      cartBadge.textContent = count;
+    } else {
+      cartButton.style.display = "none";
+    }
   }
   
   // 🔴 NEW: sync floating bar ทุกครั้งที่ badge update
