@@ -1078,6 +1078,16 @@ textarea {
   margin-top: 4px;
 }
 
+.product-sku {
+   color: #888;
+   font-size: 13px;
+   margin-bottom: 8px;
+ }
+
+ .product-detail-btn {
+   margin-top: 12px;
+ }
+  
 /* 🖼️ รูปสินค้า (มาตรฐาน) */
 .product-image {
   width: 100%;
@@ -2265,7 +2275,7 @@ function renderProductSheet(){
 
     <h3 class="product-title">${esc(p.name)}</h3>
 
-    <div style="color:#888;font-size:13px;margin-bottom:8px">
+    <div class="product-sku">
       รหัสสินค้า: ${p.productId}
     </div>
 
@@ -2283,8 +2293,7 @@ function renderProductSheet(){
       p.detailsText || p.compareImages
         ? `
           <button
-            class="btn btn-outline"
-            style="margin-top:12px"
+            class="btn btn-outline product-detail-btn"
             onclick="openProductInfoSheet(state.selectedProduct)">
             📄 รายละเอียดสินค้า
           </button>
@@ -2311,7 +2320,6 @@ function renderProductSheet(){
 <div class="product-action-zone">
             <button
               class="btn btn-primary"
-              style="width:100%"
               onclick="openQtySheet()"
             >
               เพิ่มลงตะกร้า
