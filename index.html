@@ -3861,7 +3861,7 @@ function removeCompareImage(index){
              height:80px;
              object-fit:cover;
              border-radius:10px;
-             box-shadow:0 4px 10px rgba(0,0,0,.12)
+             box-shadow: var(--shadow-image)
            ">
       <button
         onclick="removeCompareImage(${idx})"
@@ -3931,7 +3931,7 @@ async function handleCompareImagesUpload(input){
                 height:80px;
                 object-fit:cover;
                 border-radius:10px;
-                box-shadow:0 4px 10px rgba(0,0,0,.12)
+                box-shadow: var(--shadow-image)
               ">
          <button
            onclick="removeCompareImage(${idx})"
