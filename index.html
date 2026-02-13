@@ -1610,6 +1610,10 @@ function closeOverlay(el){
 
   if (state.ui.overlayCount === 0 && !state.ui.backdropLocked) {
     backdrop.style.display = "none";
+
+    // 🔴 FIX: reset floating bar momentum state
+    const bar = document.getElementById("floatingBar");
+    if (bar) bar.classList.remove("scroll-hide");
   }
 }
 
@@ -5218,15 +5222,22 @@ async function restoreAdminSessionIfValid() {
 /* ================= INIT APP (CLEAN / SAFE) ================= */
  /* ================= LIQUID HEADER SCROLL EFFECT ================= */
  let _lastScrollY = 0;
+ let _lastScrollTime = performance.now(); // 🔴 NEW: velocity time base
  let _headerTicking = false;
+
+ const VELOCITY_HIDE = 0.6;   // px per ms
+ const VELOCITY_SHOW = -0.6;  // px per ms 
  
  function handleHeaderScroll(){
    const header = document.getElementById("appHeader");
    const bar    = document.getElementById("floatingBar");
    
-   const currentY = window.scrollY;
-   const delta    = currentY - _lastScrollY;
-
+   const currentY = Math.max(0, window.scrollY); // 🔴 FIX: clamp negative scroll (iOS bounce)
+   const now = performance.now();                       // 🔴 NEW
+   const delta = currentY - _lastScrollY;
+   const deltaTime = now - _lastScrollTime || 16;      // 🔴 NEW
+   const velocity = delta / deltaTime;                 // 🔴 NEW
+   
 if (header){
     if (currentY > 10) {
       header.classList.add("scrolled");
@@ -5236,23 +5247,28 @@ if (header){
   }
 
   /* ================= FLOATING BAR SMART HIDE ================= */
-  if (bar && bar.classList.contains("show")) {
+  if (
+   bar &&
+   bar.classList.contains("show") &&
+   state.ui.overlayCount === 0 // 🔴 CHANGED: disable momentum when overlay open
+ ) {
 
     if (currentY <= 10) {
       // 📍 อยู่บนสุด → แสดงเสมอ
       bar.classList.remove("scroll-hide");
     }
-    else if (delta > 8) {
+    else if (velocity > VELOCITY_HIDE) {
       // ⬇️ scroll ลง
       bar.classList.add("scroll-hide");
     }
-    else if (delta < -8) {
+    else if (velocity < VELOCITY_SHOW) {
       // ⬆️ scroll ขึ้น
       bar.classList.remove("scroll-hide");
     }
   }
 
    _lastScrollY = currentY;
+   _lastScrollTime = now; // 🔴 NEW
    _headerTicking = false;
  }
 
