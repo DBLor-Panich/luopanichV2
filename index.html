@@ -5215,12 +5215,15 @@ async function restoreAdminSessionIfValid() {
  /* ================= LIQUID HEADER SCROLL EFFECT ================= */
  let _lastScrollY = 0;
  let _headerTicking = false;
+ let _lastDirection = "up";   // 🔴 NEW: track direction
 
  function handleHeaderScroll(){
    const header = document.getElementById("appHeader");
+   const bar    = document.getElementById("floatingBar");
    if (!header) return;
 
    const currentY = window.scrollY;
+   const delta    = currentY - _lastScrollY;
 
    if (currentY > 10) {
      header.classList.add("scrolled");
@@ -5228,12 +5231,31 @@ async function restoreAdminSessionIfValid() {
      header.classList.remove("scrolled");
    }
 
+  /* ================= FLOATING BAR SMART HIDE ================= */
+  if (bar && bar.classList.contains("show")) {
+
+    if (currentY <= 10) {
+      // 📍 อยู่บนสุด → แสดงเสมอ
+      bar.classList.remove("scroll-hide");
+    }
+    else if (delta > 8) {
+      // ⬇️ scroll ลง
+      _lastDirection = "down";
+      bar.classList.add("scroll-hide");
+    }
+    else if (delta < -8) {
+      // ⬆️ scroll ขึ้น
+      _lastDirection = "up";
+      bar.classList.remove("scroll-hide");
+    }
+  }
+
+   _lastScrollY = currentY;
    _headerTicking = false;
  }
 
  window.addEventListener("scroll", () => {
-   _lastScrollY = window.scrollY;
-
+   
    if (!_headerTicking) {
      window.requestAnimationFrame(handleHeaderScroll);
      _headerTicking = true;
