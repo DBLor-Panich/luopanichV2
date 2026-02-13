@@ -96,6 +96,7 @@
   text-shadow:
     0 0 6px rgba(255,255,255,.65),
     0 0 18px rgba(255,255,255,.35);
+  margin-left:7px;
 }
   
   .badge{
@@ -440,8 +441,7 @@ button:disabled {
    color: #111;
    backdrop-filter: blur(14px);
 
-   transform: translateX(-6px) scale(.96);
-   pointer-events: none;
+  pointer-events: none;
 
   transform: translateX(-6px) scaleX(.6);
   transform-origin: left center;
@@ -1195,10 +1195,6 @@ textarea {
      background: #0f0f12;
    }
 
-   .toast{
-    box-shadow: var(--shadow-float);
-  }
-   
   /* 🔹 FLOATING BAR (DARK) */
   #floatingBar{
     background:rgba(28,28,30,.55);
@@ -2581,7 +2577,7 @@ function renderHeader(){
   h.innerHTML = `
     <div class="header-left">
       <div style="flex:1">
-        <div class="admin-title" style="margin-left:7px;">
+        <div class="admin-title">
    การจัดการสินค้า
  </div>
  <div class="admin-motto">
