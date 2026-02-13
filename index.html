@@ -1241,6 +1241,29 @@ textarea {
   pointer-events:none;
 }
 
+#floatingBar.bounce-in{
+  animation: float-bounce .65s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes float-bounce{
+  0%   { transform:translateX(-50%) translateY(120%) scale(.94); }
+  60%  { transform:translateX(-50%) translateY(-6px) scale(1.02); }
+  100% { transform:translateX(-50%) translateY(0) scale(1); }
+}
+
+#floatingBar .total-animate{
+  animation: total-pop .25s ease;
+}
+
+@keyframes total-pop{
+  0%   { transform:scale(.92); opacity:.6; }
+  100% { transform:scale(1); opacity:1; }
+}
+
+#floatingBar:active{
+  transform:translateX(-50%) translateY(0) scale(.97);
+} 
+
 #floatingBar.show{
   transform:translateX(-50%) translateY(0);
   opacity:1;
@@ -2298,6 +2321,8 @@ function renderFloatingBar(){
     return;
   }
 
+  const wasVisible = bar.classList.contains("show"); // 🔴 FIX: declare before use
+  
   const total = state.cart.reduce(
     (s,i)=> s + Number(i.price) * Number(i.qty),
     0
@@ -2307,7 +2332,8 @@ function renderFloatingBar(){
     <div style="display:flex;align-items:center;gap:10px;font-weight:600">
       🛒 ${state.cart.length} รายการ
     </div>
-    <div style="font-weight:700;color:#007aff">
+    <div id="floatingTotal"
+         style="font-weight:700;color:#007aff">
       รวม ฿${total.toLocaleString()}
     </div>
   `;
@@ -2317,6 +2343,22 @@ function renderFloatingBar(){
 
   bar.classList.remove("scroll-hide"); // 🔴 FIX
   bar.classList.add("show");
+
+  /* ===== First Appear Bounce ===== */
+  if (!wasVisible){
+    bar.classList.add("bounce-in");
+    setTimeout(()=>{
+      bar.classList.remove("bounce-in");
+    },650);
+  }
+
+  /* ===== Total Change Animation ===== */
+  const totalEl = document.getElementById("floatingTotal");
+  if (totalEl){
+    totalEl.classList.remove("total-animate");
+    void totalEl.offsetWidth;
+    totalEl.classList.add("total-animate");
+  }
 }
   
 function renderConfirmSheet(){
