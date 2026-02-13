@@ -1065,7 +1065,26 @@ textarea {
      border: 1px solid rgba(255,255,255,.08);
    }
  }
-  
+
+ /* ================= DARK MODE LIQUID HEADER ================= */
+
+@media (prefers-color-scheme: dark){
+  header{
+    background: rgba(28,28,30,.55);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+
+    box-shadow:
+      0 8px 32px rgba(0,0,0,.5),
+      inset 0 -1px 0 rgba(255,255,255,.06);
+  }
+
+  header.scrolled{
+    background: rgba(28,28,30,.75);
+    box-shadow:
+      0 16px 42px rgba(0,0,0,.65),
+      inset 0 -1px 0 rgba(255,255,255,.08);
+  }
+}
  
 </style>
 </head>
@@ -5025,6 +5044,34 @@ async function restoreAdminSessionIfValid() {
 }
   
 /* ================= INIT APP (CLEAN / SAFE) ================= */
+ /* ================= LIQUID HEADER SCROLL EFFECT ================= */
+ let _lastScrollY = 0;
+ let _headerTicking = false;
+
+ function handleHeaderScroll(){
+   const header = document.getElementById("appHeader");
+   if (!header) return;
+
+   const currentY = window.scrollY;
+
+   if (currentY > 10) {
+     header.classList.add("scrolled");
+   } else {
+     header.classList.remove("scrolled");
+   }
+
+   _headerTicking = false;
+ }
+
+ window.addEventListener("scroll", () => {
+   _lastScrollY = window.scrollY;
+
+   if (!_headerTicking) {
+     window.requestAnimationFrame(handleHeaderScroll);
+     _headerTicking = true;
+   }
+ });
+  
 (async () => {
   try {
     state.search = "";
