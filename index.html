@@ -1711,6 +1711,25 @@ async function refreshProducts() {
 }
 
 async function createOrder() {
+  // 🔴 HARDENING: reload stock snapshot before submit
+  const latestProducts = await fetchProducts();
+
+  for (const item of state.cart) {
+    const product = latestProducts.find(
+      p => p.productId === item.productId
+    );
+
+    if (!product) {
+      throw new Error(`ไม่พบสินค้า ${item.name}`);
+    }
+
+    if (Number(product.stock) < Number(item.qty)) {
+      throw new Error(
+        `${item.name} คงเหลือ ${product.stock} ชิ้น (คุณเลือก ${item.qty})`
+      );
+    }
+  }
+
   const total = state.cart.reduce(
    (s,i)=> s + Number(i.price) * Number(i.qty),
    0
