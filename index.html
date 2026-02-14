@@ -5198,7 +5198,10 @@ function exportOrderPrint() {
       </table>
 
 <div class="total">
-  ยอดรวม: ฿${total}
+  ยอดรวม: ฿${total}<br>
+  <span style="font-weight:500; font-size:14px;">
+    (${numberToThaiText(Number(order.total || 0))})
+  </span>
 </div>
 
 </div> <!-- ปิด content -->
