@@ -1553,8 +1553,10 @@ Object.assign(window, {
   adminAddProductSheet
 });
 
-// 🔒 ใช้ state.ui.backdropLocked เป็นตัวเดียว (single source of truth)
-let allowOpenOrders = false;
+// 🔒 Intent guards (STEP 2)
+ let allowOpenOrders = false;
+ let allowOpenStockTimeline = false;
+ let allowOpenAddProduct = false;
 
   
 /* ================= GLOBAL STATE (UPGRADED / SAFE) ================= */
@@ -2823,10 +2825,19 @@ function setViewerStatus(status){
  }
   
 function openAdminEntry(){
-  // 🔒 ถ้ามี session อยู่แล้ว → เข้า admin ทันที
+  // 🔒 ถ้ามี session อยู่แล้ว → ต้อง valid ก่อนค่อยเข้า admin
   if (state.admin.loggedIn && state.admin.token) {
-    enterAdmin();
-    return;
+    if (isAdminSessionExpired()) {
+      alert("Session หมดอายุ กรุณา login ใหม่");
+      clearAdminSession();
+      state.admin.loggedIn = false;
+      state.admin.user = null;
+      state.admin.token = null;
+      state.admin.expiredAt = null;
+    } else {
+      enterAdmin();
+      return;
+    }
   }
 
   // 🔓 ยังไม่ login → แสดงหน้า login
@@ -2852,6 +2863,8 @@ function exitAdmin(){
 
   // ❌ กัน Orders เด้งซ้ำ
   allowOpenOrders = false;
+  allowOpenStockTimeline = false;
+  allowOpenAddProduct = false;
 
   // 🧹 CLEAR PERSIST SESSION  ← 🔴 เพิ่มบรรทัดเดียว
   clearAdminSession();
@@ -3347,10 +3360,38 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
 
 function handleOpenOrders() {
   allowOpenOrders = true;
-  openAdminDashboard("PENDING", true);
+  openAdminDashboard("PENDING");
 }
 
-async function openStockTimeline() {
+
+function handleOpenStockTimeline(){
+  allowOpenStockTimeline = true;
+  openStockTimeline();
+}
+
+function handleOpenAddProduct(){
+  allowOpenAddProduct = true;
+  openAddProduct();
+}  
+
+async function openStockTimeline(force = false) {
+  // ❌ ต้องมี intent จริง
+  if (!force && !allowOpenStockTimeline) return;
+
+  // 🔐 session guard
+  if (
+    !state.admin.loggedIn ||
+    !state.admin.token ||
+    isAdminSessionExpired()
+  ) {
+    alert("Session หมดอายุ กรุณา login ใหม่");
+    exitAdmin();
+    return;
+  }
+
+  // 🔒 ใช้แล้วปิดทันที (กันเด้งซ้ำ)
+  allowOpenStockTimeline = false;
+
   closeOverlay(adminDashboardSheet);
 
   adminStockSheet.innerHTML = `
@@ -3838,41 +3879,41 @@ function openMainMenu(){
     return;
   }
 
-  // ✅ MAIN MENU: แสดงตามสถานะ (ไม่ยิง login ตรง)
+  // ✅ STEP 2: Main Menu v1 = Login only (ถ้ายังไม่อยู่ admin mode)
   mainMenuSheet.innerHTML = `
     <h3>Main Menu</h3>
 
     <!-- 🔹 MAIN ACTIONS -->
     <div class="menu-group">
       ${
-        adminValid
+        (state.mode === "admin" && adminValid)
           ? `
-            <button class="btn btn-primary"
-              onclick="closeMainMenu(); handleOpenOrders();">
-              📦 Orders
-            </button>
+              <button class="btn btn-primary"
+                onclick="closeMainMenu(); handleOpenOrders();">
+                📦 Orders
+              </button>
 
-            <button class="btn btn-secondary"
-              onclick="closeMainMenu(); openStockTimeline();">
-              📦 Stock Timeline
-            </button>
+              <button class="btn btn-secondary"
+                onclick="closeMainMenu(); handleOpenStockTimeline();">
+                📦 Stock Timeline
+              </button>
 
-            <button class="btn btn-secondary"
-              onclick="closeMainMenu(); openAddProduct();">
-              ➕ เพิ่มสินค้าใหม่
-            </button>
-          `
+              <button class="btn btn-secondary"
+                onclick="closeMainMenu(); handleOpenAddProduct();">
+                ➕ เพิ่มสินค้าใหม่
+              </button>
+            `
           : `
-            <button class="btn btn-primary"
-              onclick="closeMainMenu(); openAdminEntry();">
-              🔑 Admin Login
-            </button>
-          `
+              <button class="btn btn-primary"
+                onclick="closeMainMenu(); openAdminEntry();">
+                🔑 Admin Login
+              </button>
+            `
       }
     </div>
 
     ${
-      adminValid
+      (state.mode === "admin" && adminValid)
         ? `
           <hr>
           <div class="menu-group danger">
@@ -3890,7 +3931,25 @@ function openMainMenu(){
   openOverlay(mainMenuSheet);
 }
 
-function openAddProduct(){
+function openAddProduct(force = false){
+  // ❌ ต้องมี intent จริง
+  if (!force && !allowOpenAddProduct) return;
+
+  // 🔐 session + mode guard
+  if (
+    state.mode !== "admin" ||
+    !state.admin.loggedIn ||
+    !state.admin.token ||
+    isAdminSessionExpired()
+  ) {
+    alert("Session หมดอายุ กรุณา login ใหม่");
+    exitAdmin();
+    return;
+  }
+
+  // 🔒 ใช้แล้วปิดทันที
+  allowOpenAddProduct = false;
+
   state.addImageFile = null;
   const draft = state.smartAddDraft || {};
 
@@ -5399,6 +5458,8 @@ function finishAdminAction({ refresh = true } = {}) {
 
   // ❌ กัน Orders เด้งซ้ำ
   allowOpenOrders = false;
+  allowOpenStockTimeline = false;
+  allowOpenAddProduct = false;
 
   // 🔍 RESET SEARCH (กัน filter ค้าง)
   state.search = "";
@@ -5634,7 +5695,6 @@ if (header){
           state.admin.token = restored.token;
           state.admin.expiredAt = restored.expiredAt;
 
-          state.mode = "admin";
           adminRestored = true;
         }
       } catch (err) {
