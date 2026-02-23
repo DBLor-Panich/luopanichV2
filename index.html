@@ -1801,10 +1801,32 @@ function sortProducts(products) {
 }
   
 async function refreshProducts() {
-  const list = await fetchProducts();
+  const app = document.getElementById("app");
 
-  state.products = sortProducts(list); // ✅ เพิ่มบรรทัดเดียว
-  renderProducts();
+  // ✅ Loading placeholder ระหว่างรอโหลด (ตอนรีเฟรชหน้า/โหลดใหม่)
+  if (app) {
+    app.innerHTML = `<div class="loading">กำลังโหลดรายการสินค้า</div>`;
+  }
+
+  try {
+    const list = await fetchProducts();
+    state.products = sortProducts(list);
+    renderProducts();
+  } catch (err) {
+    console.error("refreshProducts failed:", err);
+    if (app) {
+      app.innerHTML = `
+        <div style="
+          text-align:center;
+          color:#d93025;
+          margin-top:40px;
+          font-size:15px;
+        ">
+          ไม่สามารถโหลดรายการสินค้าได้
+        </div>
+      `;
+    }
+  }
 }
 
 async function createOrder() {
