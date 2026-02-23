@@ -1867,8 +1867,8 @@ function sortProducts(products) {
 async function refreshProducts() {
   const app = document.getElementById("app");
 
-  // ✅ Premium Skeleton ระหว่างรอโหลด (ไม่กระทบ logic)
-  if (app) {
+  // ✅ Premium Skeleton เฉพาะตอน "ยังไม่มีรายการ" (ลดอาการวูบ/กระพริบ)
+  if (app && (!Array.isArray(state.products) || state.products.length === 0)) {
     const skeleton = Array.from({ length: 6 }).map(() => `
       <div class="skeleton-card" aria-hidden="true">
         <div class="skeleton-row">
