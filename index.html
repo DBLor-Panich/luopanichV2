@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Stock Viewer</title>
 
 <!-- ================= UI STYLE ================= -->
@@ -28,8 +28,9 @@
   header{
   padding:
     calc(env(safe-area-inset-top, 0px) + 20px)
-    16px
-    18px;
+    calc(env(safe-area-inset-right, 0px) + 16px)
+    18px
+    calc(env(safe-area-inset-left, 0px) + 16px);
   font-size:22px;
   font-weight:600;
 
@@ -66,9 +67,10 @@
 
   header.scrolled{
    padding:
-     calc(env(safe-area-inset-top, 0px) + 12px)
-     16px
-     10px;
+    calc(env(safe-area-inset-top, 0px) + 12px)
+    calc(env(safe-area-inset-right, 0px) + 16px)
+    10px
+    calc(env(safe-area-inset-left, 0px) + 16px);
    min-height: 72px;
    background: rgba(255,255,255,.85);
    box-shadow:
@@ -397,14 +399,16 @@ button:disabled {
 /* ================= HEADER SEARCH (iOS-LIKE) ================= */
 .viewer-search-wrap{
    margin-top:6px;
-   max-width:calc(100% - 44px);
+   max-width:100%;
  }  
 
 .search-wrap {
   display: flex;
   align-items: center;
   position: relative;
-  max-width: calc(100% - 44px);
+  max-width: 100%;
+  min-width: 0;          /* 🔴 กันดัน layout */
+  overflow: hidden;      /* 🔴 กันกินพื้นที่ตอนพับ search */
 }
 
 .search-btn {
@@ -427,18 +431,18 @@ button:disabled {
 }
 
 .search-input {
-   width: 260px;
+   width: 0;             /* 🔴 สำคัญ: ตอนยังไม่ active ต้องไม่กินพื้นที่ */
    opacity: 0;
-   margin-left: 8px;
+   margin-left: 0;
    height: 40px;
-   padding: 8px 12px;
+   padding: 0;
 
    font-size: 16px;
    border-radius: 12px;
-   border: 1px solid rgba(0,0,0,.12);
+   border: 0;
 
    background: rgba(255,255,255,.85);
-   color: #ffffff; /* 🔴 เปลี่ยนข้อความเป็นสีขาว */
+   color: #111;    /* ✅ อ่านชัดใน light mode */
    backdrop-filter: blur(14px);
 
   pointer-events: none;
@@ -448,7 +452,10 @@ button:disabled {
 
   transition:
     opacity .18s ease,
-    transform .45s cubic-bezier(.34,1.56,.64,1);
+    transform .45s cubic-bezier(.34,1.56,.64,1),
+    width .35s ease,
+    margin-left .35s ease,
+    padding .35s ease;
 }
 
 /* 🔥 ACTIVE STATE */
@@ -456,6 +463,10 @@ button:disabled {
   opacity: 1;
   transform: translateX(0) scaleX(1);
   pointer-events: auto;
+  width: min(220px, calc(100vw - 200px)); /* 🔴 ลด/ยืดตามจอ ไม่ดัน filter+menu */
+  margin-left: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,.12);
 }
 
 /* 🔹 subtle focus glow (iOS feel) */
@@ -513,6 +524,7 @@ button:disabled {
   background:transparent;
   font-size:26px;
   color:#ffffff; /* 🔴 ทำให้สามขีดเป็นสีขาว */
+  line-height:1;         /* 🔴 กัน glyph ☰ โดนตัดบน iOS */
   cursor:pointer;
 
   display:flex;
@@ -1241,6 +1253,7 @@ textarea {
   .search-input {
     background: rgba(44,44,46,.9);
     border: 1px solid rgba(255,255,255,.08);
+    color: #fff; /* ✅ ค่อยบังคับขาวเฉพาะ dark */
   }
    
    .product-note {
@@ -1412,6 +1425,52 @@ textarea {
      animation: none !important;
    }
  }
+
+/* ================= BACK TO TOP (FLOAT) ================= */
+.btnTop{
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 84px); /* ✅ ลอยเหนือ floatingBar */
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  z-index: 46; /* ✅ สูงกว่า floatingBar (45) แต่ต่ำกว่า backdrop (100) */
+
+  /* iOS glass */
+  background: rgba(255,255,255,.38);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.75);
+  color: #111;
+  font-size: 18px;
+  font-weight: 700;
+
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px) scale(.96);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.btnTop.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+  pointer-events: auto;
+}
+.btnTop:active{
+  transform: translateX(-50%) translateY(1px) scale(.97);
+}
+
+@media (prefers-color-scheme: dark){
+  .btnTop{
+    background: rgba(28,28,30,.65);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+} 
   
 </style>
 </head>
@@ -1461,6 +1520,38 @@ textarea {
 /* ================= STEP 2: ประกาศ backdrop (UPGRADED) ================= */
 const backdrop = document.getElementById("globalBackdrop");
 const cartSheet = document.getElementById("cartSheet");
+  
+// ✅ SINGLE SOURCE OF TRUTH: sheet refs (กัน ReferenceError + กันพึ่ง global id)
+const productSheet = document.getElementById("productSheet");
+const qtySheet = document.getElementById("qtySheet");
+const confirmSheet = document.getElementById("confirmSheet");
+const stockSheet = document.getElementById("stockSheet");
+const adminLoginSheet = document.getElementById("adminLoginSheet");
+const adminDashboardSheet = document.getElementById("adminDashboardSheet");
+const adminOrderSheet = document.getElementById("adminOrderSheet");
+const adminStockSheet = document.getElementById("adminStockSheet");
+const adminMenuSheet = document.getElementById("adminMenuSheet");
+const adminProductActionSheet = document.getElementById("adminProductActionSheet");
+const adminProductEditSheet = document.getElementById("adminProductEditSheet");
+const adminStockActionSheet = document.getElementById("adminStockActionSheet");
+const adminAddProductSheet = document.getElementById("adminAddProductSheet");
+
+// ✅ expose for inline onclick handlers (ปลอดภัยสุด)
+Object.assign(window, {
+  productSheet,
+  qtySheet,
+  confirmSheet,
+  stockSheet,
+  adminLoginSheet,
+  adminDashboardSheet,
+  adminOrderSheet,
+  adminStockSheet,
+  adminMenuSheet,
+  adminProductActionSheet,
+  adminProductEditSheet,
+  adminStockActionSheet,
+  adminAddProductSheet
+});
 
 // 🔒 ใช้ state.ui.backdropLocked เป็นตัวเดียว (single source of truth)
 let allowOpenOrders = false;
@@ -1623,7 +1714,10 @@ function safeHideLoading(fromTimeout = false) {
       }
 
       state.isSubmitting = false;
-      state.ui.backdropLocked = false;
+      // 🔒 ปลด lock เฉพาะเมื่อไม่มี overlay เปิดอยู่ (กัน confirm/flow หลุด)
+      if (state.ui.overlayCount === 0) {
+        state.ui.backdropLocked = false;
+      }
 
       if (state.ui.overlayCount === 0 && backdrop) {
         backdrop.style.display = "none";
@@ -2125,11 +2219,14 @@ function closeImageViewer(){
        images.length
          ? `
            <div class="product-info-images">
- ${images.map(url => `
+ ${images.map(url => {
+   const safeUrl = String(url).replace(/'/g, "%27");
+   return `
 <img src="${url}"
       class="product-info-zoom"
-      onclick="openImageViewer('${url}')">
- `).join("")}
+      onclick="openImageViewer('${safeUrl}')">
+   `;
+ }).join("")}
            </div>
          `
          : ""
@@ -2289,14 +2386,13 @@ let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
 function renderProductSheet(){
   const p = state.selectedProduct;
-  const productSheet = document.getElementById("productSheet");
   if (!productSheet || !p) return;
 
   productSheet.innerHTML = `
     <!-- ❌ CLOSE BUTTON (TOP-RIGHT) -->
  <button
    class="sheet-close sheet-close-btn"
-   onclick="closeOverlay(productSheet)"
+   onclick="closeOverlay(window.productSheet)"
    aria-label="Close"
  >
       ×
@@ -2800,21 +2896,22 @@ function handleBackdropClick(){
 function closeTopSheet(){
   const sheets = [
     // 🔴 ADMIN FLOW (top → bottom)
-    imageViewerSheet,
-    adminMenuSheet,           // side menu
-    adminProductActionSheet,
-    adminProductEditSheet,
-    adminStockActionSheet,
-    adminOrderSheet,
-    adminDashboardSheet,
-    adminStockSheet,
+    document.getElementById("imageViewerSheet"),
+    document.getElementById("productInfoSheet"),
+    document.getElementById("adminMenuSheet"),           // side menu
+    document.getElementById("adminProductActionSheet"),
+    document.getElementById("adminProductEditSheet"),
+    document.getElementById("adminStockActionSheet"),
+    document.getElementById("adminOrderSheet"),
+    document.getElementById("adminDashboardSheet"),
+    document.getElementById("adminStockSheet"),
 
     // 🔵 VIEWER FLOW
-    confirmSheet,
-    cartSheet,
-    qtySheet,
-    productSheet,
-    stockSheet
+    document.getElementById("confirmSheet"),
+    document.getElementById("cartSheet"),
+    document.getElementById("qtySheet"),
+    document.getElementById("productSheet"),
+    document.getElementById("stockSheet")
   ];
 
   for (const sheet of sheets) {
@@ -3971,6 +4068,15 @@ async function submitOrder(){
      onclick="exportOrderPrint()">
      ดาวน์โหลดใบสั่งซื้อ
    </button>
+
+   <button class="btn btn-secondary"
+    style="margin-top:8px"
+    onclick="
+      state.ui.backdropLocked = false;
+      closeOverlay(confirmSheet);
+    ">
+    ปิด
+  </button>
  `;
 
 // confirmSheet เปิดอยู่แล้ว ไม่ต้อง reopen
@@ -5387,6 +5493,25 @@ async function restoreAdminSessionIfValid() {
  let _lastScrollTime = performance.now(); // 🔴 NEW: velocity time base
  let _headerTicking = false;
 
+// ================= BACK TO TOP =================
+let btnTop = null; // 🔴 must bind after DOM parsed (button is below this <script>)
+const prefersReducedMotion =
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+window.addEventListener("DOMContentLoaded", () => {
+  btnTop = document.getElementById("btnTop");
+  if (!btnTop) return;
+
+  btnTop.addEventListener("click", () => {
+    if (prefersReducedMotion) {
+      window.scrollTo(0, 0);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, { passive: true });
+});
+  
  const VELOCITY_HIDE = 0.6;   // px per ms
  const VELOCITY_SHOW = -0.6;  // px per ms 
  const VELOCITY_DEADZONE = 0.05; // 🔴 NEW: jitter guard 
@@ -5394,6 +5519,7 @@ async function restoreAdminSessionIfValid() {
  function handleHeaderScroll(){
    const header = document.getElementById("appHeader");
    const bar    = document.getElementById("floatingBar");
+   const topBtn = btnTop;
    
    const currentY = Math.max(0, window.scrollY); // 🔴 FIX: clamp negative scroll (iOS bounce)
    const now = performance.now();                       // 🔴 NEW
@@ -5415,6 +5541,13 @@ if (header){
     } else {
       header.classList.remove("scrolled");
     }
+  }
+   
+  /* ================= BACK TO TOP SHOW/HIDE ================= */
+  if (topBtn){
+    // ✅ โผล่เมื่อเลื่อนลงพอสมควร และไม่มี overlay เปิดอยู่
+    const shouldShow = currentY > 600 && state.ui.overlayCount === 0;
+    topBtn.classList.toggle("show", shouldShow);
   }
 
   /* ================= FLOATING BAR SMART HIDE ================= */
@@ -5525,7 +5658,12 @@ if (header){
 <div id="toast-container"></div>
 
 <!-- Floating Bottom Bar -->
-<div id="floatingBar"></div>  
+<div id="floatingBar"></div> 
+
+<!-- Back to Top -->
+<button id="btnTop" class="btnTop" type="button" aria-label="กลับขึ้นด้านบน" title="กลับขึ้นด้านบน">
+  ↑
+</button>  
 
 <!-- Loading Overlay -->
 <div id="loading-overlay" class="hidden">
