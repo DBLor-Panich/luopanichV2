@@ -119,24 +119,24 @@
    font-size: 22px;
    letter-spacing: .2px;
 
-   /* ✅ Pastel Pink (iOS-like) */
-   color: #ff63b7;
+   /* ✅ Smoky Black */
+   color: rgba(17,17,17,.92);
 
    /* ✅ Glass capsule "ครอบแก้ว" */
    display: inline-flex;
    align-items: center;
    padding: 8px 12px;
    border-radius: 999px;
-   background: rgba(255, 99, 183, .12);
+   background: rgba(0,0,0,.08);
    border: 1px solid rgba(255, 255, 255, .45);
    backdrop-filter: blur(18px) saturate(180%);
    -webkit-backdrop-filter: blur(18px) saturate(180%);
 
-   /* ✅ Soft premium glow (ชมพูฟุ่ง + ไฮไลต์ขาวนิด ๆ) */
+   /* ✅ Soft smoky glow (ดำฟุ้ง + ไฮไลต์ขาวนิด ๆ) */
    text-shadow:
-     0 0 10px rgba(255, 99, 183, .55),
-     0 0 22px rgba(255, 99, 183, .25),
-     0 1px 0 rgba(255, 255, 255, .35);
+     0 0 10px rgba(0,0,0,.22),
+     0 0 22px rgba(0,0,0,.12),
+     0 1px 0 rgba(255,255,255,.45);
  }
 
 /* ================= ADMIN TITLE GLOW ================= */
@@ -1409,13 +1409,13 @@ textarea {
 
 @media (prefers-color-scheme: dark){
   .shop-title{
-    /* ✅ keep pink in dark mode (อ่านชัด + ยังฟุ่ง) */
-    color: #ff77c5;
-    background: rgba(255, 99, 183, .14);
-    border: 1px solid rgba(255, 255, 255, .14);
+    /* ✅ readable on dark header + still "black fuzzy" (shadow is black) */
+    color: rgba(255,255,255,.92);
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,255,255,.14);
     text-shadow:
-      0 0 10px rgba(255, 119, 197, .55),
-      0 0 22px rgba(255, 119, 197, .25);
+      0 0 10px rgba(0,0,0,.70),
+      0 0 22px rgba(0,0,0,.45);
   }
   
   header{
