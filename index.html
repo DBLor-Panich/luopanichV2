@@ -12,6 +12,22 @@
    --shadow-control: 0 6px 16px rgba(0,0,0,.08);
    --shadow-image:   0 4px 12px rgba(0,0,0,.12);
    --shadow-float:   0 12px 36px rgba(0,0,0,.12);
+   
+   /* ================= STEP 1: INTERACTION TOKENS ================= */
+   /* Tap scale */
+   --tap-scale-primary: .97;   /* primary / confirm */
+   --tap-scale-icon:    .95;   /* icon circle buttons */
+   --tap-scale-card:    .98;   /* cards should feel heavier */
+
+   /* Durations */
+   --dur-tap:   140ms;
+   --dur-sheet: 300ms;
+   --dur-chrome:360ms;
+
+   /* Easings (keep minimal, iOS-like) */
+   --ease-tap:   cubic-bezier(.2,.8,.2,1);
+   --ease-out:   cubic-bezier(.22,.61,.36,1);
+   --ease-chrome:cubic-bezier(.22,.61,.36,1); 
  }
   
   html, body {
@@ -66,10 +82,10 @@
   box-sizing:border-box;
 
   transition:
-    padding .45s cubic-bezier(.34,1.56,.64,1),
-    min-height .35s ease,
-    background .3s ease,
-    box-shadow .3s ease;
+    padding var(--dur-chrome) var(--ease-chrome),
+    min-height var(--dur-chrome) var(--ease-chrome),
+    background var(--dur-chrome) ease,
+    box-shadow var(--dur-chrome) ease;
   }
 
   header.scrolled{
@@ -167,7 +183,7 @@
   -webkit-overflow-scrolling: touch;
 
   transform: translateY(100%);
-  transition: transform .35s cubic-bezier(.22,.61,.36,1);
+  transition: transform var(--dur-sheet) var(--ease-out);
 
   z-index: 101;
 }
@@ -281,14 +297,10 @@ button:disabled {
  }
   /* ✅ เพิ่มตรงนี้ */
 .btn-remove:active {
-  transform: scale(0.95);
+  transform: scale(var(--tap-scale-icon));
 }
 
-/* interaction */
-.btn-danger:active,
-.btn-outline:active {
-  transform: scale(0.97);
-}
+/* interaction: use .btn:active as single source of truth */
   
 /* ================= BUTTON SYSTEM ================= */
 
@@ -304,8 +316,8 @@ button:disabled {
   justify-content: center;
   gap: 8px;
   transition:
-    transform .18s cubic-bezier(.34,1.56,.64,1),
-    box-shadow .18s ease;
+    transform var(--dur-tap) var(--ease-tap),
+    box-shadow var(--dur-tap) ease;
 }
 
 /* Primary */
@@ -329,7 +341,7 @@ button:disabled {
 
 /* Interaction */
 .btn:active {
-  transform: scale(0.94);
+  transform: scale(var(--tap-scale-primary));
 }
 
   .cart-item{
@@ -429,12 +441,12 @@ button:disabled {
   cursor: pointer;
 
   transition:
-    transform .18s cubic-bezier(.25,.46,.45,.94),
-    background .2s ease;
+    transform var(--dur-tap) var(--ease-tap),
+    background var(--dur-tap) ease;
 }
 
 .search-btn:active {
-  transform: scale(.92);
+  transform: scale(var(--tap-scale-icon));
 }
 
 .search-input {
@@ -539,14 +551,14 @@ button:disabled {
   justify-content:center;
 
   transition:
-    transform .18s cubic-bezier(.25,.46,.45,.94),
-    background .2s ease;
+    transform var(--dur-tap) var(--ease-tap),
+    background var(--dur-tap) ease;
 
   -webkit-tap-highlight-color: transparent;
 }
 
 .menu-btn:active{
-  transform: scale(.92);
+  transform: scale(var(--tap-scale-icon));
   background: rgba(0,0,0,.08);
 }
 
@@ -570,8 +582,8 @@ button:disabled {
   align-items: center;
   cursor: pointer;
   transition:
-    transform .25s cubic-bezier(.34,1.56,.64,1),
-    box-shadow .25s ease;
+    transform var(--dur-chrome) var(--ease-chrome),
+    box-shadow var(--dur-chrome) ease;
 }
 
 @media (hover:hover){
@@ -622,7 +634,7 @@ button:disabled {
 }
 
 .product-card:active {
-  transform: scale(0.965);
+  transform: scale(var(--tap-scale-card));
   box-shadow:
     0 4px 14px rgba(0,0,0,.08);
 }  
@@ -715,7 +727,7 @@ button:disabled {
 
 .btn-approve:active,
 .btn-reject:active {
-  transform: scale(0.97);
+  transform: scale(var(--tap-scale-primary));
 }
 
 /* ================= SIDE ADMIN MENU ================= */
@@ -737,7 +749,7 @@ button:disabled {
   padding: 16px;            /* ✅ ลด padding ให้ดูไม่อึดอัด */
 
   transform: translateX(100%);
-  transition: transform .28s ease;
+  transition: transform var(--dur-sheet) var(--ease-out);
   will-change: transform;
 }
 
@@ -783,10 +795,6 @@ button:disabled {
 
 .menu-group.danger {
   margin-top: 12px;
-}
-
-.btn-danger:active {
-  transform: scale(0.97);
 }
 
 /* 🔒 iOS SAFARI ZOOM FIX */
@@ -1196,7 +1204,7 @@ textarea {
 }
 
 .sheet-close-btn:active {
-  transform: scale(0.95);
+  transform: scale(var(--tap-scale-icon));
 }
 
 /* 🏷️ ชื่อสินค้าใน Product Sheet */
@@ -4302,6 +4310,9 @@ async function submitOrder(){
     
   } catch(err){
     console.error(err);
+    // 🔒 ถ้า fail เพราะ stock-check เรา toast ไปแล้ว ไม่ต้องซ้ำ
+    if (err && err.message === "STOCK_CHECK_FAILED") return;
+
     showToast(
       err.message || 'เกิดข้อผิดพลาดในการสร้างใบสั่งซื้อ',
       'error'
