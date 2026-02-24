@@ -115,13 +115,28 @@
 
 /* ================= SHOP TITLE GLOW ================= */
  .shop-title{
-   font-weight:700;
-   font-size:22px;
-   color:#fff;
-   letter-spacing:.3px;
+   font-weight: 800;
+   font-size: 22px;
+   letter-spacing: .2px;
+
+   /* ✅ Pastel Pink (iOS-like) */
+   color: #ff63b7;
+
+   /* ✅ Glass capsule "ครอบแก้ว" */
+   display: inline-flex;
+   align-items: center;
+   padding: 8px 12px;
+   border-radius: 999px;
+   background: rgba(255, 99, 183, .12);
+   border: 1px solid rgba(255, 255, 255, .45);
+   backdrop-filter: blur(18px) saturate(180%);
+   -webkit-backdrop-filter: blur(18px) saturate(180%);
+
+   /* ✅ Soft premium glow (ชมพูฟุ่ง + ไฮไลต์ขาวนิด ๆ) */
    text-shadow:
-     0 0 8px rgba(255,255,255,.6),
-     0 0 16px rgba(255,255,255,.35);
+     0 0 10px rgba(255, 99, 183, .55),
+     0 0 22px rgba(255, 99, 183, .25),
+     0 1px 0 rgba(255, 255, 255, .35);
  }
 
 /* ================= ADMIN TITLE GLOW ================= */
@@ -1394,7 +1409,13 @@ textarea {
 
 @media (prefers-color-scheme: dark){
   .shop-title{
-    color:#fff;
+    /* ✅ keep pink in dark mode (อ่านชัด + ยังฟุ่ง) */
+    color: #ff77c5;
+    background: rgba(255, 99, 183, .14);
+    border: 1px solid rgba(255, 255, 255, .14);
+    text-shadow:
+      0 0 10px rgba(255, 119, 197, .55),
+      0 0 22px rgba(255, 119, 197, .25);
   }
   
   header{
