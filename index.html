@@ -533,15 +533,11 @@ button:disabled {
    border:none;
    position: relative;          /* ✅ needed for glass layers */
    overflow: hidden;            /* ✅ clip highlight rim */
-
-   /* ✅ Glass body */
-   background:
-     radial-gradient(120% 120% at 30% 25%,
-       rgba(255,255,255,.85) 0%,
-       rgba(255,255,255,.38) 42%,
-       rgba(255,255,255,.18) 100%);
-   backdrop-filter: blur(18px) saturate(180%);
-   -webkit-backdrop-filter: blur(18px) saturate(180%);
+   
+   /* ✅ Apple-nimble glass (less "3D") */
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
    cursor:pointer;
    color: rgba(17,17,17,.92);
    display:flex;
@@ -553,12 +549,9 @@ button:disabled {
      background var(--dur-tap) ease,
      box-shadow var(--dur-tap) ease;
 
-   /* ✅ Glass rim + soft lift */
-   border: 1px solid rgba(255,255,255,.55);
-   box-shadow:
-     0 10px 22px rgba(0,0,0,.14),
-     inset 0 1px 0 rgba(255,255,255,.65),
-     inset 0 -10px 18px rgba(0,0,0,.06);
+   /* ✅ Token shadow (unified depth) */
+  border: 1px solid rgba(255,255,255,.45);
+  box-shadow: var(--shadow-control);
  }
 
  /* ✅ Glass highlight (top-left glare) */
@@ -568,34 +561,23 @@ button:disabled {
   inset:0;
   border-radius:inherit;
   z-index: 0;
-  background:
-    radial-gradient(70% 55% at 28% 22%,
-      rgba(255,255,255,.95) 0%,
-     rgba(255,255,255,.55) 26%,
-      rgba(255,255,255,0) 60%);
-  opacity:.85;
+  background: radial-gradient(70% 55% at 28% 22%,
+    rgba(255,255,255,.65) 0%,
+    rgba(255,255,255,0) 58%);
+  opacity:.45;
   pointer-events:none;
   mix-blend-mode: screen;
 }
 
 /* ✅ Inner rim (second ring) */
 .filter-btn::after{
-  content:"";
-  position:absolute;
-  inset:2px;
-  border-radius:inherit;
-  z-index: 1;
-  border:1px solid rgba(255,255,255,.28);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
-  pointer-events:none;
+  content:none;
 } 
   
  .filter-btn:active{
    transform: scale(var(--tap-scale-icon));
-   box-shadow:
-     0 6px 14px rgba(0,0,0,.16),
-     inset 0 1px 0 rgba(255,255,255,.55),
-     inset 0 -10px 18px rgba(0,0,0,.08);
+   /* ✅ press = simpler, less 3D */
+  box-shadow: var(--shadow-card-pressed);
  }
 
  .filter-btn .icon{
