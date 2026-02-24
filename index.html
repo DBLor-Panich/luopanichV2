@@ -8,6 +8,14 @@
 <!-- ================= UI STYLE ================= -->
 <style>
   :root {
+  /* ================= PHASE 3: TYPOGRAPHY / HIERARCHY ================= */
+  --text-primary:   rgba(17,17,17,.92);
+  --text-secondary: rgba(60,60,67,.68); /* iOS secondary-ish */
+  --title-size:     22px;
+  --subtitle-size:  12.5px;
+  --title-weight:   700;
+  --subtitle-weight:500;
+    
   /* ================= STEP 2: SHADOW/DEPTH TOKENS (UNIFIED) ================= */
   --shadow-card:            0 10px 30px rgba(0,0,0,.08);
   --shadow-control:         0 6px 16px rgba(0,0,0,.08);
@@ -66,8 +74,8 @@
     calc(env(safe-area-inset-right, 0px) + 16px)
     18px
     calc(env(safe-area-inset-left, 0px) + 16px);
-  font-size:22px;
-  font-weight:600;
+  font-size: inherit;
+  font-weight: inherit;
 
   /* 🔹 Visual */
   background:rgba(255,255,255,.65);
@@ -115,40 +123,68 @@
 
 /* ================= SHOP TITLE GLOW ================= */
  .shop-title{
-   font-weight: 800;
-   font-size: 22px;
-   letter-spacing: .2px;
+   font-weight: var(--title-weight);
+  font-size: var(--title-size);
+  letter-spacing: .15px;
+  color: var(--text-primary);
 
-   /* ✅ Smoky Black */
-   color: rgba(17,17,17,.92);
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.42);
+  border: 1px solid rgba(255,255,255,.55);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
 
-   /* ✅ Glass capsule "ครอบแก้ว" */
-   display: inline-flex;
-   align-items: center;
-   padding: 8px 12px;
-   border-radius: 999px;
-   background: rgba(0,0,0,.08);
-   border: 1px solid rgba(255, 255, 255, .45);
-   backdrop-filter: blur(18px) saturate(180%);
-   -webkit-backdrop-filter: blur(18px) saturate(180%);
-
-   /* ✅ Soft smoky glow (ดำฟุ้ง + ไฮไลต์ขาวนิด ๆ) */
-   text-shadow:
-     0 0 10px rgba(0,0,0,.22),
-     0 0 22px rgba(0,0,0,.12),
-     0 1px 0 rgba(255,255,255,.45);
+  /* Apple-nimble: เงาเบามาก ไม่ glow */
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
  }
 
+/* PHASE 3: Supporting line under title */
+.shop-subtitle{
+  margin-top: 6px;
+  font-size: var(--subtitle-size);
+  font-weight: var(--subtitle-weight);
+  color: var(--text-secondary);
+  letter-spacing: .2px;
+}
+
+/* ================= PHASE 3: HEADER HIERARCHY LAYOUT ================= */
+.header-left{
+  flex: 1;
+  min-width: 0;
+}
+.header-stack{
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.header-actions{
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 12px;
+}  
+  
 /* ================= ADMIN TITLE GLOW ================= */
 .admin-title{
-  font-weight:700;
-  font-size:22px;
-  color:#fff;
-  letter-spacing:.3px;
-  text-shadow:
-    0 0 6px rgba(255,255,255,.65),
-    0 0 18px rgba(255,255,255,.35);
+  font-weight: var(--title-weight);
+  font-size: var(--title-size);
+  color: var(--text-primary); /* ✅ readable in light header */
+  letter-spacing: .3px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35); /* ✅ subtle like shop-title */
   margin-left:7px;
+}
+  
+@media (prefers-color-scheme: dark){
+  .admin-title{
+    color: rgba(255,255,255,.92);
+    text-shadow:
+      0 0 10px rgba(0,0,0,.70),
+     0 0 22px rgba(0,0,0,.45);
+  }
 }
   
   .badge{
@@ -2962,8 +2998,10 @@ function renderHeader(){
 
   if(state.mode === "viewer"){
     h.innerHTML = `
-      <div style="flex:1">
+      <div class="header-left">
+      <div class="header-stack">
         <div class="shop-title">ร้านค้า Luopanich</div>
+        <div class="shop-subtitle">ค้นหา · กรองสถานะ · เพิ่มลงตะกร้า</div>
 
         <!-- 🔍 SEARCH ICON + EXPAND -->
 <div
@@ -2989,13 +3027,9 @@ function renderHeader(){
           >
         </div>          
          </div>
+    </div>
 
- <div style="
-   display:flex;
-   align-items:center;
-   gap:12px;
-   margin-left:12px;
- ">
+<div class="header-actions">
 
    <div class="filter-wrap">
      <button class="filter-btn"
@@ -3028,20 +3062,17 @@ function renderHeader(){
      <path d="M4 17h16"></path>
    </svg>
  </button>
-      </div>
+
+   </div>   
     `;
   }
 
  if(state.mode === "admin"){
   h.innerHTML = `
     <div class="header-left">
-      <div style="flex:1">
-        <div class="admin-title">
-   การจัดการสินค้า
- </div>
- <div class="admin-motto">
-   ❤️ สู้ ๆ ที่รัก
- </div>
+      <div class="header-stack">
+        <div class="admin-title">การจัดการสินค้า</div>
+        <div class="shop-subtitle">Admin · แก้ไข · ปรับสต๊อก · ตรวจออเดอร์</div>
       </div>
 
       <!-- 🔍 SEARCH (ICON EXPAND LIKE VIEWER) -->
