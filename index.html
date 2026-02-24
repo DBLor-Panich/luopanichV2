@@ -506,21 +506,63 @@ button:disabled {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,.6);
-  backdrop-filter: blur(10px);
-    cursor: pointer;
-  color: rgba(17,17,17,.92); /* ✅ ensure svg stroke uses correct color (currentColor) */
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.45);
+  position: relative;
+  overflow: hidden;
+
+  /* ✅ Match filter/menu: Apple-nimble glass */
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+
+  box-shadow: var(--shadow-control);
+  cursor: pointer;
+  color: rgba(17,17,17,.92); /* svg uses currentColor */
+  -webkit-tap-highlight-color: transparent;
 
   transition:
     transform var(--dur-tap) var(--ease-tap),
-    background var(--dur-tap) ease;
+    background var(--dur-tap) ease,
+    box-shadow var(--dur-tap) ease;
 }
 
+/* ✅ Glass highlight (same language as filter/menu) */
+.search-btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  z-index:0;
+  background:
+    radial-gradient(70% 55% at 28% 22%,
+      rgba(255,255,255,.95) 0%,
+      rgba(255,255,255,.55) 26%,
+      rgba(255,255,255,0) 60%);
+  opacity:.45;
+  pointer-events:none;
+  mix-blend-mode: screen;
+}
+.search-btn::after{
+  content:none;
+}
+.search-btn > *{ position: relative; z-index: 2; }
+  
 .search-btn:active {
   transform: scale(var(--tap-scale-icon));
+  background: rgba(0,0,0,.08);
+  box-shadow: var(--shadow-card-pressed);
 }
 
+@media (hover:hover){
+  .search-btn:hover{
+    background: rgba(0,0,0,.06);
+  }
+}
+  
 .search-input {
    width: 0;             /* 🔴 สำคัญ: ตอนยังไม่ active ต้องไม่กินพื้นที่ */
    opacity: 0;
@@ -1547,8 +1589,14 @@ textarea {
   }
 
   .search-btn {
-    background: rgba(44,44,46,.7);
-    color: rgba(255,255,255,.92); /* ✅ ensure svg stroke readable in dark */
+    background:
+      radial-gradient(120% 120% at 30% 25%,
+        rgba(255,255,255,.18) 0%,
+        rgba(44,44,46,.62) 45%,
+        rgba(0,0,0,.28) 100%);
+    color: rgba(255,255,255,.92);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow: var(--shadow-control);
   }
 
   .search-input {
