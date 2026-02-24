@@ -402,6 +402,15 @@ button:disabled {
   border: 1px solid #ddd;
 }
 
+/* Danger (logout / destructive) */
+.btn-danger{
+  background:#ff3b30;
+  color:#fff;
+}
+.btn-danger:active{
+  transform: scale(var(--tap-scale-primary));
+}
+
 /* Interaction */
 .btn:active {
   transform: scale(var(--tap-scale-primary));
@@ -2515,11 +2524,17 @@ async function checkStockBeforeSubmit() {
 }
 
 /* ================= RENDER FUNCTIONS ================= */
- // 🔒 Global HTML Escape (XSS Guard)
- const esc = s =>
-   String(s)
+// 🔒 Global HTML Escape (XSS Guard) — micro polish: escape &, <, >, ", '
+ const esc = (s) =>
+   String(s ?? "")
+     .replace(/&/g, "&amp;")
      .replace(/</g, "&lt;")
-     .replace(/>/g, "&gt;");  
+     .replace(/>/g, "&gt;")
+     .replace(/"/g, "&quot;")
+     .replace(/'/g, "&#39;");
+
+ // 🔒 Attribute-safe (สำหรับ src/alt/href)
+ const escAttr = (s) => esc(s);
   
 function openImageViewer(url){
   if (!url) return;
@@ -2543,7 +2558,7 @@ function openImageViewer(url){
 
     <!-- รูปสินค้า -->
 <img
-   src="${url}"
+   src="${escAttr(url)}"
    alt="preview"
    class="image-viewer-img"
  >
@@ -2581,12 +2596,13 @@ function closeImageViewer(){
        images.length
          ? `
            <div class="product-info-images">
- ${images.map(url => {
-   const safeUrl = String(url).replace(/'/g, "%27");
+ ${images.map((url) => {
+   // ✅ embed JS arg safely + keep src attribute safe
+   const jsArg = JSON.stringify(String(url ?? ""));
    return `
-<img src="${url}"
-      class="product-info-zoom"
-      onclick="openImageViewer('${safeUrl}')">
+<img src="${escAttr(url)}"
+     class="product-info-zoom"
+     onclick="openImageViewer(${jsArg})">
    `;
  }).join("")}
            </div>
@@ -2634,7 +2650,12 @@ function renderProducts(){
   const app = document.getElementById("app");
 
   const escapeHTML = (str="") =>
-    str.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    String(str ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#39;");
   
   // 🔒 GUARD สำคัญที่สุด
   if (!Array.isArray(state.products)) {
@@ -2709,8 +2730,8 @@ let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
     card.innerHTML = `
       <img class="thumb"
-        src="${p.image ? p.image : "about:blank"}"
-        alt="${p.name}"
+        src="${p.image ? escapeHTML(p.image) : "about:blank"}"
+        alt="${escapeHTML(p.name)}"
         onerror="this.style.display='none'">
 
       <div class="info">
@@ -2763,13 +2784,13 @@ function renderProductSheet(){
     <h3 class="product-title">${esc(p.name)}</h3>
 
     <div class="product-sku">
-      รหัสสินค้า: ${p.productId}
+      รหัสสินค้า: ${esc(p.productId)}
     </div>
 
     <!-- ✅ FIX IMAGE -->
  <img 
-   src="${p.image || ''}"
-   alt="${p.name}"
+   src="${escAttr(p.image || '')}"
+   alt="${escAttr(p.name)}"
    class="product-image"
  >
 
@@ -5961,28 +5982,36 @@ async function restoreAdminSessionIfValid() {
   const restored = loadAdminSession();
   if (!restored?.token || !restored?.expiredAt) return false;
 
+  // expired guard
   if (Date.now() > new Date(restored.expiredAt).getTime()) {
     clearAdminSession();
     return false;
   }
 
   try {
-    // lightweight validate
-    const res = await fetch(
-      `${API_URL}?action=orders&token=${restored.token}`
-    );
+    // ✅ lightweight validate (POST ให้ตรง backend)
+    const form = new URLSearchParams();
+    form.append("action", "orders");
+    form.append("token", restored.token);
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: form
+    });
+
     const json = await res.json();
 
     if (json?.success === true) {
       state.admin.loggedIn = true;
-      state.admin.user = restored.username;
+      state.admin.user = restored.username || null;
       state.admin.token = restored.token;
       state.admin.expiredAt = restored.expiredAt;
-      state.mode = "admin";
+
+      // ❗ ไม่ set state.mode ที่นี่ (กันกระทบ flow)
       return true;
     }
   } catch (e) {
-    console.warn("restore admin failed");
+    console.warn("restore admin failed", e);
   }
 
   clearAdminSession();
