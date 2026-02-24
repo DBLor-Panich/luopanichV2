@@ -464,8 +464,8 @@ button:disabled {
   border: none;
   background: rgba(255,255,255,.6);
   backdrop-filter: blur(10px);
-  font-size: 18px;
-  cursor: pointer;
+    cursor: pointer;
+  color: rgba(17,17,17,.92); /* ✅ ensure svg stroke uses correct color (currentColor) */
 
   transition:
     transform var(--dur-tap) var(--ease-tap),
@@ -523,6 +523,18 @@ button:disabled {
   outline: none;
 }
 
+/* ✅ STEP 3+4: SVG icon (monochrome) */
+.icon-sf{
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .92;
+}
  /* ================= FILTER ICON DROPDOWN ================= */
  .filter-wrap{ position:relative; }
 
@@ -577,9 +589,16 @@ button:disabled {
  .filter-btn:active{
    transform: scale(var(--tap-scale-icon));
    /* ✅ press = simpler, less 3D */
+   background: rgba(0,0,0,.08);
   box-shadow: var(--shadow-card-pressed);
  }
 
+ @media (hover:hover){
+  .filter-btn:hover{
+    background: rgba(0,0,0,.06);
+  }
+}
+  
  .filter-btn .icon{
    position: relative;
    z-index: 2;
@@ -622,23 +641,14 @@ button:disabled {
   position: relative;
   overflow: hidden;
 
-  /* ✅ Glass body (match header system) */
-  background:
-    radial-gradient(120% 120% at 30% 25%,
-      rgba(255,255,255,.85) 0%,
-      rgba(255,255,255,.38) 42%,
-      rgba(255,255,255,.18) 100%);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid rgba(255,255,255,.55);
-  box-shadow:
-    0 10px 22px rgba(0,0,0,.14),
-    inset 0 1px 0 rgba(255,255,255,.65),
-    inset 0 -10px 18px rgba(0,0,0,.06);
+  /* ✅ Match filter-btn: Apple-nimble glass (less 3D) */
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid rgba(255,255,255,.45);
+  box-shadow: var(--shadow-control);
 
-  font-size:26px;
   color: rgba(17,17,17,.92); /* ✅ correct in light */
-  line-height:1;         /* 🔴 กัน glyph ☰ โดนตัดบน iOS */
   cursor:pointer;
 
   display:flex;
@@ -647,7 +657,8 @@ button:disabled {
 
   transition:
     transform var(--dur-tap) var(--ease-tap),
-    background var(--dur-tap) ease;
+    background var(--dur-tap) ease,
+    box-shadow var(--dur-tap) ease;
 
   -webkit-tap-highlight-color: transparent;
 }
@@ -665,19 +676,12 @@ button:disabled {
       rgba(255,255,255,.95) 0%,
       rgba(255,255,255,.55) 26%,
       rgba(255,255,255,0) 60%);
-  opacity:.85;
+  opacity:.45;
   pointer-events:none;
   mix-blend-mode: screen;
 }
 .menu-btn::after{
-  content:"";
-  position:absolute;
-  inset:2px;
-  border-radius:inherit;
-  z-index: 1;
-  border:1px solid rgba(255,255,255,.28);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
-  pointer-events:none;
+  content:none;
 }
   
 .menu-btn > *{ position: relative; z-index: 2; }  
@@ -685,6 +689,7 @@ button:disabled {
 .menu-btn:active{
   transform: scale(var(--tap-scale-icon));
   background: rgba(0,0,0,.08);
+  box-shadow: var(--shadow-card-pressed);
 }
 
 @media (hover:hover){
@@ -702,10 +707,7 @@ button:disabled {
         rgba(0,0,0,.28) 100%);
     color: rgba(255,255,255,.92);
     border: 1px solid rgba(255,255,255,.14);
-    box-shadow:
-      0 12px 26px rgba(0,0,0,.55),
-      inset 0 1px 0 rgba(255,255,255,.12),
-      inset 0 -10px 18px rgba(0,0,0,.35);
+    box-shadow: var(--shadow-control);
   }
   .menu-btn::before{ opacity: .55; }
 }
@@ -1501,6 +1503,7 @@ textarea {
 
   .search-btn {
     background: rgba(44,44,46,.7);
+    color: rgba(255,255,255,.92); /* ✅ ensure svg stroke readable in dark */
   }
 
   .search-input {
@@ -2970,7 +2973,12 @@ function renderHeader(){
           <button
             onclick="toggleViewerSearch()"
             class="search-btn"
-          >🔍</button>
+          >
+            <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="11" cy="11" r="6"></circle>
+              <path d="M20 20l-3.2-3.2"></path>
+            </svg>
+          </button>
 
           <input
             id="viewerSearchInput"
@@ -2993,8 +3001,11 @@ function renderHeader(){
      <button class="filter-btn"
         onclick="toggleFilterDropdown()"
         aria-label="Filter">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M3 5.5C3 4.67 3.67 4 4.5 4h15c.83 0 1.5.67 1.5 1.5 0 .36-.13.7-.36.97L14 14.4v4.35c0 .42-.26.8-.65.95l-3 1.2A1 1 0 0 1 9 20.98V14.4L3.36 6.47A1.5 1.5 0 0 1 3 5.5z"/>
+        <!-- iOS-like: line.3.horizontal.decrease (stroke, SF-style) -->
+        <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 7h16"></path>
+          <path d="M7 12h10"></path>
+          <path d="M10 17h4"></path>
         </svg>
      </button>
 
@@ -3011,7 +3022,11 @@ function renderHeader(){
    class="menu-btn"
    onclick="openMainMenu()"
    aria-label="Main Menu">
-   <span aria-hidden="true">☰</span>
+   <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+     <path d="M4 7h16"></path>
+     <path d="M4 12h16"></path>
+     <path d="M4 17h16"></path>
+   </svg>
  </button>
       </div>
     `;
@@ -3035,7 +3050,10 @@ function renderHeader(){
           class="search-btn"
           onclick="toggleAdminSearch()"
           aria-label="Search">
-          🔍
+          <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="6"></circle>
+            <path d="M20 20l-3.2-3.2"></path>
+          </svg>
         </button>
         <input
           class="search-input"
@@ -3050,7 +3068,11 @@ function renderHeader(){
    style="margin-left:12px"
    onclick="openMainMenu()"
    aria-label="Open Main Menu">
-   <span aria-hidden="true">☰</span>
+   <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+     <path d="M4 7h16"></path>
+     <path d="M4 12h16"></path>
+     <path d="M4 17h16"></path>
+   </svg>
  </button>
   `;
 }
