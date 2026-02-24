@@ -531,8 +531,17 @@ button:disabled {
    height:40px;
    border-radius:50%;
    border:none;
-   background:rgba(255,255,255,.6);
-   backdrop-filter:blur(12px);
+   position: relative;          /* ✅ needed for glass layers */
+   overflow: hidden;            /* ✅ clip highlight rim */
+
+   /* ✅ Glass body */
+   background:
+     radial-gradient(120% 120% at 30% 25%,
+       rgba(255,255,255,.85) 0%,
+       rgba(255,255,255,.38) 42%,
+       rgba(255,255,255,.18) 100%);
+   backdrop-filter: blur(18px) saturate(180%);
+   -webkit-backdrop-filter: blur(18px) saturate(180%);
    cursor:pointer;
    color: rgba(17,17,17,.92);
    display:flex;
@@ -541,15 +550,57 @@ button:disabled {
    -webkit-tap-highlight-color: transparent;
    transition:
      transform var(--dur-tap) var(--ease-tap),
-     background var(--dur-tap) ease;
+     background var(--dur-tap) ease,
+     box-shadow var(--dur-tap) ease;
+
+   /* ✅ Glass rim + soft lift */
+   border: 1px solid rgba(255,255,255,.55);
+   box-shadow:
+     0 10px 22px rgba(0,0,0,.14),
+     inset 0 1px 0 rgba(255,255,255,.65),
+     inset 0 -10px 18px rgba(0,0,0,.06);
  }
 
+ /* ✅ Glass highlight (top-left glare) */
+.filter-btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  z-index: 0;
+  background:
+    radial-gradient(70% 55% at 28% 22%,
+      rgba(255,255,255,.95) 0%,
+     rgba(255,255,255,.55) 26%,
+      rgba(255,255,255,0) 60%);
+  opacity:.85;
+  pointer-events:none;
+  mix-blend-mode: screen;
+}
+
+/* ✅ Inner rim (second ring) */
+.filter-btn::after{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius:inherit;
+  z-index: 1;
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+  pointer-events:none;
+} 
   
  .filter-btn:active{
    transform: scale(var(--tap-scale-icon));
+   box-shadow:
+     0 6px 14px rgba(0,0,0,.16),
+     inset 0 1px 0 rgba(255,255,255,.55),
+     inset 0 -10px 18px rgba(0,0,0,.08);
  }
 
  .filter-btn .icon{
+   position: relative;
+   z-index: 2;
    width:18px;
    height:18px;
    fill: currentColor;
@@ -1376,29 +1427,45 @@ textarea {
      color: #f5f5f7;
    }
 
-   .filter-btn{
-   background: rgba(44,44,46,.7);
-   color: rgba(255,255,255,.92);
- }
+.filter-btn{
+    background:
+      radial-gradient(120% 120% at 30% 25%,
+        rgba(255,255,255,.18) 0%,
+        rgba(44,44,46,.62) 45%,
+        rgba(0,0,0,.28) 100%);
+    color: rgba(255,255,255,.92);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow:
+      0 12px 26px rgba(0,0,0,.55),
+      inset 0 1px 0 rgba(255,255,255,.12),
+      inset 0 -10px 18px rgba(0,0,0,.35);
+  }
 
- .filter-dropdown{
-   background: rgba(44,44,46,.9);
-   color:#f5f5f7;
- }
+  /* ✅ ลด glare (highlight) ของแก้วในโหมดมืด */
+  .filter-btn::before{ opacity: .55; }
+ } /* end @media (prefers-color-scheme: dark) */
 
- .filter-item:hover{
-   background: rgba(255,255,255,.08);
- }
-   
-   .search-btn {
-     background: rgba(44,44,46,.7);
-   }
+@media (prefers-color-scheme: dark){
+  .filter-dropdown{
+    background: rgba(44,44,46,.9);
+    color:#f5f5f7;
+  }
+
+  .filter-item:hover{
+    background: rgba(255,255,255,.08);
+  }
+
+  .search-btn {
+    background: rgba(44,44,46,.7);
+  }
 
   .search-input {
     background: rgba(44,44,46,.9);
     border: 1px solid rgba(255,255,255,.08);
-    color: #fff; /* ✅ ค่อยบังคับขาวเฉพาะ dark */
+    color: #fff;
   }
+} /* end @media (prefers-color-scheme: dark) */
    
    .product-note {
     background: rgba(44,44,46,.8);
