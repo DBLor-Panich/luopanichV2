@@ -637,9 +637,25 @@ button:disabled {
   height:40px;
   border:none;
   border-radius:50%;
-  background:transparent;
+  position: relative;
+  overflow: hidden;
+
+  /* ✅ Glass body (match header system) */
+  background:
+    radial-gradient(120% 120% at 30% 25%,
+      rgba(255,255,255,.85) 0%,
+      rgba(255,255,255,.38) 42%,
+      rgba(255,255,255,.18) 100%);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -10px 18px rgba(0,0,0,.06);
+
   font-size:26px;
-  color:#ffffff; /* 🔴 ทำให้สามขีดเป็นสีขาว */
+  color: rgba(17,17,17,.92); /* ✅ correct in light */
   line-height:1;         /* 🔴 กัน glyph ☰ โดนตัดบน iOS */
   cursor:pointer;
 
@@ -654,6 +670,36 @@ button:disabled {
   -webkit-tap-highlight-color: transparent;
 }
 
+
+/* ✅ Glass highlight (like filter) */
+.menu-btn::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  z-index:0;
+  background:
+    radial-gradient(70% 55% at 28% 22%,
+      rgba(255,255,255,.95) 0%,
+      rgba(255,255,255,.55) 26%,
+      rgba(255,255,255,0) 60%);
+  opacity:.85;
+  pointer-events:none;
+  mix-blend-mode: screen;
+}
+.menu-btn::after{
+  content:"";
+  position:absolute;
+  inset:2px;
+  border-radius:inherit;
+  z-index: 1;
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
+  pointer-events:none;
+}
+  
+.menu-btn > *{ position: relative; z-index: 2; }  
+  
 .menu-btn:active{
   transform: scale(var(--tap-scale-icon));
   background: rgba(0,0,0,.08);
@@ -665,7 +711,22 @@ button:disabled {
   }
 }
   
-
+@media (prefers-color-scheme: dark){
+  .menu-btn{
+    background:
+      radial-gradient(120% 120% at 30% 25%,
+        rgba(255,255,255,.18) 0%,
+        rgba(44,44,46,.62) 45%,
+        rgba(0,0,0,.28) 100%);
+    color: rgba(255,255,255,.92);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow:
+      0 12px 26px rgba(0,0,0,.55),
+      inset 0 1px 0 rgba(255,255,255,.12),
+      inset 0 -10px 18px rgba(0,0,0,.35);
+  }
+  .menu-btn::before{ opacity: .55; }
+}
   /* ================= PRODUCT CARD (HORIZONTAL) ================= */
 .product-card {
   display: flex;
@@ -1465,9 +1526,8 @@ textarea {
     border: 1px solid rgba(255,255,255,.08);
     color: #fff;
   }
-} /* end @media (prefers-color-scheme: dark) */
-   
-   .product-note {
+  
+.product-note {
     background: rgba(44,44,46,.8);
     border: 1px dashed rgba(255,255,255,.08);
     color: #ddd;
@@ -1483,14 +1543,14 @@ textarea {
     color: #fff;
   }
 
-   input,
-   select,
-   textarea {
-     background: rgba(44,44,46,.8);
-     color: #fff;
-     border: 1px solid rgba(255,255,255,.08);
-   }
- }
+  input,
+  select,
+  textarea {
+    background: rgba(44,44,46,.8);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+} /* end @media (prefers-color-scheme: dark) */
 
  /* ================= DARK MODE LIQUID HEADER ================= */
 
@@ -2969,7 +3029,7 @@ function renderHeader(){
    class="menu-btn"
    onclick="openMainMenu()"
    aria-label="Main Menu">
-   ☰
+   <span aria-hidden="true">☰</span>
  </button>
       </div>
     `;
@@ -3008,7 +3068,7 @@ function renderHeader(){
    style="margin-left:12px"
    onclick="openMainMenu()"
    aria-label="Open Main Menu">
-   ☰
+   <span aria-hidden="true">☰</span>
  </button>
   `;
 }
@@ -5930,8 +5990,8 @@ window.addEventListener("DOMContentLoaded", () => {
    
    const currentY = Math.max(0, window.scrollY); // 🔴 FIX: clamp negative scroll (iOS bounce)
    const now = performance.now();                       // 🔴 NEW
-   const delta = currentY - _lastScrollY;
-   const deltaTime = now - _lastScrollTime || 16;      // 🔴 NEW
+   const delta = currentY - (_lastScrollY ?? currentY);
+   const deltaTime = (now - (_lastScrollTime ?? now)) || 16;      // 🔴 NEW
    const velocity = delta / deltaTime;                 // 🔴 NEW
 
   // 🔴 NEW: micro scroll noise guard
