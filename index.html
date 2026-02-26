@@ -1832,6 +1832,17 @@ textarea {
   pointer-events:none;
 }  
 
+/* 🔴 CHANGED: Dark mode override ต้องอยู่ "หลัง" base เพื่อไม่ให้โดนทับ */
+@media (prefers-color-scheme: dark){
+  #floatingBar{
+    background: rgba(28,28,30,.72);
+    color: #f5f5f7;
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow:
+      var(--shadow-floating),
+      inset 0 1px 0 rgba(255,255,255,.10);
+  }
+}
  /* ================= REDUCED MOTION SUPPORT ================= */
  @media (prefers-reduced-motion: reduce){
 
