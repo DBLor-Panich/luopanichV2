@@ -2647,7 +2647,7 @@ function openImageViewer(url){
 
   sheet.innerHTML = `
     <!-- overlay background (รับ click เพื่อปิด) -->
-    <div class="image-viewer-bg"></div>
+    <div class="image-viewer-bg" onclick="closeImageViewer()"></div>
 
     <!-- ปุ่มปิด -->
     <button
@@ -2899,7 +2899,8 @@ function renderProductSheet(){
  <img 
    src="${escAttr(p.image || '')}"
    alt="${escAttr(p.name)}"
-   class="product-image"
+   class="product-image product-info-zoom"
+   onclick="openImageViewer(${JSON.stringify(String(p.image || ""))})"
  >
 
     <div class="price">฿${p.price}</div>
