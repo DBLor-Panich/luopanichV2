@@ -6397,13 +6397,22 @@ window.addEventListener("DOMContentLoaded", () => {
    const deltaTime = (now - (_lastScrollTime ?? now)) || 16;      // 🔴 NEW
    const velocity = delta / deltaTime;                 // 🔴 NEW
 
-  // 🔴 NEW: micro scroll noise guard
-  if (Math.abs(delta) < 1) {
-    _lastScrollY = currentY;
-    _lastScrollTime = now;
-    _headerTicking = false;
-    return;
-  }  
+// 🔴 CHANGED: micro scroll noise guard (แต่ต้อง "โชว์ bar คืน" เมื่อหยุดเลื่อน)
+   if (Math.abs(delta) < 1) {
+     // ✅ ถ้า bar แสดงอยู่แล้ว ให้เอา scroll-hide ออก เพื่อไม่ให้ค้างซ่อน
+     if (
+       bar &&
+       bar.classList.contains("show") &&
+       state.ui.overlayCount === 0
+     ) {
+       bar.classList.remove("scroll-hide");
+     }
+
+     _lastScrollY = currentY;
+     _lastScrollTime = now;
+     _headerTicking = false;
+     return;
+   } 
    
 if (header){
     if (currentY > 10) {
