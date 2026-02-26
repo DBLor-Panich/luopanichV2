@@ -2642,42 +2642,43 @@ function openImageViewer(url){
   const sheet = document.getElementById("imageViewerSheet");
   if (!sheet) return;
 
-  // 🔥 reset ผลของ .sheet เดิม
+  // reset state
   sheet.classList.add("image-viewer-fullscreen");
 
   sheet.innerHTML = `
-    <!-- overlay background (รับ click เพื่อปิด) -->
-    <div class="image-viewer-bg" onclick="closeImageViewer()"></div>
+    <!-- overlay background -->
+    <div class="image-viewer-bg" onclick="closeImageViewer(event)"></div>
 
-    <!-- ปุ่มปิด -->
+    <!-- close button -->
     <button
-       class="close-btn image-viewer-close"
-       onclick="event.stopPropagation(); closeImageViewer()">
+      class="close-btn image-viewer-close"
+      onclick="closeImageViewer(event)">
       ×
     </button>
 
-    <!-- รูปสินค้า -->
-<img
-   src="${escAttr(url)}"
-   alt="preview"
-   class="image-viewer-img"
- >
+    <!-- product image -->
+    <img
+      src="${escAttr(url)}"
+      alt="preview"
+      class="image-viewer-img"
+    >
   `;
 
   openOverlay(sheet);
 }
-  
-function closeImageViewer(){
+
+function closeImageViewer(ev){
+  if (ev) ev.stopPropagation();
+
   const sheet = document.getElementById("imageViewerSheet");
- if (!sheet) return;
+  if (!sheet) return;
 
- // 🔒 force close (ไม่สน state ค้าง)
- sheet.innerHTML = "";
- sheet.classList.remove("image-viewer-fullscreen");
+  sheet.innerHTML = "";
+  sheet.classList.remove("image-viewer-fullscreen");
 
- if (sheet.classList.contains("show")) {
-   closeOverlay(sheet);
- }
+  if (sheet.classList.contains("show")) {
+    closeOverlay(sheet);
+  }
 }
  
  function openProductInfoSheet(p){
