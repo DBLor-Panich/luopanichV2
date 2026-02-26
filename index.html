@@ -4807,6 +4807,9 @@ function removeItem(idx){
 }
 
 function openProductEdit(p){
+  // 🔒 A6 guard: ป้องกัน admin UI leak ตอนอยู่ Viewer
+  if (state.mode !== "admin" || !state.admin?.loggedIn || !state.admin?.token) return;
+
   state.selectedProduct = p;
   state.compareImagesDraft = (p.compareImages || "")
     .split(",")
@@ -6139,8 +6142,61 @@ function loadAdminSession() {
   }
 }
 
-function clearAdminSession() {
-  localStorage.removeItem("admin_session");
+// ================= STEP A7: SINGLE LOGOUT SOURCE OF TRUTH =================
+function clearAdminSession(){
+  try {
+    // ล้าง storage ที่ใช้ restore
+    localStorage.removeItem("adminSession");
+  } catch(e) {}
+
+  // ล้าง state ที่เกี่ยวกับ admin ทั้งหมด
+  state.admin.loggedIn = false;
+  state.admin.user = "";
+  state.admin.token = "";
+  state.admin.expiredAt = "";
+  state.admin.isSubmitting = false;
+}
+
+function exitAdmin(opts = {}){
+  const { silent = false } = opts;
+
+  // 1) ปลดล็อก backdrop / loading เสมอ (กันค้าง)
+  state.ui.backdropLocked = false;
+  safeHideLoading();
+
+  // 2) ปิด overlay/sheet ทุกตัวแบบ force (กัน overlayCount เพี้ยน)
+  const sheets = [
+    mainMenuSheet,
+    adminLoginSheet,
+    adminDashboardSheet,
+    adminStockSheet,
+    adminAddProductSheet,
+    productSheet,
+    productEditSheet,
+    confirmSheet
+  ].filter(Boolean);
+
+  sheets.forEach(el => el.classList.remove("show"));
+  state.ui.overlayCount = 0;
+  backdrop.style.display = "none";
+
+  // 3) ล้าง session (จุดเดียว)
+  clearAdminSession();
+
+  // 4) กลับสู่ viewer mode เสมอ (ตามตัวเลือก A)
+  state.mode = "viewer";
+
+  // 5) เคลียร์ selection/admin draft ที่อาจทำให้หลุด flow
+  state.selectedProduct = null;
+  state.editImageFile = null;
+  state.addImageFile = null;
+
+  // 6) rerender เฉพาะที่จำเป็น (ไม่แตะ flow อื่น)
+  renderHeader();
+  renderProducts();
+  if (typeof renderBadge === "function") renderBadge();
+
+  if (!silent) showToast("ออกจากโหมดแอดมินแล้ว", "info");
 }
 
 // ================= EMERGENCY UI UNLOCK =================
