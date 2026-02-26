@@ -1824,8 +1824,8 @@ textarea {
    pointer-events: none !important;
  }  
 
- /* 🔴 CHANGED: .show ต้องอยู่ "หลัง" เพื่อชนะ .scroll-hide (กันรถเข็นหายตอนเลื่อนลง) */
- #floatingBar.show{
+ /* 🔴 CHANGED: show ทำงานเฉพาะตอน "ไม่ได้" hide */
+#floatingBar.show:not(.scroll-hide){
    transform:translateY(0);
    opacity:1;
    pointer-events:auto;
