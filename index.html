@@ -1819,20 +1819,19 @@ textarea {
   transform: translateY(0) scale(.97);
 } 
 
-#floatingBar.show{
-  transform:translateY(0);
-  opacity:1;
-  pointer-events:auto;
-}
-
 /* 🔴 NEW: Smart Scroll Hide */
-#floatingBar.scroll-hide{
-  /* 🔴 CHANGED: ไม่ซ่อนรถเข็นระหว่างเลื่อน (ต้องเห็นได้ตลอดเมื่อมีสินค้า) */
-  transform:translateY(0);
-  opacity:1;
-  pointer-events:auto;
-}  
+ #floatingBar.scroll-hide{
+   transform:translateY(120%);
+   opacity:0;
+   pointer-events:none;
+ }  
 
+ /* 🔴 CHANGED: .show ต้องอยู่ "หลัง" เพื่อชนะ .scroll-hide (กันรถเข็นหายตอนเลื่อนลง) */
+ #floatingBar.show{
+   transform:translateY(0);
+   opacity:1;
+   pointer-events:auto;
+ }
 /* 🔴 CHANGED: Dark mode override ต้องอยู่ "หลัง" base เพื่อไม่ให้โดนทับ */
 @media (prefers-color-scheme: dark){
   #floatingBar{
