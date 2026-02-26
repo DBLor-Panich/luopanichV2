@@ -6454,26 +6454,22 @@ if (header){
   }
 
   /* ================= FLOATING BAR SMART HIDE ================= */
-  if (
-   bar &&
-   bar.classList.contains("show") &&
-   state.ui.overlayCount === 0 // 🔴 CHANGED: disable momentum when overlay open
- ) {
-
+  if (bar && bar.classList.contains("show")) {
+    // 📍 อยู่บนสุด → แสดงเสมอ
     if (currentY <= 10) {
-      // 📍 อยู่บนสุด → แสดงเสมอ
       bar.classList.remove("scroll-hide");
     }
-    else if (velocity > VELOCITY_HIDE + VELOCITY_DEADZONE) {
-      // ⬇️ scroll ลง
+    // 🔴 CHANGED: direction-based
+    else if (delta > 2) {
+      // ⬇️ เลื่อนลง = ซ่อน (กันบังเวลาเลือกสินค้าเพิ่ม)
       bar.classList.add("scroll-hide");
     }
-    else if (velocity < VELOCITY_SHOW - VELOCITY_DEADZONE) {
-      // ⬆️ scroll ขึ้น
+    else if (delta < -2) {
+      // ⬆️ เลื่อนขึ้น = โชว์
       bar.classList.remove("scroll-hide");
     }
   }
-
+   
    _lastScrollY = currentY;
    _lastScrollTime = now; // 🔴 NEW
    _headerTicking = false;
@@ -6486,6 +6482,27 @@ if (header){
      _headerTicking = true;
    }
  });
+
+ // 🔴 ADD: Smart hide เมื่อ scroll ภายใน .sheet (เพราะ window.scrollY ไม่เปลี่ยน)
+(function bindSheetScrollSmartHide(){
+  const lastTop = new WeakMap(); // เก็บ scrollTop ล่าสุดของแต่ละ sheet
+
+  document.addEventListener("scroll", (e) => {
+    const t = e.target;
+    if (!t || !t.classList || !t.classList.contains("sheet")) return;
+
+    const bar = document.getElementById("floatingBar");
+    if (!bar || !bar.classList.contains("show")) return;
+
+    const prev = lastTop.get(t) ?? t.scrollTop;
+    const d = t.scrollTop - prev;
+    lastTop.set(t, t.scrollTop);
+
+    if (Math.abs(d) < 1) return;
+    if (d > 2) bar.classList.add("scroll-hide");        // ⬇️ เลื่อนลงใน sheet = ซ่อน
+    else if (d < -2) bar.classList.remove("scroll-hide"); // ⬆️ เลื่อนขึ้นใน sheet = โชว์
+  }, true); // capture=true เพื่อจับ element scroll
+})(); 
   
 (async () => {
   try {
