@@ -2405,12 +2405,26 @@ function closeOverlay(el){
   el.classList.remove("show");
   state.ui.overlayCount = Math.max(0, state.ui.overlayCount - 1);
 
+  // 🔴 CHANGED: จำว่าเราปิด "cartSheet" อยู่ไหม (เพราะบางครั้งปิดผ่าน backdrop จะไม่เรียก closeCart)
+  const closedCartSheet = (el.id === "cartSheet");
+
   if (state.ui.overlayCount === 0 && !state.ui.backdropLocked) {
     backdrop.style.display = "none";
 
     // 🔴 FIX: reset floating bar momentum state
     const bar = document.getElementById("floatingBar");
     if (bar) bar.classList.remove("scroll-hide");
+
+    // 🔴 CHANGED: ถ้าเพิ่งปิด cartSheet และกลับสู่ viewer จริง → ต้องคืน floatingBar ถ้า cart ยังมีของ
+    // ใช้ rAF เพื่อให้ DOM/overlayCount settle ก่อน (กันเคสปิดแล้ว bar ไม่กลับ)
+    if (closedCartSheet && typeof renderFloatingBar === "function") {
+      requestAnimationFrame(() => {
+        // กันเคส user เปิด overlay อื่นทันทีระหว่างเฟรม
+        if (state.mode === "viewer" && state.ui.overlayCount === 0) {
+          renderFloatingBar();
+        }
+      });
+    }
   }
 }
 
