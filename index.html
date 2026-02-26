@@ -4866,21 +4866,26 @@ async function submitOrder(){
 
 
 function openCart(){
-   renderCart();
+  renderCart();
 
   // 🔴 CHANGED: เมื่อเปิด cart sheet → ซ่อน floatingBar ไม่ให้บัง
   const bar = document.getElementById("floatingBar");
   if (bar) bar.classList.remove("show");
 
-   // ✅ เปิดผ่าน Overlay Manager เท่านั้น
-   openOverlay(cartSheet);
- }
+  // ✅ เปิดผ่าน Overlay Manager เท่านั้น
+  openOverlay(cartSheet);
+}
 
- function closeCart(){
-   closeOverlay(cartSheet);
+function closeCart(){
+  closeOverlay(cartSheet);
 
-  // 🔴 CHANGED: เมื่อปิด cart sheet → โชว์ floatingBar คืน (ถ้า cart ยังมีของและอยู่ viewer)
-  if (typeof renderFloatingBar === "function") renderFloatingBar();
+  // 🔴 CHANGED: ปิดตะกร้าแล้วต้อง "คืน" floatingBar ถ้ายังมีสินค้าอยู่
+  // ใช้ rAF เพื่อให้ overlayCount/state UI ปรับเสร็จก่อน แล้วค่อย render
+  if (typeof renderFloatingBar === "function") {
+    requestAnimationFrame(() => {
+      renderFloatingBar();
+    });
+  }
 }
 
 function removeItem(idx){
