@@ -6146,7 +6146,8 @@ function loadAdminSession() {
 function clearAdminSession(){
   try {
     // ล้าง storage ที่ใช้ restore
-    localStorage.removeItem("adminSession");
+    localStorage.removeItem("admin_session");
+    localStorage.removeItem("adminSession"); // เผื่อของเก่าที่เคยใช้
   } catch(e) {}
 
   // ล้าง state ที่เกี่ยวกับ admin ทั้งหมด
@@ -6172,7 +6173,7 @@ function exitAdmin(opts = {}){
     adminStockSheet,
     adminAddProductSheet,
     productSheet,
-    productEditSheet,
+    adminProductEditSheet,
     confirmSheet
   ].filter(Boolean);
 
