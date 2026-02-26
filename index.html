@@ -2703,7 +2703,7 @@ function closeImageViewer(ev){
    return `
 <img src="${escAttr(url)}"
      class="product-info-zoom"
-     onclick="openImageViewer(${jsArg})">
+     onclick='openImageViewer(${jsArg})'>
    `;
  }).join("")}
            </div>
@@ -2901,7 +2901,7 @@ function renderProductSheet(){
    src="${escAttr(p.image || '')}"
    alt="${escAttr(p.name)}"
    class="product-image product-info-zoom"
-   onclick="openImageViewer(${JSON.stringify(String(p.image || ""))})"
+   onclick='openImageViewer(${JSON.stringify(String(p.image || ""))})'
  >
 
     <div class="price">฿${p.price}</div>
