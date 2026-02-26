@@ -1755,89 +1755,78 @@ textarea {
 }
 /* ================= FLOATING BOTTOM BAR ================= */
 
+/* 🔴 CHANGED: Clean + deterministic cascade (กัน opacity สลับทิศ) */
 #floatingBar{
-  position: fixed !important;         /* 🔴 CHANGED: กัน rule อื่นทับจนกลายเป็น element ปกติ */
-  left:16px;
-  right:16px;
-  transform:translateY(120%);
-  bottom: calc(env(safe-area-inset-bottom) + 18px) !important; /* 🔴 CHANGED */
+  position: fixed !important;
+  left: 16px;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + 18px) !important;
+  max-width: 520px;
+  margin: 0 auto;
 
-  max-width:520px;
-  margin:0 auto;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 18px;
 
-  padding:14px 16px;   /* 🔴 CHANGED: ให้ชัด/จับง่ายขึ้นเล็กน้อย */
-
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-
-  border-radius:18px;  /* 🔴 proportional */
-
-  background:rgba(255,255,255,.78); /* 🔴 CHANGED: เพิ่ม contrast ไม่ให้ดูแอบ */
-  backdrop-filter:blur(28px) saturate(180%);
-  -webkit-backdrop-filter:blur(28px);
-
-  border:1px solid rgba(255,255,255,.85); /* 🔴 CHANGED: ขอบชัดขึ้น */
-
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255,255,255,.85);
   box-shadow:
     var(--shadow-floating),
-    inset 0 1px 0 rgba(255,255,255,.85); /* 🔴 CHANGED: rim ชัดขึ้น */
+    inset 0 1px 0 rgba(255,255,255,.85);
 
-  z-index: 999;                        /* 🔴 CHANGED: กันโดน layer อื่นทับแล้วเหมือน “หาย/อยู่ท้ายหน้า” */
+  z-index: 999;
+
+  /* default = hidden */
+  transform: translateY(120%);
+  opacity: 0;
+  pointer-events: none;
 
   transition:
     transform .48s cubic-bezier(.34,1.56,.64,1),
     opacity .3s ease;
-  
-  opacity:0;
-  pointer-events:none;
-  will-change: transform, opacity; /* 🔴 CHANGED: ลดอาการกระพริบ/หน่วงบนมือถือ */
+  will-change: transform, opacity;
 }
 
 #floatingBar.bounce-in{
   animation: float-bounce .65s cubic-bezier(.34,1.56,.64,1);
 }
-
 @keyframes float-bounce{
   0%   { transform:translateY(120%) scale(.94); }
   60%  { transform:translateY(-6px) scale(1.02); }
   100% { transform:translateY(0) scale(1); }
 }
 
-#floatingBar .total-animate{
-  animation: total-pop .25s ease;
-}
-
+#floatingBar .total-animate{ animation: total-pop .25s ease; }
 @keyframes total-pop{
   0%   { transform:scale(.92); opacity:.6; }
   100% { transform:scale(1); opacity:1; }
 }
 
-#floatingBar:active{
-  transform: translateY(0) scale(.97);
-} 
+/* ✅ SHOW = only show */
+#floatingBar.show{
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
 
-/* 🔴 NEW: Smart Scroll Hide */
- #floatingBar.scroll-hide{
-   transform: translateY(120%) !important;
-   opacity: 0 !important;
-   pointer-events: none !important;
- }  
+/* ✅ HIDE (scroll) */
+#floatingBar.scroll-hide{
+  transform: translateY(120%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
- /* 🔴 CHANGED: show ทำงานเฉพาะตอน "ไม่ได้" hide */
-#floatingBar.show:not(.scroll-hide){
-   transform:translateY(0);
-   opacity:1;
-   pointer-events:auto;
- }
+/* ✅ HIGHEST PRIORITY: show + scroll-hide must hide */
+#floatingBar.show.scroll-hide{
+  transform: translateY(120%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
- /* ✅ FIX (สำคัญ): ถ้ามีทั้ง show + scroll-hide ให้ "ซ่อน" ชนะจริง */
- #floatingBar.show.scroll-hide{
-   transform: translateY(120%) !important;
-   opacity: 0 !important;
-   pointer-events: none !important;
- }  
-/* 🔴 CHANGED: Dark mode override ต้องอยู่ "หลัง" base เพื่อไม่ให้โดนทับ */
 @media (prefers-color-scheme: dark){
   #floatingBar{
     background: rgba(28,28,30,.72);
@@ -1848,6 +1837,7 @@ textarea {
       inset 0 1px 0 rgba(255,255,255,.10);
   }
 }
+  
  /* ================= REDUCED MOTION SUPPORT ================= */
  @media (prefers-reduced-motion: reduce){
 
