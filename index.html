@@ -4317,7 +4317,7 @@ async function submitStockIn(){
 
 async function submitStockAdjust(){
   // 🔒 guard
-  if (state.mode !== "admin" || !state.selectedProduct) {
+  if (state.mode !== "admin" || !state.admin.loggedIn || !state.selectedProduct) {
     alert("Unauthorized");
     return;
   }
