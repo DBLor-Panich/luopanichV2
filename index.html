@@ -1806,26 +1806,26 @@ textarea {
   100% { transform:scale(1); opacity:1; }
 }
 
-/* ✅ SHOW = only show */
-#floatingBar.show{
+ /* ✅ SHOW = only show */
+ #floatingBar.show{
   transform: translateY(0) !important;
   opacity: 1 !important;
   pointer-events: auto !important;
-}
+ }
 
-/* ✅ HIDE (scroll) */
-#floatingBar.scroll-hide{
+ /* ✅ HIDE (scroll) */
+ #floatingBar.scroll-hide{
   transform: translateY(120%) !important;
   opacity: 0 !important;
   pointer-events: none !important;
-}
+ }
 
-/* ✅ HIGHEST PRIORITY: show + scroll-hide must hide */
-#floatingBar.show.scroll-hide{
+ /* ✅ HIGHEST PRIORITY: show + scroll-hide must hide */
+ #floatingBar.show.scroll-hide{
   transform: translateY(120%) !important;
   opacity: 0 !important;
   pointer-events: none !important;
-}
+ }
 
 @media (prefers-color-scheme: dark){
   #floatingBar{
