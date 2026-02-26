@@ -1983,9 +1983,16 @@ Object.assign(window, {
 
 const state = {
   mode: "viewer",
+
   viewerFilter: {
     status: "all"
   },
+
+  // 🔴 CHANGED: เพิ่ม admin filter แยกจาก viewer (กันชน/กัน flow ปนกัน)
+  adminFilter: {
+    status: "all"
+  },
+
   search: "",
   viewerSearchOpen: false,
   products: [],
@@ -2773,21 +2780,23 @@ function renderProducts(){
       if (!text.includes(String(state.search).toLowerCase())) return;
     }
 
-   // 🔍 STATUS FILTER (Viewer only, use resolved status)
-   const resolvedStatus =
-   stockNum <= 0
-     ? "out"
-     : String(p.status || "ready")
-         .trim()
-         .toLowerCase();
+// 🔍 STATUS FILTER (Viewer/Admin use resolved status)
+if (
+  state.mode === "viewer" &&
+  state.viewerFilter &&
+  state.viewerFilter.status !== "all"
+) {
+  if (resolvedStatus !== state.viewerFilter.status) return;
+}
 
-   if (
-     state.mode === "viewer" &&
-     state.viewerFilter &&
-     state.viewerFilter.status !== "all"
-   ) {
-     if (resolvedStatus !== state.viewerFilter.status) return;
-   }
+// 🔴 CHANGED: เพิ่ม filter สำหรับ admin (ไม่แตะ flow อื่น)
+if (
+  state.mode === "admin" &&
+  state.adminFilter &&
+  state.adminFilter.status !== "all"
+) {
+  if (resolvedStatus !== state.adminFilter.status) return;
+}
     
 /* ================= STATUS LOGIC ================= */
 const statusMap = {
@@ -3200,17 +3209,41 @@ function renderHeader(){
       </div>
     </div>
 
- <button
-   class="menu-btn"
-   style="margin-left:12px"
-   onclick="openMainMenu()"
-   aria-label="Open Main Menu">
-   <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-     <path d="M4 7h16"></path>
-     <path d="M4 12h16"></path>
-     <path d="M4 17h16"></path>
-   </svg>
- </button>
+    <!-- 🔴 CHANGED: Admin ใช้ filter + menu เหมือน Viewer -->
+    <div class="header-actions">
+
+      <div class="filter-wrap">
+        <button class="filter-btn"
+          onclick="toggleFilterDropdown()"
+          aria-label="Filter">
+          <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 7h16"></path>
+            <path d="M7 12h10"></path>
+            <path d="M10 17h4"></path>
+          </svg>
+        </button>
+
+        <div id="filterDropdown" class="filter-dropdown">
+          <div class="filter-item" onclick="selectFilter('all')">ทั้งหมด</div>
+          <div class="filter-item" onclick="selectFilter('ready')">พร้อมส่ง</div>
+          <div class="filter-item" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</div>
+          <div class="filter-item" onclick="selectFilter('warehouse')">โกดังไทย</div>
+          <div class="filter-item" onclick="selectFilter('out')">หมด</div>
+        </div>
+      </div>
+
+      <button
+        class="menu-btn"
+        onclick="openMainMenu()"
+        aria-label="Open Main Menu">
+        <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 7h16"></path>
+          <path d="M4 12h16"></path>
+          <path d="M4 17h16"></path>
+        </svg>
+      </button>
+
+    </div>
   `;
 }
 
@@ -3259,7 +3292,8 @@ function handleSearch(keyword){
   renderProducts();
 }
 
-// ================= VIEWER FILTER =================
+// ================= VIEWER + ADMIN FILTER =================
+
 function setViewerStatus(status){
   // 🔒 guard: ใช้เฉพาะ viewer mode
   if(state.mode !== "viewer") return;
@@ -3276,38 +3310,57 @@ function setViewerStatus(status){
   renderProducts();
 }
 
- function toggleFilterDropdown(){
-   const el = document.getElementById("filterDropdown");
-   if(!el) return;
+// 🔴 CHANGED: เพิ่ม admin version (รูปแบบเดียวกับ viewer)
+function setAdminStatus(status){
+  // 🔒 guard: ใช้เฉพาะ admin mode
+  if(state.mode !== "admin") return;
 
- const isOpen = el.classList.contains("show");
+  if(!status) return;
 
- document.querySelectorAll(".filter-dropdown.show")
-   .forEach(d => d.classList.remove("show"));
+  state.adminFilter.status = status;
 
- if(!isOpen){
-   el.classList.add("show");
-
-   // 🔴 auto close on outside click
-   setTimeout(()=>{
-     document.addEventListener("click", closeFilterOnOutside, { once:true });
-   }, 0);
- }
+  renderHeader();
+  renderProducts();
 }
 
-  function closeFilterOnOutside(e){
-   const wrap = document.querySelector(".filter-wrap");
-   if(!wrap || wrap.contains(e.target)) return;
+function toggleFilterDropdown(){
+  const el = document.getElementById("filterDropdown");
+  if(!el) return;
 
-   const el = document.getElementById("filterDropdown");
-   if(el) el.classList.remove("show");
- }
+  const isOpen = el.classList.contains("show");
 
- function selectFilter(status){
-   setViewerStatus(status); // 🔒 ไม่แตะ logic เดิม
-   const el = document.getElementById("filterDropdown");
-   if(el) el.classList.remove("show");
- }
+  document.querySelectorAll(".filter-dropdown.show")
+    .forEach(d => d.classList.remove("show"));
+
+  if(!isOpen){
+    el.classList.add("show");
+
+    // 🔴 auto close on outside click
+    setTimeout(()=>{
+      document.addEventListener("click", closeFilterOnOutside, { once:true });
+    }, 0);
+  }
+}
+
+function closeFilterOnOutside(e){
+  const wrap = document.querySelector(".filter-wrap");
+  if(!wrap || wrap.contains(e.target)) return;
+
+  const el = document.getElementById("filterDropdown");
+  if(el) el.classList.remove("show");
+}
+
+// 🔴 CHANGED: route ตาม mode แทนการ fix viewer อย่างเดียว
+function selectFilter(status){
+  if (state.mode === "admin") {
+    setAdminStatus(status);
+  } else {
+    setViewerStatus(status);
+  }
+
+  const el = document.getElementById("filterDropdown");
+  if(el) el.classList.remove("show");
+}  
   
 function openAdminEntry(){
   // 🔒 ถ้ามี session อยู่แล้ว → ต้อง valid ก่อนค่อยเข้า admin
@@ -3328,7 +3381,6 @@ function openAdminEntry(){
   // 🔓 ยังไม่ login → แสดงหน้า login
   renderAdminLogin();
 }
-
 
 function enterAdmin(){
   state.mode = "admin";
