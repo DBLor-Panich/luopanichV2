@@ -1758,11 +1758,11 @@ textarea {
 /* ================= FLOATING BOTTOM BAR ================= */
 
 #floatingBar{
-  position:fixed;
+  position: fixed !important;         /* 🔴 CHANGED: กัน rule อื่นทับจนกลายเป็น element ปกติ */
   left:16px;
   right:16px;
   transform:translateY(120%);
-  bottom:calc(env(safe-area-inset-bottom) + 18px);
+  bottom: calc(env(safe-area-inset-bottom) + 18px) !important; /* 🔴 CHANGED */
 
   max-width:520px;
   margin:0 auto;
@@ -1785,7 +1785,7 @@ textarea {
     var(--shadow-floating),
     inset 0 1px 0 rgba(255,255,255,.85); /* 🔴 CHANGED: rim ชัดขึ้น */
 
-  z-index:60; /* 🔴 CHANGED: ให้อยู่เหนือ header (50) แต่ยังต่ำกว่า backdrop (100) */
+  z-index: 999;                        /* 🔴 CHANGED: กันโดน layer อื่นทับแล้วเหมือน “หาย/อยู่ท้ายหน้า” */
 
   transition:
     transform .48s cubic-bezier(.34,1.56,.64,1),
