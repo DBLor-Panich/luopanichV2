@@ -1819,9 +1819,9 @@ textarea {
 
 /* 🔴 NEW: Smart Scroll Hide */
  #floatingBar.scroll-hide{
-   transform:translateY(120%);
-   opacity:0;
-   pointer-events:none;
+   transform: translateY(120%) !important;
+   opacity: 0 !important;
+   pointer-events: none !important;
  }  
 
  /* 🔴 CHANGED: .show ต้องอยู่ "หลัง" เพื่อชนะ .scroll-hide (กันรถเข็นหายตอนเลื่อนลง) */
@@ -1833,9 +1833,9 @@ textarea {
 
  /* ✅ FIX (สำคัญ): ถ้ามีทั้ง show + scroll-hide ให้ "ซ่อน" ชนะจริง */
  #floatingBar.show.scroll-hide{
-   transform:translateY(120%);
-   opacity:0;
-   pointer-events:none;
+   transform: translateY(120%) !important;
+   opacity: 0 !important;
+   pointer-events: none !important;
  }  
 /* 🔴 CHANGED: Dark mode override ต้องอยู่ "หลัง" base เพื่อไม่ให้โดนทับ */
 @media (prefers-color-scheme: dark){
