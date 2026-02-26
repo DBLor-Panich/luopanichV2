@@ -6533,7 +6533,65 @@ if (header){
   }
 })();
 
-  
+  // =========================
+  // 🔍 DEBUG: Floating Bar
+  // (ใช้เฉพาะตรวจปัญหา bar ไหลไปท้ายหน้า)
+  // =========================
+  window.debugBar = function debugBar(){
+    const bar = document.getElementById('floatingBar');
+    if(!bar){ console.warn('[debugBar] #floatingBar not found'); return; }
+
+    const cs = getComputedStyle(bar);
+    const rect = bar.getBoundingClientRect();
+
+    console.log('===== #floatingBar runtime =====');
+    console.table({
+      position: cs.position,
+      bottom: cs.bottom,
+      zIndex: cs.zIndex,
+      transform: cs.transform,
+      opacity: cs.opacity,
+      pointerEvents: cs.pointerEvents,
+      display: cs.display,
+      visibility: cs.visibility,
+      rectTop: Math.round(rect.top),
+      rectBottom: Math.round(rect.bottom),
+      viewportH: window.innerHeight
+    });
+
+    // test fixed-ness
+    const b1 = bar.getBoundingClientRect().bottom;
+    window.scrollBy(0, 240);
+    const b2 = bar.getBoundingClientRect().bottom;
+    window.scrollBy(0, -240);
+    console.log('[debugBar] fixed test diff (should be ~0):', (b2 - b1));
+
+    // detect ancestor transform/filter/perspective
+    let el = bar.parentElement;
+    const chain = [];
+    while(el){
+      const s = getComputedStyle(el);
+      if(s.transform !== 'none' || s.filter !== 'none' || s.perspective !== 'none'){
+        chain.push({
+          node: el.tagName + (el.id?('#'+el.id):'') + (el.className?('.'+String(el.className).replace(/\s+/g,'.')):''),
+          transform: s.transform,
+          filter: s.filter,
+          perspective: s.perspective
+        });
+      }
+      el = el.parentElement;
+    }
+    if(chain.length){
+      console.warn('[debugBar] ancestors with transform/filter/perspective (may break fixed):');
+      console.table(chain);
+    } else {
+      console.log('[debugBar] no transform/filter/perspective ancestors found');
+    }
+
+    // check overlay
+    const p = document.elementFromPoint(Math.min(rect.left+10, window.innerWidth-1), Math.min(rect.top+10, window.innerHeight-1));
+    console.log('[debugBar] elementFromPoint near bar:', p);
+  }
 </script>
   
 <!-- Toast Container -->
