@@ -6070,8 +6070,7 @@ function exportOrderPrint() {
         window.onload = function() {
           window.print();
           window.onafterprint = function() {
-            window.close();
-
+         
 // 🔥 ปิด confirmSheet อัตโนมัติ (Safe + Clear State)
     if (window.opener && window.opener.closeOverlay) {
       const sheet = window.opener.document.getElementById("confirmSheet");
@@ -6095,8 +6094,9 @@ function exportOrderPrint() {
         behavior: "smooth"
       });
     }
-          }
-        }
+             window.close();
+          };
+        };
       <\/script>
 
     </body>
