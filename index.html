@@ -4866,14 +4866,21 @@ async function submitOrder(){
 
 
 function openCart(){
-  renderCart();
+   renderCart();
 
-  // ✅ เปิดผ่าน Overlay Manager เท่านั้น
-  openOverlay(cartSheet);
-}
+  // 🔴 CHANGED: เมื่อเปิด cart sheet → ซ่อน floatingBar ไม่ให้บัง
+  const bar = document.getElementById("floatingBar");
+  if (bar) bar.classList.remove("show");
 
-function closeCart(){
-  closeOverlay(cartSheet);
+   // ✅ เปิดผ่าน Overlay Manager เท่านั้น
+   openOverlay(cartSheet);
+ }
+
+ function closeCart(){
+   closeOverlay(cartSheet);
+
+  // 🔴 CHANGED: เมื่อปิด cart sheet → โชว์ floatingBar คืน (ถ้า cart ยังมีของและอยู่ viewer)
+  if (typeof renderFloatingBar === "function") renderFloatingBar();
 }
 
 function removeItem(idx){
