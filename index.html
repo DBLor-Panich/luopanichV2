@@ -1767,7 +1767,7 @@ textarea {
   max-width:520px;
   margin:0 auto;
 
-  padding:12px 16px;   /* 🔴 smaller + tighter */
+  padding:14px 16px;   /* 🔴 CHANGED: ให้ชัด/จับง่ายขึ้นเล็กน้อย */
 
   display:flex;
   justify-content:space-between;
@@ -1775,17 +1775,17 @@ textarea {
 
   border-radius:18px;  /* 🔴 proportional */
 
-  background:rgba(255,255,255,.55);
+  background:rgba(255,255,255,.78); /* 🔴 CHANGED: เพิ่ม contrast ไม่ให้ดูแอบ */
   backdrop-filter:blur(28px) saturate(180%);
   -webkit-backdrop-filter:blur(28px);
 
-  border:1px solid rgba(255,255,255,.65); /* 🔴 glass edge */
+  border:1px solid rgba(255,255,255,.85); /* 🔴 CHANGED: ขอบชัดขึ้น */
 
   box-shadow:
     var(--shadow-floating),
-    inset 0 1px 0 rgba(255,255,255,.7);
+    inset 0 1px 0 rgba(255,255,255,.85); /* 🔴 CHANGED: rim ชัดขึ้น */
 
-  z-index:45; /* ต่ำกว่า header (50) และ backdrop (100) */
+  z-index:60; /* 🔴 CHANGED: ให้อยู่เหนือ header (50) แต่ยังต่ำกว่า backdrop (100) */
 
   transition:
     transform .48s cubic-bezier(.34,1.56,.64,1),
@@ -1793,6 +1793,7 @@ textarea {
   
   opacity:0;
   pointer-events:none;
+  will-change: transform, opacity; /* 🔴 CHANGED: ลดอาการกระพริบ/หน่วงบนมือถือ */
 }
 
 #floatingBar.bounce-in{
