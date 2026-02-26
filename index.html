@@ -4155,7 +4155,9 @@ function openAdminOrder(orderId){
     return;
   }
 
-  const order = state.admin.orders.find(o => o.orderId === orderId);
+   // 🔒 A6 HARDEN: กัน orders ยังไม่พร้อม/ไม่ใช่ array (กัน throw → กัน UI leak)
+  const orders = Array.isArray(state.admin.orders) ? state.admin.orders : [];
+  const order = orders.find(o => o.orderId === orderId);
   if (!order) return;
 
   state.admin.selectedOrder = order;
