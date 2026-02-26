@@ -6293,6 +6293,8 @@ if (header){
   
 (async () => {
   try {
+    // 🔴 CHANGED (STEP A5): Reload ต้องกลับ Viewer เสมอ (แม้ restore admin สำเร็จ)
+    state.mode = "viewer";
     state.search = "";
 
     const restored = loadAdminSession();
@@ -6333,7 +6335,7 @@ if (header){
     // ❌ invalid / expired
     if (!adminRestored) {
       clearAdminSession();
-      state.mode = "viewer";
+      // 🔴 CHANGED (STEP A5): mode ถูกบังคับเป็น viewer แล้วด้านบน ไม่ต้อง set ซ้ำ
     }
 
     // ✅ RESTORE VIEWER STATE ก่อน render ทุกอย่าง
