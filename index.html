@@ -2771,6 +2771,12 @@ function renderProducts(){
   state.products.forEach(p => {
     const stockNum = Number(p.stock);
 
+  // 🔍 STATUS RESOLVE (ต้องมาก่อน filter ทุกครั้ง)
+    const resolvedStatus =
+      stockNum <= 0
+        ? "out"
+        : String(p.status || "ready").trim().toLowerCase();  
+
     // ❌ ไม่แสดงสินค้าที่ปิดขาย (viewer เท่านั้น)
     if (state.mode === "viewer" && !p.active) return;
 
@@ -2789,14 +2795,14 @@ if (
   if (resolvedStatus !== state.viewerFilter.status) return;
 }
 
-// 🔴 CHANGED: เพิ่ม filter สำหรับ admin (ไม่แตะ flow อื่น)
-if (
-  state.mode === "admin" &&
-  state.adminFilter &&
-  state.adminFilter.status !== "all"
-) {
-  if (resolvedStatus !== state.adminFilter.status) return;
-}
+// 🔴 CHANGED: admin filter (ต้องอยู่หลัง resolvedStatus เสมอ)
+    if (
+      state.mode === "admin" &&
+      state.adminFilter &&
+      state.adminFilter.status !== "all"
+    ) {
+      if (resolvedStatus !== state.adminFilter.status) return;
+    }    
     
 /* ================= STATUS LOGIC ================= */
 const statusMap = {
