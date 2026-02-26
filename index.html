@@ -3715,6 +3715,8 @@ function confirmAddToCart(){
 
   if (typeof renderBadge === "function") renderBadge();
   saveCart();
+  // 🔴 CHANGED: ให้ floating cart bar อัปเดตทันทีหลังเพิ่มตะกร้า
+  if (typeof renderFloatingBar === "function") renderFloatingBar();
 
   // ✅ Feedback สำเร็จ (หัวใจของ STEP 2️⃣)
   showToast(
@@ -3738,6 +3740,8 @@ function hardResetUI({ refresh = false } = {}){
 
 // 🔓 reset backdrop lock
 state.ui.backdropLocked = false;
+// 🔴 CHANGED: reset UI แล้วต้อง sync floating bar ตาม cart ปัจจุบัน
+if (typeof renderFloatingBar === "function") renderFloatingBar();  
 
   // 🔄 reset state
   state.selectedProduct = null;
@@ -4826,6 +4830,8 @@ async function submitOrder(){
     clearCartStorage();
     state.poNumber = "";
     if (typeof renderBadge === "function") renderBadge();
+    // 🔴 CHANGED: เคลียร์ตะกร้าแล้วต้องซ่อน/รีเฟรช floating bar
+    if (typeof renderFloatingBar === "function") renderFloatingBar();
     
   // ❌ ห้าม auto reset หลังสร้าง order สำเร็จ
     
@@ -4867,6 +4873,8 @@ function removeItem(idx){
   saveCart();
 
   if (typeof renderBadge === "function") renderBadge();
+  // 🔴 CHANGED: sync floating bar หลังลบ item
+  if (typeof renderFloatingBar === "function") renderFloatingBar();
 
   // 🔔 Feedback: แจ้งผู้ใช้ทันทีว่าลบแล้ว
   showToast("ลบสินค้าออกจากตะกร้าแล้ว", "warning");
@@ -6493,6 +6501,8 @@ if (header){
     if (typeof renderBadge === "function") {
       if (typeof renderBadge === "function") renderBadge();
     }
+    // 🔴 CHANGED: ให้ floating bar แสดงตาม cart ที่ restore มา
+    if (typeof renderFloatingBar === "function") renderFloatingBar();
 
   } catch (err) {
     console.error("[INIT ERROR]", err);
