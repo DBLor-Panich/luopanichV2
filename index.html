@@ -4632,6 +4632,43 @@ function closeAddProduct(){
 function closeMainMenu(){
   closeOverlay(mainMenuSheet);
  }
+
+ // ================= STEP 2: MAIN MENU ENTRY (☰) =================
+ // ✅ เปิดเมนูกลาง (ไม่ยิงเข้า Admin Login ตรง ๆ)
+ function openMainMenu(){
+   renderMainMenu();            // 🔴 สำคัญ: เมนูต้องอัปเดตตามสถานะล่าสุด
+   openOverlay(mainMenuSheet);
+ }
+
+ // ✅ สร้างเมนูตามสถานะ: ยังไม่ล็อกอิน vs ล็อกอินแล้ว + โหมดปัจจุบัน
+ function renderMainMenu(){
+   const isLoggedIn = !!state.admin?.loggedIn;
+   const isAdminMode = state.mode === "admin";
+
+   // NOTE: ยังไม่เพิ่ม flow ใหม่ — แค่ entry point และสลับโหมดตาม spec
+   mainMenuSheet.innerHTML = `
+     <div class="menu-group">
+       ${!isLoggedIn ? `
+         <button class="btn menu-btn" onclick="closeMainMenu(); openOverlay(adminLoginSheet);">
+           🔐 Admin Login
+         </button>
+       ` : `
+         ${isAdminMode ? `
+           <button class="btn menu-btn" onclick="closeMainMenu(); leaveAdminMode();">
+             👁 กลับสู่ Viewer
+           </button>
+         ` : `
+           <button class="btn menu-btn" onclick="closeMainMenu(); enterAdmin();">
+             📊 ไป Admin Dashboard
+           </button>
+         `}
+         <button class="btn menu-btn btn-danger" onclick="closeMainMenu(); adminLogout();">
+           🚪 Logout
+         </button>
+       `}
+     </div>
+   `;
+ }  
    
 /* ================= VIEWER FLOW ================= */
 function openProduct(p){
