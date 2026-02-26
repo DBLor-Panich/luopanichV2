@@ -4143,6 +4143,18 @@ async function openStockTimeline(force = false) {
 
 
 function openAdminOrder(orderId){
+  // 🔒 A6 GUARD: ห้ามเปิด Admin Order UI ถ้าไม่ได้อยู่ admin หรือ session ไม่พร้อม
+  if (
+    state.mode !== "admin" ||
+    !state.admin.loggedIn ||
+    !state.admin.token ||
+    isAdminSessionExpired()
+  ) {
+    // ใช้มาตรฐานเดียวกับ admin dashboard
+    exitAdmin();
+    return;
+  }
+
   const order = state.admin.orders.find(o => o.orderId === orderId);
   if (!order) return;
 
