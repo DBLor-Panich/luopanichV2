@@ -3200,7 +3200,11 @@ function renderHeader(){
   h.innerHTML = `
     <div class="header-left">
       <div class="header-stack">
-        <div class="admin-title">การจัดการสินค้า</div>
+        <div class="admin-title">
+          การจัดการสินค้า
+          <span class="badge" style="margin-left:8px;">ADMIN</span>
+          <!-- 🔴 CHANGED: เพิ่ม Mode Indicator (badge) ให้ชัด -->
+        </div>
         <div class="shop-subtitle">Admin · แก้ไข · ปรับสต๊อก · ตรวจออเดอร์</div>
       </div>
 
@@ -3222,7 +3226,7 @@ function renderHeader(){
         />
       </div>
     </div>
-
+  
     <!-- 🔴 CHANGED: Admin ใช้ filter + menu เหมือน Viewer -->
     <div class="header-actions">
 
@@ -3423,7 +3427,7 @@ function leaveAdminMode(){
 
   renderHeader();
   renderProducts();
-  renderBadge();
+  if (typeof renderBadge === "function") renderBadge();
 }
 
 function exitAdmin(){
@@ -3457,7 +3461,7 @@ function exitAdmin(){
   // 🔄 render viewer ใหม่แบบ clean
   renderHeader();
   renderProducts();
-  renderBadge();
+  if (typeof renderBadge === "function") renderBadge();
 }
 
 function handleBackdropClick(){
@@ -3657,7 +3661,7 @@ function confirmAddToCart(){
     });
   }
 
-  renderBadge();
+  if (typeof renderBadge === "function") renderBadge();
   saveCart();
 
   // ✅ Feedback สำเร็จ (หัวใจของ STEP 2️⃣)
@@ -4735,7 +4739,7 @@ async function submitOrder(){
     state.cart = [];
     clearCartStorage();
     state.poNumber = "";
-    renderBadge();
+    if (typeof renderBadge === "function") renderBadge();
     
   // ❌ ห้าม auto reset หลังสร้าง order สำเร็จ
     
@@ -4776,7 +4780,7 @@ function removeItem(idx){
   // ✅ PERSIST: บันทึก cart ทุกครั้งที่มีการเปลี่ยน
   saveCart();
 
-  renderBadge();
+  if (typeof renderBadge === "function") renderBadge();
 
   // 🔔 Feedback: แจ้งผู้ใช้ทันทีว่าลบแล้ว
   showToast("ลบสินค้าออกจากตะกร้าแล้ว", "warning");
@@ -6342,7 +6346,7 @@ if (header){
     renderHeader();
     renderProducts();
     if (typeof renderBadge === "function") {
-      renderBadge();
+      if (typeof renderBadge === "function") renderBadge();
     }
 
   } catch (err) {
