@@ -3396,6 +3396,28 @@ function enterAdmin(){
   renderProducts();
 }
 
+// ✅ STEP 1: UI-only mode switch (ไม่ยุ่ง session/token)
+function leaveAdminMode(){
+  // 🔒 ปิด overlay ทั้งหมดแบบเดิม (UI layer)
+  document
+    .querySelectorAll(".sheet.show, .side-menu.show")
+    .forEach(el => closeOverlay(el));
+
+  // กัน intent เด้งซ้ำ (UI guard)
+  allowOpenOrders = false;
+  allowOpenStockTimeline = false;
+  allowOpenAddProduct = false;
+
+  // ✅ กลับสู่ viewer mode (UI state only)
+  state.mode = "viewer";
+  state.search = "";
+  state.viewerSearchOpen = false;
+
+  renderHeader();
+  renderProducts();
+  renderBadge();
+}
+
 function exitAdmin(){
   // 🔒 ปิดทุก overlay ผ่าน Overlay Manager (สำคัญที่สุด)
   document
@@ -4461,7 +4483,7 @@ function openMainMenu(){
           <hr>
           <div class="menu-group danger">
             <button class="btn btn-danger"
-              onclick="exitAdmin();">
+              onclick="leaveAdminMode();">
               🚪 ออกจากโหมดแอดมิน
             </button>
           </div>
