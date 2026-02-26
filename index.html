@@ -4481,43 +4481,39 @@ function openMainMenu(){
     <div class="menu-group">
       ${
         (isAuthed)
-          ? `
-          ${
-                (state.mode !== "admin")
-                  ? `
-                      <button class="btn btn-primary"
-                        onclick="closeMainMenu(); enterAdminMode();">
-                        🧭 ไป Admin Dashboard
-                      </button>
+          ? (state.mode === "admin")
+            ? `
+                <button class="btn btn-secondary"
+                  onclick="closeMainMenu(); leaveAdminMode();">
+                  👁 กลับสู่ Viewer
+                </button>
 
-                      <button class="btn btn-secondary"
-                        onclick="closeMainMenu();">
-                        👁 อยู่ใน Viewer
-                      </button>
-                    `
-                  : `
-                      <button class="btn btn-secondary"
-                        onclick="closeMainMenu(); leaveAdminMode();">
-                        👁 กลับสู่ Viewer
-                      </button>
-                    `
-              }
+                <button class="btn btn-primary"
+                  onclick="closeMainMenu(); handleOpenOrders();">
+                  📦 Orders
+                </button>
 
-              <button class="btn btn-primary"
-                onclick="closeMainMenu(); handleOpenOrders();">
-                📦 Orders
-              </button>
+                <button class="btn btn-secondary"
+                  onclick="closeMainMenu(); handleOpenStockTimeline();">
+                  📦 Stock Timeline
+                </button>
 
-              <button class="btn btn-secondary"
-                onclick="closeMainMenu(); handleOpenStockTimeline();">
-                📦 Stock Timeline
-              </button>
+                <button class="btn btn-secondary"
+                  onclick="closeMainMenu(); handleOpenAddProduct();">
+                  ➕ เพิ่มสินค้าใหม่
+                </button>
+              `
+            : `
+                <button class="btn btn-primary"
+                  onclick="closeMainMenu(); enterAdmin();">
+                 🧭 ไป Admin Dashboard
+                </button>
 
-              <button class="btn btn-secondary"
-                onclick="closeMainMenu(); handleOpenAddProduct();">
-                ➕ เพิ่มสินค้าใหม่
-              </button>
-            `
+                <button class="btn btn-secondary" disabled
+                  style="opacity:.8; cursor:default;">
+                  👁 อยู่ใน Viewer
+                </button>
+              `
           : `
               <button class="btn btn-primary"
                 onclick="closeMainMenu(); openAdminEntry();">
