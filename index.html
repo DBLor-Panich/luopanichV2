@@ -6446,19 +6446,22 @@ if (header){
     topBtn.classList.toggle("show", shouldShow);
   }
 
-  /* ================= FLOATING BAR SMART HIDE ================= */
-if (bar && bar.classList.contains("show")) {
-
-  if (currentY <= 10) {
-    bar.classList.remove("scroll-hide");
-  }
-  else if (delta > 0) {
-    bar.classList.add("scroll-hide");   // เลื่อนลง
-  }
-  else if (delta < 0) {
-    bar.classList.remove("scroll-hide"); // เลื่อนขึ้น
-  }
-}
+    /* ================= FLOATING BAR SMART HIDE ================= */
+   if (bar && bar.classList.contains("show")) {
+     // 📍 อยู่บนสุด → แสดงเสมอ
+     if (currentY <= 10) {
+       bar.classList.remove("scroll-hide");
+     }
+     // 🔴 CHANGED: direction-based
+    else if (delta > 0) {
+       // ⬇️ เลื่อนลง = ซ่อน (กันบังเวลาเลือกสินค้าเพิ่ม)
+       bar.classList.add("scroll-hide");
+     }
+    else if (delta < 0) {
+       // ⬆️ เลื่อนขึ้น = โชว์
+       bar.classList.remove("scroll-hide");
+     }
+   }
    
    _lastScrollY = currentY;
    _lastScrollTime = now; // 🔴 NEW
@@ -6479,14 +6482,16 @@ if (bar && bar.classList.contains("show")) {
 
   document.addEventListener("scroll", (e) => {
     const t = e.target;
-    if (!t || !t.classList || !t.classList.contains("sheet")) return;
+    if (!t) return;
+    const sheetEl = (t.closest && t.closest(".sheet")) || (t.classList && t.classList.contains("sheet") ? t : null);
+    if (!sheetEl) return;
 
     const bar = document.getElementById("floatingBar");
     if (!bar || !bar.classList.contains("show")) return;
 
-    const prev = lastTop.get(t) ?? t.scrollTop;
-    const d = t.scrollTop - prev;
-    lastTop.set(t, t.scrollTop);
+   const prev = lastTop.get(sheetEl) ?? sheetEl.scrollTop;
+    const d = sheetEl.scrollTop - prev;
+    lastTop.set(sheetEl, sheetEl.scrollTop);
 
     if (Math.abs(d) < 1) return;
     if (d > 2) bar.classList.add("scroll-hide");        // ⬇️ เลื่อนลงใน sheet = ซ่อน
