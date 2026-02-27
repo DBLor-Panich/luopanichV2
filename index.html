@@ -6728,6 +6728,55 @@ window.watchBarCSS = function watchBarCSS(){
   window.traceBarCSS();
 };
 
+// =========================
+// 🕵️ SPY: ใครเป็นคนแก้ class/style ของ #floatingBar
+// ใช้: spyBar(); แล้วลองเลื่อน/เปิดปิด sheet/เพิ่มของในตะกร้า
+// =========================
+window.spyBar = function spyBar(){
+  const bar = document.getElementById("floatingBar");
+  if (!bar) { console.warn("[spyBar] #floatingBar not found"); return; }
+  if (bar.__spyInstalled) { console.warn("[spyBar] already installed"); return; }
+  bar.__spyInstalled = true;
+
+  // 1) spy classList.add/remove/toggle
+  const cl = bar.classList;
+  ["add","remove","toggle"].forEach((m) => {
+    const orig = cl[m].bind(cl);
+    cl[m] = (...args) => {
+      console.groupCollapsed(`🧩 [spyBar] classList.${m}(${args.join(", ")})  | before="${bar.className}"`);
+      console.trace();
+      const r = orig(...args);
+      console.log(`after="${bar.className}"`);
+      console.groupEnd();
+      return r;
+    };
+  });
+
+  // 2) spy style attribute changes (รวมถึง bar.style.opacity/transform ที่ไปลงเป็น inline)
+  const mo = new MutationObserver((list) => {
+    for (const it of list) {
+      if (it.type === "attributes" && it.attributeName === "style") {
+        console.groupCollapsed(`🎨 [spyBar] style changed: ${bar.getAttribute("style") || "(empty)"}`);
+        console.trace();
+        console.groupEnd();
+      }
+    }
+  });
+  mo.observe(bar, { attributes: true, attributeFilter: ["style"] });
+  bar.__spyMO = mo;
+
+  console.log("✅ spyBar installed. Now reproduce the bug.");
+};
+
+window.unspyBar = function unspyBar(){
+  const bar = document.getElementById("floatingBar");
+  if (!bar) return;
+  if (bar.__spyMO) bar.__spyMO.disconnect();
+  bar.__spyMO = null;
+  bar.__spyInstalled = false;
+  console.log("🛑 spyBar removed (note: classList methods won't auto-restore after override)");
+};  
+
 window.unwatchBarCSS = function unwatchBarCSS(){
   const bar = document.getElementById("floatingBar");
   if (!bar || !bar.__watchMO) return;
