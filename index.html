@@ -2707,6 +2707,47 @@ async function checkStockBeforeSubmit() {
 
  // 🔒 Attribute-safe (สำหรับ src/alt/href)
  const escAttr = (s) => esc(s);
+
+
+// 🔴 CHANGED: ADD renderFloatingBar() (fix: cart added but bar never appears because function was missing)
+function renderFloatingBar(){
+  const bar = document.getElementById("floatingBar");
+  if (!bar) return;
+
+  // show เฉพาะ viewer + มีของในตะกร้า
+  const hasItems = Array.isArray(state.cart) && state.cart.length > 0;
+  const isViewer = state.mode === "viewer";
+
+  // ถ้าเปิด cart sheet อยู่ → ไม่ต้องโชว์ (openCart() ก็ remove show อยู่แล้ว)
+  const cartOpen = !!(cartSheet && cartSheet.classList.contains("show"));
+
+  if (!isViewer || !hasItems || cartOpen) {
+    bar.classList.remove("show","bounce-in");
+    bar.innerHTML = "";
+    return;
+  }
+
+  const count = state.cart.reduce((s,i)=> s + (Number(i.qty)||0), 0);
+  const total = state.cart.reduce((s,i)=> s + (Number(i.price)||0) * (Number(i.qty)||0), 0);
+  const money = (n) => (Number(n)||0).toLocaleString("th-TH");
+
+  bar.innerHTML = `
+    <div class="bar-left">
+      <div style="font-weight:700">ตะกร้า</div>
+      <div style="font-size:13px;color:rgba(17,17,17,.65)">
+        ${count} ชิ้น • ฿${money(total)}
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:auto;padding:10px 14px" onclick="openCart()">
+      เปิดตะกร้า
+    </button>
+  `;
+
+  // ให้โชว์แน่นอน + กันโดน scroll-hide ค้าง
+  bar.classList.remove("scroll-hide");
+  bar.classList.add("show","bounce-in");
+  setTimeout(()=> bar.classList.remove("bounce-in"), 260);
+}  
   
 function openImageViewer(url){
   if (!url) return;
@@ -3089,65 +3130,7 @@ function renderBadge(){
   // 🔴 NEW: sync floating bar ทุกครั้งที่ badge update
   renderFloatingBar();
 }
-
-/* ================= FLOATING BAR RENDER ================= */
-function renderFloatingBar(){
-  const bar = document.getElementById("floatingBar");
-  if (!bar) return;
-
-  // 🔒 แสดงเฉพาะ viewer mode
-  if (state.mode !== "viewer" || state.cart.length === 0){
-    bar.classList.remove("show");
-    bar.innerHTML = "";
-    return;
-  }
-
-  const wasVisible = bar.classList.contains("show"); // 🔴 FIX: declare before use
-  
-  const total = state.cart.reduce(
-    (s,i)=> s + Number(i.price) * Number(i.qty),
-    0
-  );
-
-  bar.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;font-weight:600">
-      ${state.cart.length} รายการ
-    </div>
-    <div id="floatingTotal"
-         style="font-weight:700;color:#007aff">
-      รวม ฿${total.toLocaleString()}
-    </div>
-  `;
-
-  // 🔒 ไม่ยุ่ง overlay system
-  bar.onclick = openCart;
-
-  bar.classList.remove("scroll-hide"); // 🔴 FIX
-  bar.classList.add("show");
-
-  /* ===== First Appear Bounce ===== */
-  if (!wasVisible){
-    bar.classList.remove("bounce-in");
-    bar.classList.add("bounce-in");
-    setTimeout(()=>{
-      bar.classList.remove("bounce-in");
-    },650);
-  }
-
-  /* ===== Total Change Animation ===== */
- const totalEl = document.getElementById("floatingTotal");
- if (totalEl){
-   const prev = bar.dataset.prevTotal;
-   if (prev !== String(total)) {
-     bar.dataset.prevTotal = String(total);
-     totalEl.classList.remove("total-animate");
-     void totalEl.offsetWidth;
-     totalEl.classList.add("total-animate");
-    }
-  }
-}  
-
-  
+ 
 function renderConfirmSheet(){
   const confirmSheet = document.getElementById("confirmSheet");
   if (!confirmSheet) return;
