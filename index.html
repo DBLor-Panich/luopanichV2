@@ -3122,7 +3122,9 @@ function renderFloatingBar(){
   // 🔒 ไม่ยุ่ง overlay system
   bar.onclick = openCart;
 
-  bar.classList.remove("scroll-hide"); // 🔴 FIX
+  // 🔴 CHANGED: อย่า reset สถานะ scroll-hide ทุกครั้ง (ปล่อยให้ scroll handler คุม)
+  // เคลียร์เฉพาะตอน "เพิ่งแสดงครั้งแรก" เพื่อกันค้างจากรอบก่อน
+  if (!wasVisible) bar.classList.remove("scroll-hide");
   bar.classList.add("show");
 
   /* ===== First Appear Bounce ===== */
