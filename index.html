@@ -6420,15 +6420,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // 🔴 CHANGED: micro scroll noise guard (แต่ต้อง "โชว์ bar คืน" เมื่อหยุดเลื่อน)
    if (Math.abs(delta) < 1) {
-     // ✅ ถ้า bar แสดงอยู่แล้ว ให้เอา scroll-hide ออก เพื่อไม่ให้ค้างซ่อน
-     if (
-       bar &&
-       bar.classList.contains("show") &&
-       state.ui.overlayCount === 0
-     ) {
+     // ✅ FIX: ตอน delta เล็ก = "อย่าเปลี่ยนสถานะซ่อน/โชว์"
+     // ยกเว้นกรณีอยู่บนสุดจริง ๆ ค่อยบังคับให้โชว์
+     if (bar && currentY <= 10) {
        bar.classList.remove("scroll-hide");
      }
-
      _lastScrollY = currentY;
      _lastScrollTime = now;
      _headerTicking = false;
