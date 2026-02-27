@@ -1808,24 +1808,24 @@ textarea {
 
  /* ✅ SHOW = only show */
  #floatingBar.show{
-  transform: translateY(0) !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
  }
 
  /* ✅ HIDE (scroll) */
  #floatingBar.scroll-hide{
-  transform: translateY(120%) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+   transform: translateY(120%) !important;
+   opacity: 0 !important;
+   pointer-events: none !important;
  }
 
  /* ✅ HIGHEST PRIORITY: show + scroll-hide must hide */
  #floatingBar.show.scroll-hide{
-  transform: translateY(120%) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
- }
+   transform: translateY(120%) !important;
+   opacity: 0 !important;
+   pointer-events: none !important;
+ }}
 
 @media (prefers-color-scheme: dark){
   #floatingBar{
@@ -6732,6 +6732,29 @@ window.unwatchBarCSS = function unwatchBarCSS(){
   bar.__watchingCSS = false;
   console.log("🛑 stop watching #floatingBar");
 };
+
+// =========================
+// 🔍 DEBUG: Force test show/hide (พิสูจน์ cascade)
+// ใช้: testBarHide(); แล้วดู console + traceBarCSS
+// =========================
+window.testBarHide = function testBarHide(){
+  const bar = document.getElementById("floatingBar");
+  if (!bar) { console.warn("[testBarHide] #floatingBar not found"); return; }
+
+  bar.className = "show scroll-hide";
+  requestAnimationFrame(() => {
+    const cs1 = getComputedStyle(bar);
+    console.log("[testBarHide] show+scroll-hide => opacity:", cs1.opacity, "transform:", cs1.transform);
+    window.traceBarCSS();
+
+    bar.className = "show";
+    requestAnimationFrame(() => {
+      const cs2 = getComputedStyle(bar);
+      console.log("[testBarHide] show => opacity:", cs2.opacity, "transform:", cs2.transform);
+      window.traceBarCSS();
+    });
+  });
+};  
  
 </script>
   
