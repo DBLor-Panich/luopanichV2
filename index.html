@@ -1858,7 +1858,11 @@ textarea {
       inset 0 1px 0 rgba(255,255,255,.10);
   }
 }
-
+  
+#floatingBar:active{
+  transform: translateY(0) scale(.98);
+}
+  
 /* 🔴 NEW: เมื่อมี sheet เปิดอยู่ → ให้ floatingBar ซ่อน */
 .sheet.show ~ #floatingBar{
   opacity: 0 !important;
@@ -2772,16 +2776,17 @@ function renderFloatingBar(){
     : "0 รายการ";
   
   bar.innerHTML = `
-    <div class="bar-left">
+    <div class="bar-left" style="width:100%;">
       <div style="font-weight:700">ตะกร้า</div>
       <div class="bar-subtext">
         ${listText} • รวม ฿${money(total)}
       </div>
     </div>
-    <button class="btn btn-primary" style="width:auto;padding:10px 14px" onclick="openCart()">
-      เปิดตะกร้า
-    </button>
   `;
+
+// 🔴 NEW: ทั้งแถบกดเพื่อเปิดตะกร้า
+bar.onclick = openCart;
+bar.style.cursor = "pointer";
 
   // ให้โชว์แน่นอน + กันโดน scroll-hide ค้าง
   bar.classList.remove("scroll-hide");
