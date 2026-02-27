@@ -1839,6 +1839,14 @@ textarea {
       inset 0 1px 0 rgba(255,255,255,.10);
   }
 }
+
+/* 🔴 NEW: เมื่อมี sheet เปิดอยู่ → ให้ floatingBar ซ่อน */
+.sheet.show ~ #floatingBar{
+  opacity: 0 !important;
+  transform: translateY(20px) !important;
+  pointer-events: none !important;
+  visibility: hidden !important; /* 🔴 FIX: ซ่อนแบบ deterministic */
+}  
   
  /* ================= REDUCED MOTION SUPPORT ================= */
  @media (prefers-reduced-motion: reduce){
