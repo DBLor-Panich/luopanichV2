@@ -1807,28 +1807,25 @@ textarea {
   100% { transform:scale(1); opacity:1; }
 }
 
-/* SHOW */
-#floatingBar.show{
+/* ✅ SHOW = only show */
+ #floatingBar.show{
   transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
-  visibility: visible;           /* 🔍 FIX */
-}
+ }
 
-/* HIDE */
+/* ✅ HIDE (scroll) */
 #floatingBar.scroll-hide{
-  transform: translateY(120%);
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;            /* 🔍 FIX */
+  transform: translateY(120%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
-/* HIGHEST */
+/* ✅ HIGHEST PRIORITY: show + scroll-hide must hide */
 #floatingBar.show.scroll-hide{
-  transform: translateY(120%);
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;            /* 🔍 FIX */
+  transform: translateY(120%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 @media (prefers-color-scheme: dark){
