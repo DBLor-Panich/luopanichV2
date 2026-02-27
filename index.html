@@ -1784,7 +1784,8 @@ textarea {
   transform: translateY(120%);
   opacity: 0;
   pointer-events: none;
-
+  visibility: hidden;            /* 🔍 FIX: บังคับซ่อนจริง (กัน opacity ค้าง) */
+  
   transition:
     transform .48s cubic-bezier(.34,1.56,.64,1),
     opacity .3s ease;
@@ -1811,6 +1812,7 @@ textarea {
   transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;           /* 🔍 FIX */
 }
 
 /* HIDE */
@@ -1818,6 +1820,7 @@ textarea {
   transform: translateY(120%);
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;            /* 🔍 FIX */
 }
 
 /* HIGHEST */
@@ -1825,6 +1828,7 @@ textarea {
   transform: translateY(120%);
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;            /* 🔍 FIX */
 }
 
 @media (prefers-color-scheme: dark){
