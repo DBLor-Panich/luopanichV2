@@ -5790,7 +5790,7 @@ function exportOrderPNG() {
   const order = state.lastOrder;
   if (!order) return;
 
-/ 🔴 CHANGED: ensure fonts are ready before canvas draw (avoid fallback font in PNG)
+// 🔴 CHANGED: ensure fonts are ready before canvas draw (avoid fallback font in PNG)
   // (safe even if already loaded)
   if (document.fonts && document.fonts.ready) {
     // kick-load both weights used in canvas
