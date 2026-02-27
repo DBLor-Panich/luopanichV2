@@ -501,11 +501,39 @@ button:disabled {
 }
   
   /* ===== Order Preview (Hidden) ===== */
+  /* ================= LOCAL THAI FONT ================= */
+  /* 🔴 CHANGED: use local files (no CDN) */
+  @font-face{
+    font-family: "THSarabunNew";
+    src: url("assets/fonts/THSarabunNew.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face{
+    font-family: "THSarabunNew";
+    src: url("assets/fonts/THSarabunNew-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root{
+    /* 🔴 CHANGED: single source of truth */
+    --font-sans: "THSarabunNew", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  html, body{
+    /* 🔴 CHANGED: apply app-wide */
+    font-family: var(--font-sans);
+  }
+  
   #orderPreview {
     width: 360px;
     padding: 16px;
     background: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    /* 🔴 CHANGED: keep consistent with app */
+    font-family: var(--font-sans);
     display: none;
   }
   #orderPreview h2 {
@@ -5763,6 +5791,14 @@ function exportOrderPNG() {
   const order = state.lastOrder;
   if (!order) return;
 
+/ 🔴 CHANGED: ensure fonts are ready before canvas draw (avoid fallback font in PNG)
+  // (safe even if already loaded)
+  if (document.fonts && document.fonts.ready) {
+    // kick-load both weights used in canvas
+    document.fonts.load('400 16px "THSarabunNew"');
+    document.fonts.load('700 16px "THSarabunNew"');
+  }  
+  
   /* ================= A4 CONFIG (FIXED) ================= */
   const cfg = {
     width: 794,          // A4 width @96dpi
@@ -5864,7 +5900,7 @@ function exportOrderPNG() {
   ctx.fillStyle = "#000";
 
   /* ===== TITLE ===== */
-  ctx.font = `700 ${cfg.titleSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.font = `700 ${cfg.titleSize}px "THSarabunNew", -apple-system, BlinkMacSystemFont, sans-serif`; // 🔴 CHANGED
   ctx.fillText("ใบสั่งซื้อ", cfg.padding, y);
   y += cfg.lineHeight + 8;
 
@@ -5872,7 +5908,7 @@ function exportOrderPNG() {
   const headerTopY = y;
 
   /* ===== COMPANY BLOCK ===== */
-ctx.font = `700 ${cfg.textSize + 4}px -apple-system`;
+ctx.font = `700 ${cfg.textSize + 4}px "THSarabunNew", -apple-system, BlinkMacSystemFont, sans-serif`; // 🔴 CHANGED
 ctx.fillText("ร้านล้อพาณิชย์", cfg.padding, headerTopY);
 
 ctx.fillText(
@@ -5928,7 +5964,7 @@ const rightX = canvas.width - cfg.padding;
     total: canvas.width - cfg.padding - 90
   };
 
-  ctx.font = `700 ${cfg.textSize}px -apple-system`;
+  ctx.font = `700 ${cfg.textSize}px "THSarabunNew", -apple-system, BlinkMacSystemFont, sans-serif`; // 🔴 CHANGED
 
   // HEADER
   ctx.fillText("ลำดับ", col.no, y);
@@ -5947,7 +5983,7 @@ const rightX = canvas.width - cfg.padding;
 
   y += rowHeight - 16;
 
-  ctx.font = `${cfg.textSize}px -apple-system`;
+  ctx.font = `${cfg.textSize}px "THSarabunNew", -apple-system, BlinkMacSystemFont, sans-serif`; // 🔴 CHANGED
 
   items.forEach((i, index) => {
     const total = Number(i.price) * Number(i.qty);
@@ -5988,7 +6024,7 @@ const rightX = canvas.width - cfg.padding;
   y += cfg.lineHeight;
 
   /* ================= TOTAL ================= */
-  ctx.font = `700 ${cfg.textSize + 4}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.font = `700 ${cfg.textSize + 4}px "THSarabunNew", -apple-system, BlinkMacSystemFont, sans-serif`; // 🔴 CHANGED
   const safeTotal = Number(order.total) || 0;
   const totalText = `ยอดรวม: ฿${safeTotal.toLocaleString()}`;
   const tw = ctx.measureText(totalText).width;
@@ -6000,7 +6036,7 @@ const rightX = canvas.width - cfg.padding;
 
   /* ===== THAI TEXT TOTAL ===== */
   y += cfg.lineHeight;
-  ctx.font = `${cfg.textSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.font = `${cfg.textSize}px "THSarabunNew", -apple-system, BlinkMacSystemFont, sans-serif`; // 🔴 CHANGED
   const thaiText = `(${numberToThaiText(safeTotal)})`;
   const thaiWidth = ctx.measureText(thaiText).width;
   ctx.fillText(
@@ -6043,13 +6079,29 @@ function exportOrderPrint() {
     <head>
       <title>Order ${order.orderId}</title>
       <style>
+      /* 🔴 CHANGED: embed local font for print window */
+        @font-face{
+          font-family: "THSarabunNew";
+          src: url("assets/fonts/THSarabunNew.ttf") format("truetype");
+          font-weight: 400;
+          font-style: normal;
+          font-display: swap;
+        }
+        @font-face{
+          font-family: "THSarabunNew";
+          src: url("assets/fonts/THSarabunNew-Bold.ttf") format("truetype");
+          font-weight: 700;
+          font-style: normal;
+          font-display: swap;
+        }
+
         @page {
           size: A4;
           margin: 20mm;
         }
 
         body {
-          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          font-family: "THSarabunNew", -apple-system, BlinkMacSystemFont, sans-serif; /* 🔴 CHANGED */
           font-size: 14px;
           color: #111827; /* Dark Accent */
           margin: 0;
