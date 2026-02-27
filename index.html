@@ -6453,12 +6453,10 @@ if (bar && bar.classList.contains("show")) {
     bar.classList.remove("scroll-hide");
   }
   else if (delta > 0) {
-    // ⬇️ เลื่อนลง
-    bar.classList.add("scroll-hide");
+    bar.classList.add("scroll-hide");   // เลื่อนลง
   }
   else if (delta < 0) {
-    // ⬆️ เลื่อนขึ้น
-    bar.classList.remove("scroll-hide");
+    bar.classList.remove("scroll-hide"); // เลื่อนขึ้น
   }
 }
    
