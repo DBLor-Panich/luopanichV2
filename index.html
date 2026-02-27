@@ -2756,28 +2756,21 @@ function renderFloatingBar(){
     return;
   }
 
-  const count = state.cart.reduce((s,i)=> s + (Number(i.qty)||0), 0);
   const total = state.cart.reduce((s,i)=> s + (Number(i.price)||0) * (Number(i.qty)||0), 0);
   const money = (n) => (Number(n)||0).toLocaleString("th-TH");
-
-  // ✅ FIX: ถ้า qty รวม = 0 ให้ซ่อน (กัน cart length > 0 แต่ไม่มีของจริง)
-  if (count <= 0) {
-    bar.classList.remove("show","bounce-in");
-    bar.innerHTML = "";
-    return;
-  }
 
   // ✅ แสดงเป็น "รายการ" (ชื่อสินค้าแบบย่อ) ไม่โชว์จำนวน
   const names = state.cart
     .map(i => String(i.name || "").trim())
     .filter(Boolean);
   const uniqueNames = [...new Set(names)];
+  const itemCount = uniqueNames.length; // ✅ จำนวน "รายการ" (distinct) เช่น qty=3 ก็ยัง = 1 รายการ
   const preview = uniqueNames.slice(0, 2).join(", ");
   const more = uniqueNames.length - 2;
-  const listText = uniqueNames.length
-    ? `รายการ: ${preview}${more > 0 ? ` +อีก ${more} รายการ` : ""}`
-    : "รายการ: -";
-
+  const listText = itemCount
+    ? `${itemCount} รายการ: ${preview}${more > 0 ? ` +อีก ${more} รายการ` : ""}`
+    : "0 รายการ";
+  
   bar.innerHTML = `
     <div class="bar-left">
       <div style="font-weight:700">ตะกร้า</div>
