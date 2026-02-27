@@ -6447,21 +6447,20 @@ if (header){
   }
 
   /* ================= FLOATING BAR SMART HIDE ================= */
-  if (bar && bar.classList.contains("show")) {
-    // 📍 อยู่บนสุด → แสดงเสมอ
-    if (currentY <= 10) {
-      bar.classList.remove("scroll-hide");
-    }
-    // 🔴 CHANGED: direction-based
-    else if (delta > 2) {
-      // ⬇️ เลื่อนลง = ซ่อน (กันบังเวลาเลือกสินค้าเพิ่ม)
-      bar.classList.add("scroll-hide");
-    }
-    else if (delta < -2) {
-      // ⬆️ เลื่อนขึ้น = โชว์
-      bar.classList.remove("scroll-hide");
-    }
+if (bar && bar.classList.contains("show")) {
+
+  if (currentY <= 10) {
+    bar.classList.remove("scroll-hide");
   }
+  else if (delta > 0) {
+    // ⬇️ เลื่อนลง
+    bar.classList.add("scroll-hide");
+  }
+  else if (delta < 0) {
+    // ⬆️ เลื่อนขึ้น
+    bar.classList.remove("scroll-hide");
+  }
+}
    
    _lastScrollY = currentY;
    _lastScrollTime = now; // 🔴 NEW
@@ -6496,9 +6495,21 @@ if (header){
     else if (d < -2) bar.classList.remove("scroll-hide"); // ⬆️ เลื่อนขึ้นใน sheet = โชว์
   }, true); // capture=true เพื่อจับ element scroll
 })(); 
+
+  
+// ✅ ADD: ensure DOM nodes exist before first render/init
+const __domReady = new Promise((resolve) => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", resolve, { once: true });
+  } else {
+    resolve();
+  }
+});
   
 (async () => {
   try {
+    // ✅ ADD: wait until #floatingBar / #btnTop / etc are in DOM
+    await __domReady;
     // 🔴 CHANGED (STEP A5): Reload ต้องกลับ Viewer เสมอ (แม้ restore admin สำเร็จ)
     state.mode = "viewer";
     state.search = "";
@@ -6626,6 +6637,99 @@ if (header){
     const p = document.elementFromPoint(Math.min(rect.left+10, window.innerWidth-1), Math.min(rect.top+10, window.innerHeight-1));
     console.log('[debugBar] elementFromPoint near bar:', p);
   }
+
+  // =========================
+// 🔍 DEBUG: Trace CSS winners for #floatingBar
+// เป้าหมาย: หา "rule ไหน" ที่ชนะ opacity/transform จริง
+// =========================
+window.traceBarCSS = function traceBarCSS(){
+  const bar = document.getElementById("floatingBar");
+  if (!bar) { console.warn("[traceBarCSS] #floatingBar not found"); return []; }
+
+  const props = ["opacity","transform","pointer-events"];
+  const out = [];
+
+  const tryPushRule = (sheet, rule, ruleIndex, sel) => {
+    const style = rule.style;
+    const hit = {
+      sheet: sheet.href || "[inline <style>]",
+      ruleIndex,
+      selector: sel,
+      cssText: rule.cssText
+    };
+    // เก็บเฉพาะค่าที่เกี่ยวข้อง
+    props.forEach(p => {
+      const v = style.getPropertyValue(p);
+      if (v) {
+        hit[p] = v.trim();
+        hit[p + "_important"] = style.getPropertyPriority(p) === "important";
+      }
+    });
+    // ดันเฉพาะ rule ที่แตะ props จริง
+    if (props.some(p => hit[p])) out.push(hit);
+  };
+
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules;
+    try { rules = sheet.cssRules; } catch(e) { continue; } // cross-origin
+    if (!rules) continue;
+
+    for (let i = 0; i < rules.length; i++) {
+      const r = rules[i];
+      if (!r || !r.selectorText) continue;
+      // รองรับ selector หลายตัวคั่นด้วย comma
+      const sels = r.selectorText.split(",").map(s => s.trim()).filter(Boolean);
+      for (const sel of sels) {
+        try {
+          if (bar.matches(sel)) {
+            tryPushRule(sheet, r, i, sel);
+          }
+        } catch(_) {}
+      }
+    }
+  }
+
+  const cs = getComputedStyle(bar);
+  console.log("===== traceBarCSS =====");
+  console.log("className:", bar.className);
+  console.table({
+    computed_opacity: cs.opacity,
+    computed_transform: cs.transform,
+    computed_pointerEvents: cs.pointerEvents
+  });
+  console.table(out);
+  return out;
+};
+
+// =========================
+// 🔍 DEBUG: Watch class changes แล้ว trace ทันที
+// ใช้: watchBarCSS(); แล้วลองเลื่อน/เปิดปิด sheet
+// =========================
+window.watchBarCSS = function watchBarCSS(){
+  const bar = document.getElementById("floatingBar");
+  if (!bar) { console.warn("[watchBarCSS] #floatingBar not found"); return; }
+  if (bar.__watchingCSS) { console.warn("[watchBarCSS] already watching"); return; }
+  bar.__watchingCSS = true;
+
+  const mo = new MutationObserver(() => {
+    // trace หลัง DOM อัปเดตแล้ว 1 เฟรม (กันอ่านค่าก่อน apply)
+    requestAnimationFrame(() => window.traceBarCSS());
+  });
+  mo.observe(bar, { attributes: true, attributeFilter: ["class","style"] });
+  bar.__watchMO = mo;
+  console.log("✅ watching #floatingBar class/style changes");
+  window.traceBarCSS();
+};
+
+window.unwatchBarCSS = function unwatchBarCSS(){
+  const bar = document.getElementById("floatingBar");
+  if (!bar || !bar.__watchMO) return;
+  bar.__watchMO.disconnect();
+  bar.__watchMO = null;
+  bar.__watchingCSS = false;
+  console.log("🛑 stop watching #floatingBar");
+};
+ 
 </script>
   
 <!-- Toast Container -->
