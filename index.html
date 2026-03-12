@@ -5476,6 +5476,7 @@ async function submitProductEdit(){
 function confirmDeleteProduct() {
   if (state.mode !== "admin") return;
   if (state.admin.isSubmitting || state.isSubmitting) return;
+
   const p = state.selectedProduct;
   if (!p) return;
 
@@ -5484,7 +5485,10 @@ function confirmDeleteProduct() {
     showToast("สินค้านี้ถูกลบไปแล้ว", "warning");
     return;
   }
-  
+
+  // 🔴 CHANGED: ปิดหน้าแก้ไขก่อน เพื่อไม่ให้ confirm ไปซ้อนอยู่ข้างหลัง
+  closeOverlay(adminProductEditSheet);
+
   confirmSheet.innerHTML = `
     <h3>ลบสินค้าแบบถาวร</h3>
     <div style="margin-top:12px">
@@ -5497,12 +5501,17 @@ function confirmDeleteProduct() {
       ยืนยันการลบ
     </button>
     <button class="btn btn-outline" style="margin-top:8px"
-      onclick="closeOverlay(confirmSheet)">
+      onclick="
+        closeOverlay(confirmSheet);
+        openProductEditById('${p.productId}');
+      ">
       ยกเลิก
     </button>
   `;
+
+  // 🔴 CHANGED: เปิด confirm หลังจากปิด edit sheet แล้ว
   openOverlay(confirmSheet);
-}
+  }
 
 async function deleteProduct() {
   if (state.admin.isSubmitting || state.isSubmitting) return;
