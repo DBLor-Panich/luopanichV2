@@ -4662,9 +4662,11 @@ function openAddProduct(force = false){
       <label>รูปสินค้า</label>
       <img id="addImagePreview"
         style="width:120px;border-radius:12px;display:none;margin-bottom:6px">
-      <input type="file"
-        accept="image/*"
-        onchange="handleAddImagePreview(this)">
+      <input
+   id="addImageFile"
+   type="file"
+   accept="image/*"
+   onchange="handleAddImagePreview(this)">
     </div>
 
     <!-- 🔁 CONTINUE MODE -->
@@ -4691,10 +4693,40 @@ function openAddProduct(force = false){
   openOverlay(adminAddProductSheet);
 }
 
+ const PRODUCT_IMAGE_MAX_MB = 5;
+ const PRODUCT_IMAGE_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+ 
+function validateProductImageFile(file) {
+   if (!file) return;
+
+   if (!PRODUCT_IMAGE_ALLOWED_TYPES.includes(file.type)) {
+     throw new Error("รองรับเฉพาะไฟล์ JPG, PNG, WEBP");
+   }
+
+   const maxBytes = PRODUCT_IMAGE_MAX_MB * 1024 * 1024;
+   if (file.size > maxBytes) {
+     throw new Error(`รูปต้องมีขนาดไม่เกิน ${PRODUCT_IMAGE_MAX_MB} MB`);
+   }
+ }
+ 
 function handleAddImagePreview(input){
   const file = input.files[0];
   if(!file) return;
 
+ try {
+   validateProductImageFile(file);
+ } catch (err) {
+   input.value = "";
+   state.addImageFile = null;
+   const img = document.getElementById("addImagePreview");
+   if (img) {
+     img.removeAttribute("src");
+     img.style.display = "none";
+   }
+   showToast(err.message || "ไฟล์รูปไม่ถูกต้อง", "error");
+   return;
+ }
+ 
   const reader = new FileReader();
   reader.onload = () => {
     const img = document.getElementById("addImagePreview");
@@ -4707,8 +4739,35 @@ function handleAddImagePreview(input){
 }
 
 function closeAddProduct(){
+ const continueMode =
+   document.getElementById("addContinueMode")?.checked === true;
+ 
   state.addImageFile = null;
   state.admin.ui.activeSheet = null;
+
+ const img = document.getElementById("addImagePreview");
+ if (img) {
+   img.removeAttribute("src");
+   img.style.display = "none";
+ }
+
+ const fileInput = document.getElementById("addImageFile");
+ if (fileInput) {
+   fileInput.value = "";
+ }
+
+ if (!continueMode) {
+   document.getElementById("addProductId").value = "";
+   document.getElementById("addName").value = "";
+   document.getElementById("addPrice").value = "";
+   document.getElementById("addCostPrice").value = "";
+   document.getElementById("addStock").value = "";
+   document.getElementById("addStatus").value = "ready";
+   if (document.getElementById("addNote")) {
+     document.getElementById("addNote").value = "";
+   }
+ } 
+
   closeOverlay(adminAddProductSheet);
 }
   
@@ -5020,7 +5079,7 @@ function openProductEdit(p){
       <img id="imagePreview"
         src="${p.image || ""}"
         style="width:100%;border-radius:12px;margin-bottom:6px">
-      <input type="file"
+      <input id="editImageFile" type="file"
         accept="image/*"
         onchange="handleImagePreview(this)">
     </div>
@@ -5114,6 +5173,19 @@ function handleImagePreview(input){
   const file = input.files[0];
   if(!file) return;
 
+ try {
+   validateProductImageFile(file);
+ } catch (err) {
+   input.value = "";
+   state.editImageFile = null;
+   const img = document.getElementById("imagePreview");
+   if (img && state.selectedProduct?.image) {
+     img.src = state.selectedProduct.image;
+   }
+   showToast(err.message || "ไฟล์รูปไม่ถูกต้อง", "error");
+   return;
+ } 
+
   const reader = new FileReader();
   reader.onload = () => {
     document.getElementById("imagePreview").src = reader.result;
@@ -5198,6 +5270,12 @@ function closeProductEdit(){
 
 async function uploadProductImage(file) {
   return new Promise((resolve, reject) => {
+    try {
+      validateProductImageFile(file);
+    } catch (err) {
+      reject(err);
+      return;
+    }
     // 🔒 guard token
     if (!state.admin || !state.admin.token) {
       reject("Missing admin token");
@@ -5271,8 +5349,10 @@ async function submitProductEdit(){
   const costPrice = rawCostPrice === "" ? null : Number(rawCostPrice);
   const stock  = Number(document.getElementById("editStock").value);
   const status = document.getElementById("editStatus").value;
-  const newProductId = document.getElementById("editProductId").value.trim();
-  const oldProductId = p.productId;
+  const newProductId = normalizeProductId(
+    document.getElementById("editProductId").value
+  );
+  const oldProductId = normalizeProductId(p.productId);
   const note   = document.getElementById("editNote")?.value.trim() || "";
   const detailsText =
   document.getElementById("editDetailsText")?.value.trim() || "";
@@ -5306,9 +5386,10 @@ async function submitProductEdit(){
   }
 
   // 🔒 SKU Duplicate Check (วางตรงนี้เท่านั้น)
-  const duplicate = state.products.find(
-    x => x.productId === newProductId && x.productId !== oldProductId
-  );
+ const duplicate = state.products.find(x =>
+   normalizeProductId(x.productId) === newProductId &&
+   normalizeProductId(x.productId) !== oldProductId
+ );
  
   if (duplicate) {
     showToast("รหัสสินค้านี้มีอยู่แล้ว", "error");
@@ -5450,7 +5531,10 @@ async function deleteProduct() {
   }
 }
   
-  
+function normalizeProductId(value = "") {
+   return String(value || "").trim().toUpperCase();
+ }
+ 
 async function submitAddProduct(btn){
   // 🔒 guard
   if(state.mode !== "admin" || !state.admin.loggedIn){
@@ -5471,7 +5555,10 @@ async function submitAddProduct(btn){
   try {
     // 🔔 UX: แจ้งเริ่มกระบวนการ
     showLoading("กำลังตรวจสอบข้อมูลสินค้า...");
-    const productId = document.getElementById("addProductId").value.trim();
+
+    const productId = normalizeProductId(
+      document.getElementById("addProductId").value
+    );
     const name      = document.getElementById("addName").value.trim();
     const price     = Number(document.getElementById("addPrice").value);
     const rawCostPrice = document.getElementById("addCostPrice").value.trim();
@@ -5503,7 +5590,9 @@ async function submitAddProduct(btn){
       throw new Error("ราคา ราคาต้นทุน และจำนวน ต้องมากกว่าหรือเท่ากับ 0");
     }
 
-    const dup = state.products.find(p => p.productId === productId);
+    const dup = state.products.find(
+      p => normalizeProductId(p.productId) === productId
+    );
     if (dup) {
       document.getElementById("addProductId").focus();
       throw new Error("รหัสสินค้า (SKU) นี้มีอยู่แล้ว");
@@ -5541,12 +5630,9 @@ async function submitAddProduct(btn){
     form.append("image", imageUrl);
     form.append("note", note);
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: form
-    }).then(r => r.json());
+    const res = await postFormAction(form);
 
-    if(res.error || res.success === false){
+    if (res.error || res.success === false) {
       throw new Error(res.message || res.error || "เพิ่มสินค้าไม่สำเร็จ");
     }
 
