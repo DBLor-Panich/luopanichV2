@@ -2126,7 +2126,38 @@ async function fetchWithTimeout(input, init = {}, ms = 30000) {
     clearTimeout(id);
   }
 }
-  
+
+function isAuthError(message = "") {
+   return [
+     "Session expired",
+     "Invalid token",
+     "Missing token"
+   ].includes(String(message || "").trim());
+ }
+
+ async function postFormAction(form, { timeout = 30000 } = {}) {
+   const res = await fetchWithTimeout(API_URL, {
+     method: "POST",
+     body: form
+   }, timeout);
+
+   let json;
+   try {
+     json = await res.json();
+   } catch (err) {
+     throw new Error("รูปแบบข้อมูลตอบกลับไม่ถูกต้อง");
+   }
+
+   if (json?.error || json?.success === false) {
+     if (isAuthError(json.error)) {
+       showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
+       exitAdmin({ silent: true });
+     }
+     throw new Error(json.message || json.error || "Request failed");
+   }
+
+   return json;
+ } 
 
 /* ================= API LAYER ================= */
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
@@ -2339,27 +2370,7 @@ async function adminStockIn(productId, qty, reason){
   form.append("reason", reason || "");
   form.append("token", state.admin.token); // ✅ สำคัญที่สุด
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: form
-  });
-
-  const json = await res.json();
-
-  // 🔒 session หมดอายุ / token ผิด
-  if (json.error || json.success === false) {
-    if (
-      json.error === "Session expired" ||
-      json.error === "Invalid token" ||
-      json.error === "Missing token"
-    ) {
-      alert("Session หมดอายุ กรุณา login ใหม่");
-      exitAdmin();
-    }
-    throw new Error(json.error || "Stock IN failed");
-  }
-
-  return json;
+  return await postFormAction(form);
 }
 
 
@@ -2375,27 +2386,7 @@ async function adminStockAdjust(productId, newQty, reason){
   form.append("reason", reason || "");
   form.append("token", state.admin.token); // ✅ สำคัญที่สุด
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: form
-  });
-
-  const json = await res.json();
-
-  // 🔒 session หมดอายุ / token ผิด
-  if (json.error || json.success === false) {
-    if (
-      json.error === "Session expired" ||
-      json.error === "Invalid token" ||
-      json.error === "Missing token"
-    ) {
-      alert("Session หมดอายุ กรุณา login ใหม่");
-      exitAdmin();
-    }
-    throw new Error(json.error || "Stock adjust failed");
-  }
-
-  return json;
+  return await postFormAction(form);
 }
 
   
@@ -2418,24 +2409,7 @@ async function adminApproveOrder(orderId) {
     form.append("orderId", orderId);
     form.append("token", state.admin.token);
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: form
-    });
-
-    const json = await res.json();
-
-    if (json.error || json.success === false) {
-      if (
-        json.error === "Session expired" ||
-        json.error === "Invalid token" ||
-        json.error === "Missing token"
-      ) {
-        showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
-        exitAdmin();
-      }
-      throw new Error(json.error || "Approve order failed");
-    }
+    const json = await postFormAction(form);
 
     // ✅ success
     showToast("อนุมัติคำสั่งซื้อสำเร็จ", "success");
@@ -2467,24 +2441,7 @@ async function adminRejectOrder(orderId) {
     form.append("orderId", orderId);
     form.append("token", state.admin.token);
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: form
-    });
-
-    const json = await res.json();
-
-    if (json.error || json.success === false) {
-      if (
-        json.error === "Session expired" ||
-        json.error === "Invalid token" ||
-        json.error === "Missing token"
-      ) {
-        showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
-        exitAdmin();
-      }
-      throw new Error(json.error || "Reject order failed");
-    }
+    const json = await postFormAction(form);
 
     // ✅ success
     showToast("ปฏิเสธคำสั่งซื้อเรียบร้อย", "success");
@@ -2514,27 +2471,7 @@ async function fetchStockLogs() {
   form.append("action", "stockLogs");
   form.append("token", state.admin.token);
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: form
-  });
-
-  const json = await res.json();
-
-  if (json.error || json.success === false) {
-    if (
-      json.error === "Session expired" ||
-      json.error === "Invalid token" ||
-      json.error === "Missing token"
-    ) {
-      alert("Session หมดอายุ กรุณา login ใหม่");
-      exitAdmin();
-    }
-
-    throw new Error(json.error || "โหลด Stock Logs ไม่สำเร็จ");
-  }
-
-  return json;
+  return await postFormAction(form);
 }
 
 
@@ -2549,26 +2486,7 @@ async function fetchOrders(){
   form.append("action", "orders");
   form.append("token", state.admin.token);
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: form
-  });
-
-  const json = await res.json();
-
-  if (!json.success) {
-    // 🔒 token หมดอายุ / ไม่ถูกต้อง
-    if (
-      json.error === "Session expired" ||
-      json.error === "Invalid token"
-    ) {
-      alert("Session หมดอายุ กรุณา login ใหม่");
-      exitAdmin(); // logout ฝั่ง frontend
-    }
-    throw new Error(json.error || "โหลด Orders ไม่สำเร็จ");
-  }
-
-  // ✅ คืน array ของ orders
+  const json = await postFormAction(form);
   return json.data;
 }
   
@@ -5404,14 +5322,7 @@ async function submitProductEdit(){
     form.append("detailsText", detailsText);
     form.append("compareImages", compareImages);
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: form
-    }).then(r => r.json());
-
-    if (res.error || res.success === false) {
-      throw new Error(res.message || res.error || "บันทึกไม่สำเร็จ");
-    }
+    const res = await postFormAction(form);
 
     showToast("บันทึกการแก้ไขเรียบร้อย", "success");
 
@@ -5483,25 +5394,7 @@ async function deleteProduct() {
     form.append("token", state.admin.token);
     form.append("productId", p.productId);
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: form
-    }).then(r => r.json());
-
-    if (res.error || res.success === false) {
-      if (
-        res.error === "Session expired" ||
-        res.error === "Invalid token" ||
-        res.error === "Missing token"
-      ) {
-        showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
-        exitAdmin();
-        return;
-      }
-        throw new Error(
-        res.message || res.error || "ไม่สามารถลบสินค้าได้ (อาจถูกลบแล้ว)"
-      );
-    }
+    const res = await postFormAction(form);
     
     showToast("ลบสินค้าเรียบร้อย", "success");
 
@@ -6323,6 +6216,7 @@ function clearAdminSession(){
   state.admin.token = "";
   state.admin.expiredAt = "";
   state.admin.isSubmitting = false;
+  state.isSubmitting = false;
 }
 
 function exitAdmin(opts = {}){
