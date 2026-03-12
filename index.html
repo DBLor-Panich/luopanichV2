@@ -1846,23 +1846,32 @@ const adminProductEditSheet = document.getElementById("adminProductEditSheet");
 const adminStockActionSheet = document.getElementById("adminStockActionSheet");
 const adminAddProductSheet = document.getElementById("adminAddProductSheet");
 
-// ✅ expose for inline onclick handlers (ปลอดภัยสุด)
+// ================= ADMIN UI REGISTRY =================
+// 🔒 รวม ref ฝั่ง admin ไว้จุดเดียว เพื่อให้เพิ่ม/ถอดเมนูในอนาคตง่ายขึ้น
+const ADMIN_SHEETS = Object.freeze({
+  login: adminLoginSheet,
+  dashboard: adminDashboardSheet,
+  order: adminOrderSheet,
+  stock: adminStockSheet,
+  menu: mainMenuSheet,
+  productAction: adminProductActionSheet,
+  productEdit: adminProductEditSheet,
+  stockAction: adminStockActionSheet,
+  addProduct: adminAddProductSheet
+});
+
+function getAdminSheets() {
+  return Object.values(ADMIN_SHEETS).filter(Boolean);
+}
+
+// ✅ expose เฉพาะ public actions ที่ inline handler ยังจำเป็นต้องใช้
 Object.assign(window, {
-  productSheet,
-  qtySheet,
-  confirmSheet,
-  stockSheet,
-  adminLoginSheet,
-  adminDashboardSheet,
-  adminOrderSheet,
-  adminStockSheet,
-  mainMenuSheet,
-  adminProductActionSheet,
-  adminProductEditSheet,
-  adminStockActionSheet,
-  adminAddProductSheet,
   openChangePasswordSheet,
-  submitChangePassword
+  submitChangePassword,
+  cancelAdminLogin,
+  closeMainMenu,
+  closeAddProduct,
+  closeProduct
 });
 
 // 🔒 Intent guards (STEP 2)
@@ -1877,11 +1886,6 @@ const state = {
   mode: "viewer",
 
   viewerFilter: {
-    status: "all"
-  },
-
-  // 🔴 CHANGED: เพิ่ม admin filter แยกจาก viewer (กันชน/กัน flow ปนกัน)
-  adminFilter: {
     status: "all"
   },
 
@@ -1900,10 +1904,16 @@ const state = {
     loggedIn: false,
     user: null,
     token: null,
+    expiredAt: null,
     orders: [],
     selectedOrder: null,
     logs: [],
-
+    filters: {
+      status: "all"
+    },
+    ui: {
+      activeSheet: null
+    },
     // 🔒 admin submit guard
     isSubmitting: false
   },
@@ -2752,11 +2762,11 @@ if (
 // 🔴 CHANGED: admin filter (ต้องอยู่หลัง resolvedStatus เสมอ)
     if (
       state.mode === "admin" &&
-      state.adminFilter &&
-      state.adminFilter.status !== "all"
+      state.admin.filters &&
+      state.admin.filters.status !== "all"
     ) {
-      if (resolvedStatus !== state.adminFilter.status) return;
-    }    
+      if (resolvedStatus !== state.admin.filters.status) return;
+    } 
     
 /* ================= STATUS LOGIC ================= */
 const statusMap = {
@@ -2829,7 +2839,7 @@ function renderProductSheet(){
     <!-- ❌ CLOSE BUTTON (TOP-RIGHT) -->
  <button
    class="sheet-close sheet-close-btn"
-   onclick="closeOverlay(window.productSheet)"
+   onclick="closeProduct()"
    aria-label="Close"
  >
       ×
@@ -3224,7 +3234,7 @@ function setAdminStatus(status){
 
   if(!status) return;
 
-  state.adminFilter.status = status;
+  state.admin.filters.status = status;
 
   renderHeader();
   renderProducts();
@@ -4698,10 +4708,12 @@ function handleAddImagePreview(input){
 
 function closeAddProduct(){
   state.addImageFile = null;
+  state.admin.ui.activeSheet = null;
   closeOverlay(adminAddProductSheet);
 }
   
 function closeMainMenu(){
+  state.admin.ui.activeSheet = null;
   closeOverlay(mainMenuSheet);
  }
 
@@ -6235,7 +6247,11 @@ function clearAdminSession(){
   state.admin.loggedIn = false;
   state.admin.user = "";
   state.admin.token = "";
-  state.admin.expiredAt = "";
+  state.admin.expiredAt = null;
+  state.admin.orders = [];
+  state.admin.selectedOrder = null;
+  state.admin.logs = [];
+  state.admin.ui.activeSheet = null;
   state.admin.isSubmitting = false;
   state.isSubmitting = false;
 }
@@ -6249,15 +6265,10 @@ function exitAdmin(opts = {}){
 
   // 2) ปิด overlay/sheet ทุกตัวแบบ force (กัน overlayCount เพี้ยน)
   const sheets = [
-    mainMenuSheet,
-    adminLoginSheet,
-    adminDashboardSheet,
-    adminStockSheet,
-    adminAddProductSheet,
+    ...getAdminSheets(),
     productSheet,
-    adminProductEditSheet,
     confirmSheet
-  ].filter(Boolean);
+  ];
 
   sheets.forEach(el => el.classList.remove("show"));
   state.ui.overlayCount = 0;
@@ -6268,6 +6279,7 @@ function exitAdmin(opts = {}){
 
   // 4) กลับสู่ viewer mode เสมอ (ตามตัวเลือก A)
   state.mode = "viewer";
+  state.admin.ui.activeSheet = null;
 
   // 5) เคลียร์ selection/admin draft ที่อาจทำให้หลุด flow
   state.selectedProduct = null;
