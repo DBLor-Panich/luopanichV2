@@ -3840,7 +3840,7 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
     !state.admin.token ||
     isAdminSessionExpired()
   ) {
-    alert("Session หมดอายุ กรุณา login ใหม่");
+    showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
     exitAdmin();
     return;
   }
@@ -3906,7 +3906,7 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
       err.message?.includes("Session") ||
       err.message?.includes("token")
     ) {
-      alert("Session หมดอายุ กรุณา login ใหม่");
+      showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
       exitAdmin();
       return;
     }
@@ -3960,7 +3960,7 @@ async function openStockTimeline(force = false) {
     !state.admin.token ||
     isAdminSessionExpired()
   ) {
-    alert("Session หมดอายุ กรุณา login ใหม่");
+    showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
     exitAdmin();
     return;
   }
@@ -4257,7 +4257,7 @@ async function handleReject() {
 async function submitStockIn(){
   // 🔒 guard
   if (state.mode !== "admin" || !state.selectedProduct) {
-    alert("Unauthorized");
+    showToast("Unauthorized", "error");
     return;
   }
 
@@ -4368,7 +4368,7 @@ async function submitStockAdjust(){
 
   } catch (err) {
     console.error(err);
-    alert(err.message || "ไม่สามารถปรับสต๊อกได้");
+    showToast(err.message || "ไม่สามารถปรับสต๊อกได้", "error");
   } finally {
     // 🔓 เปิดปุ่มกลับทุกกรณี
     buttons.forEach(b => b.disabled = false);
@@ -5379,17 +5379,23 @@ function confirmDeleteProduct() {
     return;
   }
   
- const ok = confirm(
-   `⚠️ ลบสินค้าแบบถาวร\n\n` +
-   `สินค้า: "${p.name}"\n` +
-   `รหัส: ${p.productId}\n\n` +
-   `การลบนี้ไม่สามารถกู้คืนได้\n\n` +
-   `กด OK เพื่อยืนยัน`
- );
-
-  if (!ok) return;
-
-  deleteProduct();
+  confirmSheet.innerHTML = `
+    <h3>ลบสินค้าแบบถาวร</h3>
+    <div style="margin-top:12px">
+      สินค้า: "${p.name}"<br>
+      รหัส: ${p.productId}<br><br>
+      การลบนี้ไม่สามารถกู้คืนได้
+    </div>
+    <button class="btn btn-danger" style="margin-top:16px"
+      onclick="closeOverlay(confirmSheet); deleteProduct()">
+      ยืนยันการลบ
+    </button>
+    <button class="btn btn-outline" style="margin-top:8px"
+      onclick="closeOverlay(confirmSheet)">
+      ยกเลิก
+    </button>
+  `;
+  openOverlay(confirmSheet);
 }
 
 async function deleteProduct() {
