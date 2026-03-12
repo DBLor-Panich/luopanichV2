@@ -3643,7 +3643,7 @@ function openChangePasswordSheet(){
     !state.admin.token ||
     isAdminSessionExpired()
   ) {
-    alert("Session หมดอายุ กรุณา login ใหม่");
+    showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
     exitAdmin();
     return;
   }
@@ -3688,17 +3688,17 @@ async function submitChangePassword(btn){
   const confirmNewPassword = document.getElementById("confirmNewPassword")?.value || "";
 
   if (!currentPassword || !newPassword || !confirmNewPassword) {
-    alert("กรุณากรอกข้อมูลให้ครบ");
+    showToast("กรุณากรอกข้อมูลให้ครบ", "warning");
     return;
   }
 
   if (newPassword !== confirmNewPassword) {
-    alert("รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน");
+    showToast("รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน", "warning");
     return;
   }
 
   if (newPassword.length < 4) {
-    alert("รหัสผ่านใหม่สั้นเกินไป");
+    showToast("รหัสผ่านใหม่สั้นเกินไป", "warning");
     return;
   }
 
@@ -3723,12 +3723,12 @@ async function submitChangePassword(btn){
       throw new Error(json.error || json.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ");
     }
 
-    alert("เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่");
+    showToast("เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่", "success");
     exitAdmin();
 
   } catch (err) {
     console.error(err);
-    alert(err.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    showToast(err.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ", "error");
   } finally {
     state.admin.isSubmitting = false;
     if (btn) btn.disabled = false;
@@ -3748,7 +3748,7 @@ async function handleAdminLogin(btn){
   // 🔒 force global rate limit (scope-safe)
   if (typeof window.isLoginRateLimited === "function") {
     if (window.isLoginRateLimited()) {
-      alert("พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่");
+      showToast("พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่", "warning");
       return;
     }
   }
@@ -3761,7 +3761,7 @@ async function handleAdminLogin(btn){
   const password = passInput.value;
 
   if (!username || !password) {
-    alert("กรุณากรอก Username และ Password");
+    showToast("กรุณากรอก Username และ Password", "warning");
     return;
   }
 
@@ -3815,7 +3815,7 @@ async function handleAdminLogin(btn){
 
   } catch (err) {
     console.error(err);
-    alert(err.message || "ไม่สามารถเข้าสู่ระบบได้");
+    showToast(err.message || "ไม่สามารถเข้าสู่ระบบได้", "error");
 
   } finally {
     // ================= CLEANUP =================
@@ -4269,7 +4269,7 @@ async function submitStockIn(){
 
   // 🔍 validate
   if (!Number.isInteger(qty) || qty <= 0) {
-    alert("จำนวนไม่ถูกต้อง");
+    showToast("จำนวนไม่ถูกต้อง", "warning");
     qtyInput.focus();
     return;
   }
@@ -4289,7 +4289,7 @@ async function submitStockIn(){
       throw new Error(res.error);
     }
 
-    alert("รับสต๊อกเข้าแล้ว");
+    showToast("รับสต๊อกเข้าแล้ว", "success");
 
     // 🔄 refresh สินค้า
     await refreshProducts();
@@ -4306,7 +4306,7 @@ async function submitStockIn(){
 
   } catch (err) {
     console.error(err);
-    alert(err.message || "ไม่สามารถรับสต๊อกได้");
+    showToast(err.message || "ไม่สามารถรับสต๊อกได้", "error");
   } finally {
     // 🔓 เปิดปุ่มกลับทุกกรณี
     buttons.forEach(b => b.disabled = false);
@@ -4317,7 +4317,7 @@ async function submitStockIn(){
 async function submitStockAdjust(){
   // 🔒 guard
   if (state.mode !== "admin" || !state.admin.loggedIn || !state.selectedProduct) {
-    alert("Unauthorized");
+    showToast("Unauthorized", "error");
     return;
   }
 
@@ -4329,7 +4329,7 @@ async function submitStockAdjust(){
 
   // 🔍 validate
   if (!Number.isInteger(newQty) || newQty < 0) {
-    alert("จำนวนไม่ถูกต้อง");
+    showToast("จำนวนไม่ถูกต้อง", "warning");
     qtyInput.focus();
     return;
   }
@@ -4349,7 +4349,7 @@ async function submitStockAdjust(){
       throw new Error(res.error);
     }
 
-    alert("ปรับสต๊อกแล้ว");
+    showToast("ปรับสต๊อกแล้ว", "success");
 
     // 🔄 refresh สินค้า
     await refreshProducts();
@@ -4454,6 +4454,21 @@ async function refreshProductsWithFeedback({
     // 5️⃣ แจ้ง error แบบไม่พัง UI
     if (!silent) {
       showToast("ไม่สามารถโหลดข้อมูลสินค้าได้", "error");
+      confirmSheet.innerHTML = `
+        <h3>โหลดข้อมูลไม่สำเร็จ</h3>
+        <div style="margin-top:12px;color:rgba(235,235,245,.78)">
+          กรุณาลองใหม่อีกครั้ง
+        </div>
+        <button class="btn btn-primary" style="margin-top:16px"
+          onclick="closeOverlay(confirmSheet); refreshProductsWithFeedback()">
+          ลองใหม่
+        </button>
+        <button class="btn btn-outline" style="margin-top:8px"
+          onclick="closeOverlay(confirmSheet)">
+          ปิด
+        </button>
+      `;
+      openOverlay(confirmSheet);     
     }
   }
 }
@@ -4466,7 +4481,7 @@ function openMainMenu(){
 
   // ✅ ถ้าอยู่ใน admin mode แต่ session ไม่ valid → ค่อยบังคับออก
   if (state.mode === "admin" && !adminValid) {
-    alert("Session หมดอายุ กรุณา login ใหม่");
+    showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
     exitAdmin();
     return;
   }
