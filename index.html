@@ -5276,9 +5276,10 @@ async function uploadProductImage(file) {
       reject(err);
       return;
     }
-    // 🔒 guard token
+
+    // 🔴 CHANGED: ให้ error เป็น Error object เสมอ
     if (!state.admin || !state.admin.token) {
-      reject("Missing admin token");
+      reject(new Error("Missing admin token"));
       return;
     }
 
@@ -5286,40 +5287,52 @@ async function uploadProductImage(file) {
 
     reader.onload = async () => {
       try {
-        // 🔹 ตัด data:image/...;base64,
-        const base64 = reader.result.split(",")[1];
+        // 🔴 CHANGED: กัน reader.result ว่าง/ผิดรูปแบบ
+        const result = String(reader.result || "");
+        const base64 = result.includes(",") ? result.split(",")[1] : "";
+        if (!base64) {
+          throw new Error("ไม่สามารถอ่านข้อมูลรูปภาพได้");
+        }
 
-        // ✅ ใช้ FormData
         const formData = new FormData();
-        formData.append("action", "uploadProductImage"); // ✅ สำคัญ (ที่ขาดอยู่)
+        formData.append("action", "uploadProductImage");
         formData.append("token", state.admin.token);
         formData.append("filename", file.name);
         formData.append("mimeType", file.type || "image/jpeg");
         formData.append("data", base64);
 
-        const res = await fetch(API_URL, {
+        // 🔴 CHANGED: ใช้ fetchWithTimeout แบบเดียวกับ API อื่น
+        const res = await fetchWithTimeout(API_URL, {
           method: "POST",
           body: formData
-        });
+        }, 30000);
 
-        const json = await res.json();
-
-        // 🔒 backend wrap data ไว้ใน data
-        if (!json.success || !json.data || !json.data.imageUrl) {
-          reject(json.error || json.message || "Upload failed");
-          return;
+        let json;
+        try {
+          json = await res.json();
+        } catch (_) {
+          throw new Error("รูปแบบข้อมูลตอบกลับจากการอัปโหลดไม่ถูกต้อง");
         }
 
-        // ✅ สำเร็จ
-        resolve(json.data.imageUrl);
+        if (!json || json.success !== true || !json.data?.imageUrl) {
+          const rawMessage = json?.message || json?.error || "Upload failed";
 
+          // 🔴 CHANGED: แปลง DriveApp error ให้ debug ง่าย
+          if (String(rawMessage).includes("DriveApp")) {
+            throw new Error("อัปโหลดรูปไม่สำเร็จ: Apps Script ยังไม่มีสิทธิ์ใช้ DriveApp");
+          }
+
+          throw new Error(rawMessage);
+        }
+
+        resolve(json.data.imageUrl);
       } catch (err) {
-        reject(err);
+        reject(err instanceof Error ? err : new Error(String(err || "Upload failed")));
       }
     };
 
     reader.onerror = () => {
-      reject("File read error");
+      reject(new Error("File read error"));
     };
 
     reader.readAsDataURL(file);
