@@ -839,6 +839,22 @@ button:disabled {
     background: rgba(0,0,0,.06);
   }
 }
+
+/* ================= ACCESSIBILITY: KEYBOARD FOCUS ================= */
+.search-btn:focus-visible,
+.filter-btn:focus-visible,
+.menu-btn:focus-visible,
+.btn:focus-visible,
+.btn-remove:focus-visible,
+.sheet-close-btn:focus-visible,
+.filter-item:focus-visible,
+.search-input:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #4da3ff;
+  outline-offset: 2px;
+} 
   
   /* ================= PRODUCT CARD (HORIZONTAL) ================= */
 .product-card {
@@ -1793,37 +1809,37 @@ textarea {
 <div id="app" class="container"></div>
 
 <!-- ✅ GLOBAL BACKDROP (มีตัวเดียวพอ) -->
-<div id="globalBackdrop" class="backdrop" onclick="handleBackdropClick()"></div>
+ <div
+   id="globalBackdrop"
+   class="backdrop"
+   onclick="handleBackdropClick()"
+   aria-hidden="true"
+ ></div>
 
 <!-- ================= VIEWER SHEETS ================= -->
-<div id="productSheet" class="sheet sheet-product"></div>
-<div id="qtySheet" class="sheet"></div>
-<div id="cartSheet" class="sheet"></div>
-<div id="confirmSheet" class="sheet"></div>
-<div id="stockSheet" class="sheet"></div>  
+ <div id="productSheet" class="sheet sheet-product" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="qtySheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="cartSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="confirmSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="stockSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
 
 <!-- 🖼️ IMAGE VIEWER (FULLSCREEN) -->
-<div id="imageViewerSheet" class="sheet image-viewer-sheet">
+<div id="imageViewerSheet" class="sheet image-viewer-sheet" role="dialog" aria-modal="true" tabindex="-1">
 </div>
 
 <!-- ================= ADMIN SHEETS ================= -->
-<div id="adminLoginSheet" class="sheet"></div>
-<div id="adminDashboardSheet" class="sheet"></div>
-<div id="adminOrderSheet" class="sheet"></div>
-<div id="adminStockSheet" class="sheet"></div>
+ <div id="adminLoginSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="adminDashboardSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="adminOrderSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="adminStockSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
 
 <!-- 🔹 Main Menu (Side Sheet Right) -->
-<div id="mainMenuSheet" class="side-menu"></div>
+<div id="mainMenuSheet" class="side-menu" role="dialog" aria-modal="true" tabindex="-1"></div>
 
-<!-- 🔹 Admin Product -->
-<div id="adminProductActionSheet" class="sheet"></div>
-<div id="adminProductEditSheet" class="sheet"></div>
-
-<!-- 🔹 Stock (STEP 7.5) -->
-<div id="adminStockActionSheet" class="sheet"></div>
-
-<!-- 🔹 ADD PRODUCT (STEP 7.6) ✅ เพิ่มใหม่ -->
-<div id="adminAddProductSheet" class="sheet"></div>
+ <div id="adminProductActionSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="adminProductEditSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="adminStockActionSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="adminAddProductSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
 
   
 <script>
@@ -3058,10 +3074,13 @@ function renderHeader(){
    id="viewerSearchWrap"
    class="search-wrap viewer-search-wrap"
  >
-          <button
-            onclick="toggleViewerSearch()"
-            class="search-btn"
-          >
+ <button
+   onclick="toggleViewerSearch(this)"
+   class="search-btn"
+   aria-label="เปิดการค้นหา"
+   aria-expanded="false"
+   aria-controls="viewerSearchInput"
+ >
             <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <circle cx="11" cy="11" r="6"></circle>
               <path d="M20 20l-3.2-3.2"></path>
@@ -3069,12 +3088,14 @@ function renderHeader(){
           </button>
 
           <input
-            id="viewerSearchInput"
-            placeholder="ค้นหาสินค้า / รหัส"
-            oninput="handleSearch(this.value)"
-            onfocus="focusInput(this)"
-            class="search-input"
-          >
+ <input
+   id="viewerSearchInput"
+   placeholder="ค้นหาสินค้า / รหัส"
+   oninput="handleSearch(this.value)"
+   onfocus="focusInput(this)"
+   class="search-input"
+   aria-label="ค้นหาสินค้า"
+ >
         </div>          
          </div>
     </div>
@@ -3082,9 +3103,11 @@ function renderHeader(){
 <div class="header-actions">
 
    <div class="filter-wrap">
-     <button class="filter-btn"
-        onclick="toggleFilterDropdown()"
-        aria-label="Filter">
+ <button class="filter-btn"
+    onclick="toggleFilterDropdown(this)"
+    aria-label="กรองสินค้า"
+    aria-expanded="false"
+    aria-controls="filterDropdown">
         <!-- iOS-like: line.3.horizontal.decrease (stroke, SF-style) -->
         <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M4 7h16"></path>
@@ -3093,19 +3116,21 @@ function renderHeader(){
         </svg>
      </button>
 
-     <div id="filterDropdown" class="filter-dropdown">
-       <div class="filter-item" onclick="selectFilter('all')">ทั้งหมด</div>
-       <div class="filter-item" onclick="selectFilter('ready')">พร้อมส่ง</div>
-       <div class="filter-item" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</div>
-       <div class="filter-item" onclick="selectFilter('warehouse')">โกดังไทย</div>
-       <div class="filter-item" onclick="selectFilter('out')">หมด</div>
-     </div>
+ <div id="filterDropdown" class="filter-dropdown" role="menu" aria-label="ตัวกรองสินค้า">
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('all')">ทั้งหมด</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('ready')">พร้อมส่ง</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('warehouse')">โกดังไทย</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('out')">หมด</button>
+ </div>
    </div>
       
  <button
    class="menu-btn"
-   onclick="openMainMenu()"
-   aria-label="Main Menu">
+   onclick="openMainMenu(this)"
+   aria-label="เปิดเมนูหลัก"
+   aria-expanded="false"
+   aria-controls="mainMenuSheet">
    <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
      <path d="M4 7h16"></path>
      <path d="M4 12h16"></path>
@@ -3131,20 +3156,24 @@ function renderHeader(){
 
       <!-- 🔍 SEARCH (ICON EXPAND LIKE VIEWER) -->
       <div class="search-wrap" id="adminSearchWrap">
-        <button
-          class="search-btn"
-          onclick="toggleAdminSearch()"
-          aria-label="Search">
+ <button
+   class="search-btn"
+   onclick="toggleAdminSearch(this)"
+   aria-label="เปิดการค้นหา"
+   aria-expanded="false"
+   aria-controls="adminSearchInput">
           <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <circle cx="11" cy="11" r="6"></circle>
             <path d="M20 20l-3.2-3.2"></path>
           </svg>
         </button>
-        <input
-          class="search-input"
-          placeholder="ค้นหาสินค้า / รหัส"
-          oninput="handleSearch(this.value)"
-        />
+ <input
+   id="adminSearchInput"
+   class="search-input"
+   placeholder="ค้นหาสินค้า / รหัส"
+   oninput="handleSearch(this.value)"
+   aria-label="ค้นหาสินค้า"
+ />
       </div>
     </div>
   
@@ -3152,9 +3181,11 @@ function renderHeader(){
     <div class="header-actions">
 
       <div class="filter-wrap">
-        <button class="filter-btn"
-          onclick="toggleFilterDropdown()"
-          aria-label="Filter">
+ <button class="filter-btn"
+   onclick="toggleFilterDropdown(this)"
+   aria-label="กรองสินค้า"
+   aria-expanded="false"
+   aria-controls="filterDropdown">
           <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M4 7h16"></path>
             <path d="M7 12h10"></path>
@@ -3162,19 +3193,21 @@ function renderHeader(){
           </svg>
         </button>
 
-        <div id="filterDropdown" class="filter-dropdown">
-          <div class="filter-item" onclick="selectFilter('all')">ทั้งหมด</div>
-          <div class="filter-item" onclick="selectFilter('ready')">พร้อมส่ง</div>
-          <div class="filter-item" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</div>
-          <div class="filter-item" onclick="selectFilter('warehouse')">โกดังไทย</div>
-          <div class="filter-item" onclick="selectFilter('out')">หมด</div>
-        </div>
+ <div id="filterDropdown" class="filter-dropdown" role="menu" aria-label="ตัวกรองสินค้า">
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('all')">ทั้งหมด</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('ready')">พร้อมส่ง</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('warehouse')">โกดังไทย</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('out')">หมด</button>
+ </div>
       </div>
 
-      <button
-        class="menu-btn"
-        onclick="openMainMenu()"
-        aria-label="Open Main Menu">
+ <button
+   class="menu-btn"
+   onclick="openMainMenu(this)"
+   aria-label="เปิดเมนูหลัก"
+   aria-expanded="false"
+   aria-controls="mainMenuSheet">
         <svg class="icon-sf" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M4 7h16"></path>
           <path d="M4 12h16"></path>
@@ -3187,13 +3220,38 @@ function renderHeader(){
 }
 
 } // ✅ ปิด renderHeader()
+
+ let lastFocusTrigger = null;
+
+ function rememberTrigger(el){
+   if (el instanceof HTMLElement) lastFocusTrigger = el;
+ }
+
+ function restoreTriggerFocus(){
+   if (lastFocusTrigger && typeof lastFocusTrigger.focus === "function") {
+     lastFocusTrigger.focus();
+   }
+ }
+
+ function syncExpanded(button, expanded){
+   if (button) button.setAttribute("aria-expanded", String(!!expanded));
+ }
+
+ function focusFirstInteractive(container){
+   if (!container) return;
+   const first = container.querySelector(
+     'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+   );
+   (first || container).focus();
+ } 
   
 /* 🔍 viewer search toggle (เฉพาะ UI) */
-function toggleViewerSearch(){
+function toggleViewerSearch(triggerEl){
   const wrap  = document.getElementById("viewerSearchWrap");
   const input = document.getElementById("viewerSearchInput");
   if(!wrap || !input) return;
 
+  rememberTrigger(triggerEl || document.querySelector("#viewerSearchWrap .search-btn")); 
   const opened = wrap.classList.contains("active");
 
   if(opened){
@@ -3202,27 +3260,34 @@ function toggleViewerSearch(){
     state.viewerSearchOpen = false;
     renderProducts();
     wrap.classList.remove("active");
+    syncExpanded(wrap.querySelector(".search-btn"), false);
+    restoreTriggerFocus();   
   }else{
     state.viewerSearchOpen = true;
     wrap.classList.add("active");
+    syncExpanded(wrap.querySelector(".search-btn"), true);   
     setTimeout(()=>input.focus(),80);
   }
 }
 
 /* 🔍 admin search toggle (ICON EXPAND) */
 
-function toggleAdminSearch(){
+function toggleAdminSearch(triggerEl){
   const wrap = document.getElementById("adminSearchWrap");
   if (!wrap) return;
 
+  rememberTrigger(triggerEl || wrap.querySelector(".search-btn")); 
   const opening = !wrap.classList.contains("active");
 
   wrap.classList.toggle("active");
+  syncExpanded(wrap.querySelector(".search-btn"), opening);
 
   if (opening) {
     const input = wrap.querySelector("input");
     // 🕒 รอ animation เริ่มก่อน focus (iOS trick)
     setTimeout(() => input && input.focus(), 120);
+   } else {
+     restoreTriggerFocus();   
   }
 }
   
@@ -3262,22 +3327,30 @@ function setAdminStatus(status){
   renderProducts();
 }
 
-function toggleFilterDropdown(){
+function toggleFilterDropdown(triggerEl){
   const el = document.getElementById("filterDropdown");
   if(!el) return;
 
+  const btn = triggerEl || document.querySelector(".filter-btn");
+  rememberTrigger(btn);
   const isOpen = el.classList.contains("show");
 
   document.querySelectorAll(".filter-dropdown.show")
     .forEach(d => d.classList.remove("show"));
+  document.querySelectorAll(".filter-btn[aria-expanded='true']")
+    .forEach(b => syncExpanded(b, false));
 
   if(!isOpen){
     el.classList.add("show");
+     syncExpanded(btn, true);
+     setTimeout(() => focusFirstInteractive(el), 0);   
 
     // 🔴 auto close on outside click
     setTimeout(()=>{
       document.addEventListener("click", closeFilterOnOutside, { once:true });
     }, 0);
+   } else {
+     restoreTriggerFocus();   
   }
 }
 
@@ -3287,6 +3360,8 @@ function closeFilterOnOutside(e){
 
   const el = document.getElementById("filterDropdown");
   if(el) el.classList.remove("show");
+   document.querySelectorAll(".filter-btn[aria-expanded='true']")
+     .forEach(b => syncExpanded(b, false)); 
 }
 
 // 🔴 CHANGED: route ตาม mode แทนการ fix viewer อย่างเดียว
@@ -3299,6 +3374,9 @@ function selectFilter(status){
 
   const el = document.getElementById("filterDropdown");
   if(el) el.classList.remove("show");
+   document.querySelectorAll(".filter-btn[aria-expanded='true']")
+     .forEach(b => syncExpanded(b, false));
+   restoreTriggerFocus(); 
 }  
   
 function openAdminEntry(){
@@ -4795,9 +4873,63 @@ function closeAddProduct(){
   
 function closeMainMenu(){
   state.admin.ui.activeSheet = null;
-  closeOverlay(mainMenuSheet);
+   closeOverlay(mainMenuSheet);
+   document.querySelectorAll(".menu-btn[aria-expanded='true']")
+     .forEach(b => syncExpanded(b, false));
+   restoreTriggerFocus();
  }
 
+ // ================= GLOBAL KEYBOARD SUPPORT =================
+ document.addEventListener("keydown", (e) => {
+   const activeOverlay = [...document.querySelectorAll(".sheet.show, .side-menu.show")].pop();
+
+   if (e.key === "Escape") {
+     const filter = document.getElementById("filterDropdown");
+     if (filter?.classList.contains("show")) {
+       filter.classList.remove("show");
+       document.querySelectorAll(".filter-btn[aria-expanded='true']")
+         .forEach(b => syncExpanded(b, false));
+       restoreTriggerFocus();
+       return;
+     }
+
+     const viewerSearch = document.getElementById("viewerSearchWrap");
+     if (viewerSearch?.classList.contains("active")) {
+       toggleViewerSearch(viewerSearch.querySelector(".search-btn"));
+       return;
+     }
+
+     const adminSearch = document.getElementById("adminSearchWrap");
+     if (adminSearch?.classList.contains("active")) {
+       toggleAdminSearch(adminSearch.querySelector(".search-btn"));
+       return;
+     }
+
+     if (activeOverlay && !state.ui.backdropLocked) {
+       if (activeOverlay === mainMenuSheet) return closeMainMenu();
+       return closeOverlay(activeOverlay);
+     }
+   }
+
+   if (e.key === "Tab" && activeOverlay) {
+     const focusables = activeOverlay.querySelectorAll(
+       'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+     );
+     if (!focusables.length) return;
+
+     const first = focusables[0];
+     const last = focusables[focusables.length - 1];
+
+     if (e.shiftKey && document.activeElement === first) {
+       e.preventDefault();
+       last.focus();
+     } else if (!e.shiftKey && document.activeElement === last) {
+       e.preventDefault();
+       first.focus();
+     }
+   }
+ });
+ 
 /* ================= VIEWER FLOW ================= */
 function openProduct(p){
   // 🔴 ADMIN FLOW
