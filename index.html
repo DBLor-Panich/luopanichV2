@@ -4044,7 +4044,7 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
 
       <button class="btn btn-secondary"
         style="width:100%;margin-top:16px"
-        onclick="handleOpenOrders()">
+        onclick="allowOpenOrders = true; openAdminDashboard('${mode}', true)">
         🔄 ลองใหม่
       </button>
 
@@ -4290,6 +4290,8 @@ function openAdminOrder(orderId){
     ? order.items
     : [];
 
+  const isPending = order.status === "PENDING";
+
   adminOrderSheet.innerHTML = `
     <h3>${order.orderId}</h3>
 
@@ -4301,16 +4303,25 @@ function openAdminOrder(orderId){
     `).join("")}
 
     <div class="total">Total: ฿${order.total}</div>
-
-    <div class="admin-action">
-      <button class="btn btn-approve" onclick="handleApprove()">
-        Approve
-      </button>
-
-      <button class="btn btn-reject" onclick="handleReject()">
-        Reject
-      </button>
+    <div style="margin-top:8px;color:rgba(235,235,245,.72);font-size:14px">
+      สถานะ: ${order.status}
     </div>
+
+    ${
+      isPending
+        ? `
+          <div class="admin-action">
+            <button class="btn btn-approve" onclick="handleApprove()">
+              Approve
+            </button>
+
+            <button class="btn btn-reject" onclick="handleReject()">
+              Reject
+            </button>
+          </div>
+        `
+        : ""
+    }
   `;
 
   // ❌ ห้ามปิดด้วย classList
@@ -4951,6 +4962,12 @@ function closeMainMenu(){
 
      const first = focusables[0];
      const last = focusables[focusables.length - 1];
+    
+    if (!activeOverlay.contains(document.activeElement)) {
+      e.preventDefault();
+      first.focus();
+      return;
+    }
 
      if (e.shiftKey && document.activeElement === first) {
        e.preventDefault();
