@@ -3389,12 +3389,8 @@ function openAdminEntry(){
   // 🔒 ถ้ามี session อยู่แล้ว → ต้อง valid ก่อนค่อยเข้า admin
   if (state.admin.loggedIn && state.admin.token) {
     if (isAdminSessionExpired()) {
-      alert("Session หมดอายุ กรุณา login ใหม่");
+      showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
       clearAdminSession();
-      state.admin.loggedIn = false;
-      state.admin.user = null;
-      state.admin.token = null;
-      state.admin.expiredAt = null;
     } else {
       enterAdmin();
       return;
