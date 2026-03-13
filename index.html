@@ -2455,8 +2455,13 @@ async function adminApproveOrder(orderId) {
     const json = await postFormAction(form);
 
     // 🔒 STEP 5: sync ข้อมูลตรวจสอบย้อนหลังทันที
-    await refreshAdminAuditSnapshot();
-    await refreshProducts();   
+    try {
+      await refreshAdminAuditSnapshot();
+      await refreshProducts();
+    } catch (refreshErr) {
+      console.error("post-approve refresh failed:", refreshErr);
+      showToast("อนุมัติสำเร็จ แต่รีเฟรชข้อมูลย้อนหลังไม่สมบูรณ์", "warning");
+    }
 
     // ✅ success
     showToast("อนุมัติคำสั่งซื้อสำเร็จ", "success");
@@ -2491,8 +2496,13 @@ async function adminRejectOrder(orderId) {
     const json = await postFormAction(form);
 
     // 🔒 STEP 5: sync ข้อมูลตรวจสอบย้อนหลังทันที
-    await refreshAdminAuditSnapshot();
-    await refreshProducts();
+    try {
+      await refreshAdminAuditSnapshot();
+      await refreshProducts();
+    } catch (refreshErr) {
+      console.error("post-reject refresh failed:", refreshErr);
+      showToast("ปฏิเสธสำเร็จ แต่รีเฟรชข้อมูลย้อนหลังไม่สมบูรณ์", "warning");
+    }
    
 
     // ✅ success
@@ -4405,8 +4415,9 @@ async function submitStockIn(){
 
     showToast("รับสต๊อกเข้าแล้ว", "success");
 
-    // 🔄 refresh สินค้า
+    // 🔄 sync ข้อมูลหลัก + ข้อมูลย้อนหลังทันที
     await refreshProducts();
+    await refreshAdminAuditSnapshot();
 
     // 🧹 reset input
     qtyInput.value = "";
@@ -4465,8 +4476,9 @@ async function submitStockAdjust(){
 
     showToast("ปรับสต๊อกแล้ว", "success");
 
-    // 🔄 refresh สินค้า
+    // 🔄 sync ข้อมูลหลัก + ข้อมูลย้อนหลังทันที
     await refreshProducts();
+    await refreshAdminAuditSnapshot();
 
     // 🧹 reset input
     qtyInput.value = "";
