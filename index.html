@@ -5535,7 +5535,9 @@ async function submitProductEdit(){
   const rawCostPrice = document.getElementById("editCostPrice").value.trim();
   const costPrice = rawCostPrice === "" ? null : Number(rawCostPrice);
   const stock  = Number(document.getElementById("editStock").value);
-  let status = document.getElementById("editStatus").value;
+  let status = normalizeProductStatus(
+    document.getElementById("editStatus").value
+  );
   const newProductId = normalizeProductId(
     document.getElementById("editProductId").value
   );
@@ -5553,10 +5555,10 @@ async function submitProductEdit(){
   if (
    !name ||
    !newProductId ||
-   !Number.isFinite(price) ||
+   !Number.isInteger(price) ||
    costPrice === null ||
-   !Number.isFinite(costPrice) ||
-   !Number.isFinite(stock) ||
+   !Number.isInteger(costPrice) ||
+   !Number.isInteger(stock) ||
    price < 0 ||
    costPrice < 0 || 
    stock < 0
@@ -5599,6 +5601,7 @@ async function submitProductEdit(){
 
     // ถ้ามีการเลือกภาพใหม่ → upload ก่อน
     if (state.editImageFile) {
+      validateProductImageFile(state.editImageFile);
       imageUrl = await uploadProductImage(state.editImageFile);
       if (!imageUrl) {
         throw new Error("ไม่สามารถอัปโหลดรูปได้");
@@ -5736,6 +5739,28 @@ async function deleteProduct() {
 function normalizeProductId(value = "") {
    return String(value || "").trim().toUpperCase();
  }
+
+const ALLOWED_PRODUCT_STATUS = ["ready", "shipping", "warehouse", "out"];
+
+function normalizeProductStatus(value = "") {
+  const normalized = String(value || "").trim().toLowerCase();
+  return ALLOWED_PRODUCT_STATUS.includes(normalized) ? normalized : "ready";
+}
+
+function validateProductImageFile(file) {
+  if (!file) return;
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  const maxBytes = 5 * 1024 * 1024;
+
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error("รองรับเฉพาะไฟล์ JPG, PNG, WEBP");
+  }
+
+  if (file.size > maxBytes) {
+    throw new Error("รูปสินค้าต้องมีขนาดไม่เกิน 5MB");
+  }
+} 
  
 async function submitAddProduct(btn){
   // 🔒 guard
@@ -5766,7 +5791,9 @@ async function submitAddProduct(btn){
     const rawCostPrice = document.getElementById("addCostPrice").value.trim();
     const costPrice = rawCostPrice === "" ? null : Number(rawCostPrice);
     const stock     = Number(document.getElementById("addStock").value);
- let status      = document.getElementById("addStatus").value;
+ let status      = normalizeProductStatus(
+   document.getElementById("addStatus").value
+ );
  const note      = document.getElementById("addNote")?.value.trim() || "";
  const continueMode =
    document.getElementById("addContinueMode")?.checked === true;   
@@ -5809,6 +5836,7 @@ async function submitAddProduct(btn){
 
     let imageUrl = "";
     if (state.addImageFile) {
+      validateProductImageFile(state.addImageFile);
       showLoading("กำลังอัปโหลดรูปสินค้า...");
       imageUrl = await uploadProductImage(state.addImageFile);
       if (!imageUrl) {
@@ -5843,7 +5871,7 @@ async function submitAddProduct(btn){
     state.addImageFile = null;
 // 🧠 SMART MODE SAVE (จำค่าล่าสุดเสมอ)
  state.smartAddDraft = {
-   name,
+   name: "",
    price,
    costPrice,
    stock,
