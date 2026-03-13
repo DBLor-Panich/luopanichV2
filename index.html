@@ -5727,7 +5727,7 @@ function normalizeProductId(value = "") {
 async function submitAddProduct(btn){
   // 🔒 guard
   if(state.mode !== "admin" || !state.admin.loggedIn){
-    alert("Unauthorized");
+    showToast("ไม่มีสิทธิ์ใช้งานส่วนนี้", "warning");
     return;
   }
 
@@ -6788,10 +6788,10 @@ const __domReady = new Promise((resolve) => {
         form.append("action", "orders");
         form.append("token", restored.token);
 
-        const res = await fetch(API_URL, {
+        const res = await fetchWithTimeout(API_URL, {
           method: "POST",
           body: form
-        });
+        }, 15000);
 
         const json = await res.json();
 
