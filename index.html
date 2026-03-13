@@ -2353,6 +2353,7 @@ function openOverlay(el){
   state.ui.overlayCount++;
 
   backdrop.style.display = "block";
+  setTimeout(() => focusFirstInteractive(el), 0);
 }
 
 function closeOverlay(el){
@@ -2382,6 +2383,8 @@ function closeOverlay(el){
       });
     }
   }
+ 
+  restoreTriggerFocus();
 }
 
 async function adminStockIn(productId, qty, reason){
@@ -2645,6 +2648,7 @@ function openImageViewer(url){
     <!-- close button -->
     <button
       class="close-btn image-viewer-close"
+      aria-label="ปิดตัวอย่างรูปภาพ"
       onclick="closeImageViewer(event)">
       ×
     </button>
@@ -2727,6 +2731,9 @@ function closeImageViewer(ev){
    sheet = document.createElement("div");
    sheet.id = "productInfoSheet";
    sheet.className = "sheet";
+   sheet.setAttribute("role", "dialog");
+   sheet.setAttribute("aria-modal", "true");
+   sheet.setAttribute("tabindex", "-1");  
    document.body.appendChild(sheet);
  }
  sheet.innerHTML = html;
@@ -3087,7 +3094,6 @@ function renderHeader(){
             </svg>
           </button>
 
-          <input
  <input
    id="viewerSearchInput"
    placeholder="ค้นหาสินค้า / รหัส"
@@ -4583,7 +4589,7 @@ async function refreshProductsWithFeedback({
   }
 }
  
-function openMainMenu(){
+function openMainMenu(triggerEl){
   const adminValid =
     state.admin.loggedIn &&
     state.admin.token &&
@@ -4669,8 +4675,13 @@ function openMainMenu(){
     }
   `;
 
+  rememberTrigger(triggerEl || document.querySelector(".menu-btn"));
+
   // ✅ เปิดผ่าน Overlay Manager เท่านั้น
   openOverlay(mainMenuSheet);
+
+  document.querySelectorAll(".menu-btn")
+    .forEach(b => syncExpanded(b, true)); 
 }
 
 function openAddProduct(force = false){
