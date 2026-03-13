@@ -1936,7 +1936,9 @@ const state = {
 
   // 🧠 SMART ADD PRODUCT DRAFT
   smartAddDraft: {
+    name: "",
     price: "",
+    costPrice: "",
     stock: "",
     status: "ready",
     note: ""
@@ -4873,6 +4875,17 @@ function closeAddProduct(){
    if (document.getElementById("addNote")) {
      document.getElementById("addNote").value = "";
    }
+   if (document.getElementById("addContinueMode")) {
+     document.getElementById("addContinueMode").checked = false;
+   }
+   state.smartAddDraft = {
+     name: "",
+     price: "",
+     costPrice: "",
+     stock: "",
+     status: "ready",
+     note: ""
+   };
  } 
 
   closeOverlay(adminAddProductSheet);
@@ -5522,7 +5535,7 @@ async function submitProductEdit(){
   const rawCostPrice = document.getElementById("editCostPrice").value.trim();
   const costPrice = rawCostPrice === "" ? null : Number(rawCostPrice);
   const stock  = Number(document.getElementById("editStock").value);
-  const status = document.getElementById("editStatus").value;
+  let status = document.getElementById("editStatus").value;
   const newProductId = normalizeProductId(
     document.getElementById("editProductId").value
   );
@@ -5575,6 +5588,10 @@ async function submitProductEdit(){
     return;
   }
 
+  if (stock === 0) {
+    status = "out";
+  }
+ 
   let imageUrl = p.image || "";
 
   try {
@@ -5826,8 +5843,9 @@ async function submitAddProduct(btn){
     state.addImageFile = null;
 // 🧠 SMART MODE SAVE (จำค่าล่าสุดเสมอ)
  state.smartAddDraft = {
-   name,   // 🔴 CHANGED: จำชื่อสินค้าไว้สำหรับโหมดเพิ่มต่อเนื่อง
+   name,
    price,
+   costPrice,
    stock,
    status,
    note
@@ -5839,7 +5857,9 @@ async function submitAddProduct(btn){
    const nextProductId = getNextProductId(productId);
 
    document.getElementById("addProductId").value = nextProductId;
-   document.getElementById("addName").value = state.smartAddDraft.name ?? ""; // 🔴 CHANGED: คงชื่อสินค้าเดิมไว้
+   document.getElementById("addName").value = state.smartAddDraft.name ?? "";
+   document.getElementById("addPrice").value = state.smartAddDraft.price ?? "";
+   document.getElementById("addCostPrice").value = state.smartAddDraft.costPrice ?? "";
    document.getElementById("addStock").value = state.smartAddDraft.stock ?? "";
    document.getElementById("addStatus").value = state.smartAddDraft.status ?? "ready";
    document.getElementById("addNote").value = state.smartAddDraft.note ?? "";
@@ -5850,6 +5870,11 @@ async function submitAddProduct(btn){
      img.style.display = "none";
    }
 
+   const fileInput = document.getElementById("addImageFile");
+   if (fileInput) {
+     fileInput.value = "";
+   }
+  
    state.addImageFile = null;
    document.getElementById("addProductId").focus();
    document.getElementById("addProductId").select();
@@ -6556,6 +6581,14 @@ function exitAdmin(opts = {}){
   state.selectedProduct = null;
   state.editImageFile = null;
   state.addImageFile = null;
+  state.smartAddDraft = {
+    name: "",
+    price: "",
+    costPrice: "",
+    stock: "",
+    status: "ready",
+    note: ""
+  };
 
   // 6) rerender เฉพาะที่จำเป็น (ไม่แตะ flow อื่น)
   renderHeader();
