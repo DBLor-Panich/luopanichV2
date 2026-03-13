@@ -2403,6 +2403,18 @@ async function adminStockAdjust(productId, newQty, reason){
 
 /* ================= ADMIN API ================= */ // 🔴 ADD
 
+async function refreshAdminAuditSnapshot() {
+  if (!state.admin.token) return;
+
+  const [orders, logs] = await Promise.all([
+    fetchOrders(),
+    fetchStockLogs()
+  ]);
+
+  state.admin.orders = Array.isArray(orders) ? orders : [];
+  state.admin.logs = Array.isArray(logs) ? logs : [];
+} 
+
 async function adminApproveOrder(orderId) {
   if (state.admin.isSubmitting) return;
   state.admin.isSubmitting = true;
@@ -2420,6 +2432,10 @@ async function adminApproveOrder(orderId) {
     form.append("token", state.admin.token);
 
     const json = await postFormAction(form);
+
+    // 🔒 STEP 5: sync ข้อมูลตรวจสอบย้อนหลังทันที
+    await refreshAdminAuditSnapshot();
+    await refreshProducts();   
 
     // ✅ success
     showToast("อนุมัติคำสั่งซื้อสำเร็จ", "success");
@@ -2453,6 +2469,11 @@ async function adminRejectOrder(orderId) {
 
     const json = await postFormAction(form);
 
+    // 🔒 STEP 5: sync ข้อมูลตรวจสอบย้อนหลังทันที
+    await refreshAdminAuditSnapshot();
+    await refreshProducts();
+   
+
     // ✅ success
     showToast("ปฏิเสธคำสั่งซื้อเรียบร้อย", "success");
     return json.data;
@@ -2481,7 +2502,8 @@ async function fetchStockLogs() {
   form.append("action", "stockLogs");
   form.append("token", state.admin.token);
 
-  return await postFormAction(form);
+  const json = await postFormAction(form);
+  return json.data;
 }
 
 
@@ -3988,14 +4010,14 @@ async function openStockTimeline(force = false) {
   openOverlay(adminStockSheet);
 
   try {
-    const logsRes = await fetchStockLogs();
-    const logs = Array.isArray(logsRes?.data) ? logsRes.data : [];
+    const logs = await fetchStockLogs();
+    const safeLogs = Array.isArray(logs) ? logs : [];
 
     /* ================= GROUP ORDER OUT ================= */
     const orderMap = {};
     const singles = [];
 
-    logs.forEach(l => {
+ safeLogs.forEach(l => {
   const time = l.timestamp ? new Date(l.timestamp) : new Date();
 
   // ✅ ใช้ orderId จริงจาก sheet (fallback เผื่อของเก่า)
@@ -5453,6 +5475,7 @@ async function submitProductEdit(){
     state.editImageFile = null;
     closeProductEdit();
     await refreshProducts();
+    await refreshAdminAuditSnapshot();
 
   } catch (err) {
     console.error(err);
@@ -5541,6 +5564,7 @@ async function deleteProduct() {
 
     // 🔄 refresh สินค้า
     await refreshProducts();
+    await refreshAdminAuditSnapshot();
 
   } catch (err) {
     console.error(err);
