@@ -3197,13 +3197,13 @@ function renderHeader(){
             </svg>
           </button>
 
- <input
-   id="viewerSearchInput"
-   placeholder="ค้นหาสินค้า / รหัส"
-   oninput="handleSearch(this.value)"
-   onfocus="focusInput(this)"
-   class="search-input"
-   aria-label="ค้นหาสินค้า"
+  <input
+    id="viewerSearchInput"
+    placeholder="ค้นหาสินค้า / รหัส"
+    oninput="setViewerSearchDebounced(this.value)"
+    onfocus="focusInput(this)"
+    class="search-input"
+    aria-label="ค้นหาสินค้า"
  >
         </div>          
          </div>
@@ -3226,11 +3226,20 @@ function renderHeader(){
      </button>
 
  <div id="filterDropdown" class="filter-dropdown" role="menu" aria-label="ตัวกรองสินค้า">
-   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('all')">ทั้งหมด</button>
-   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('ready')">พร้อมส่ง</button>
-   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</button>
-   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('warehouse')">โกดังไทย</button>
-   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('out')">หมด</button>
+   <div class="filter-group-label">สถานะ</div>
+   <button type="button" class="filter-item${state.viewerFilter.status === "all" ? " active" : ""}" role="menuitem" onclick="selectFilter('all')">ทั้งหมด</button>
+   <button type="button" class="filter-item${state.viewerFilter.status === "ready" ? " active" : ""}" role="menuitem" onclick="selectFilter('ready')">พร้อมส่ง</button>
+   <button type="button" class="filter-item${state.viewerFilter.status === "shipping" ? " active" : ""}" role="menuitem" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</button>
+   <button type="button" class="filter-item${state.viewerFilter.status === "warehouse" ? " active" : ""}" role="menuitem" onclick="selectFilter('warehouse')">โกดังไทย</button>
+   <button type="button" class="filter-item${state.viewerFilter.status === "out" ? " active" : ""}" role="menuitem" onclick="selectFilter('out')">หมด</button>
+
+   <div class="filter-group-label">เรียงลำดับ</div>
+   <button type="button" class="filter-item${state.viewerSort === "productId_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('productId_asc')">รหัสสินค้า A-Z</button>
+   <button type="button" class="filter-item${state.viewerSort === "name_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('name_asc')">ชื่อสินค้า A-Z</button>
+   <button type="button" class="filter-item${state.viewerSort === "price_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('price_asc')">ราคาน้อย → มาก</button>
+   <button type="button" class="filter-item${state.viewerSort === "price_desc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('price_desc')">ราคามาก → น้อย</button>
+   <button type="button" class="filter-item${state.viewerSort === "stock_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('stock_asc')">สต๊อกน้อยก่อน</button>
+   <button type="button" class="filter-item${state.viewerSort === "stock_desc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('stock_desc')">สต๊อกมากก่อน</button>
  </div>
    </div>
       
