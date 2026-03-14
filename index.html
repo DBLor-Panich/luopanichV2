@@ -3483,15 +3483,16 @@ function leaveAdminMode(){
 }
 
 function handleBackdropClick(){
-  if (state.ui.backdropLocked) {
+   if (state.overlay.locked) {
 
     console.warn('[Backdrop] force unlock');
 
    // 🔴 FIX: force reset overlay system (emergency exit)
-   state.ui.backdropLocked = false;
-   const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
-   openEls.forEach(el => el.classList.remove("show"));
-   state.ui.overlayCount = 0;
+    state.overlay.locked = false;
+    const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
+    openEls.forEach(el => el.classList.remove("show"));
+    state.overlay.count = 0;
+    state.overlay.activeSheet = null;
 
     safeHideLoading();   // ✅ ไม่มีทาง error
     showToast("ยกเลิกการดำเนินการ", "warning", 1200);
@@ -3500,6 +3501,7 @@ function handleBackdropClick(){
 
   closeTopSheet();
 }
+
 
 function closeTopSheet(){
   const sheets = [
