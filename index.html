@@ -2079,8 +2079,6 @@ function showLoading(message, timeoutMs = 60000) {
   overlay.offsetHeight;
 
   _loadingShownAt = Date.now();
-
-  state.isSubmitting = true;
   state.ui.backdropLocked = true;
   if (backdrop) backdrop.style.display = "block";
 
@@ -2114,8 +2112,6 @@ function safeHideLoading(fromTimeout = false) {
         clearTimeout(_loadingTimer);
         _loadingTimer = null;
       }
-
-      state.isSubmitting = false;
       // 🔒 ปลด lock เฉพาะเมื่อไม่มี overlay เปิดอยู่ (กัน confirm/flow หลุด)
       if (state.ui.overlayCount === 0) {
         state.ui.backdropLocked = false;
@@ -3842,7 +3838,7 @@ function isLoginRateLimited() {
 
 async function handleAdminLogin(btn){
   // 🔒 กันกดซ้ำ
-  if (state.isSubmitting) return;
+  if (state.admin.isSubmitting) return;
 
   // 🔒 force global rate limit (scope-safe)
   if (typeof window.isLoginRateLimited === "function") {
@@ -3865,7 +3861,7 @@ async function handleAdminLogin(btn){
   }
 
   // ================= UX START =================
-  state.isSubmitting = true;
+  state.admin.isSubmitting = true;
 
   if (btn) {
     btn.disabled = true;
@@ -3919,7 +3915,7 @@ async function handleAdminLogin(btn){
   } finally {
     // ================= CLEANUP =================
     safeHideLoading();
-    state.isSubmitting = false;
+    state.admin.isSubmitting = false;
 
     if (btn) {
       btn.disabled = false;
@@ -5530,13 +5526,13 @@ async function uploadProductImage(file) {
 }
   
 async function submitProductEdit(){
-  // 🔒 GUARD: กันกดซ้ำ
-  if (state.isSubmitting) return;
+  // 🔒 GUARD: กันกดซ้ำ (admin scope only)
+  if (state.admin.isSubmitting) return;
 
   const p = state.selectedProduct;
   if (!p) return;
 
-  state.isSubmitting = true;
+  state.admin.isSubmitting = true;
 
   // 🔒 LOCK BUTTON
   const saveBtn = adminProductEditSheet.querySelector(".btn-primary");
@@ -5582,7 +5578,7 @@ async function submitProductEdit(){
     showToast("ข้อมูลไม่ถูกต้อง", "error");
 
     // 🔓 คืนสภาพทันที
-    state.isSubmitting = false;
+    state.admin.isSubmitting = false;
     if (saveBtn) {
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
@@ -5598,7 +5594,7 @@ async function submitProductEdit(){
  
   if (duplicate) {
     showToast("รหัสสินค้านี้มีอยู่แล้ว", "error");
-    state.isSubmitting = false;
+    state.admin.isSubmitting = false;
     if (saveBtn) {
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
@@ -5662,7 +5658,7 @@ async function submitProductEdit(){
   } finally {
     // ✅ CLEANUP กลางเดียว (หัวใจ STEP 9)
     safeHideLoading();
-    state.isSubmitting = false;
+    state.admin.isSubmitting = false;
 
     if (saveBtn) {
       saveBtn.disabled = false;
@@ -5673,7 +5669,7 @@ async function submitProductEdit(){
 
 function confirmDeleteProduct() {
   if (state.mode !== "admin") return;
-  if (state.admin.isSubmitting || state.isSubmitting) return;
+  if (state.admin.isSubmitting) return;
 
   const p = state.selectedProduct;
   if (!p) return;
@@ -5712,13 +5708,12 @@ function confirmDeleteProduct() {
   }
 
 async function deleteProduct() {
-  if (state.admin.isSubmitting || state.isSubmitting) return;
+  if (state.admin.isSubmitting) return;
 
   const p = state.selectedProduct;
   if (!p || !state.admin.token) return;
 
   state.admin.isSubmitting = true;
-  state.isSubmitting = true;
 
   try {
     showLoading("กำลังลบสินค้า...");
@@ -5748,7 +5743,6 @@ async function deleteProduct() {
   } finally {
     safeHideLoading();
     state.admin.isSubmitting = false;
-    state.isSubmitting = false;
   }
 }
   
@@ -5786,8 +5780,8 @@ async function submitAddProduct(btn){
   }
 
   // 🔒 กันกดซ้ำ
-  if(state.isSubmitting) return;
-  state.isSubmitting = true;
+  if(state.admin.isSubmitting) return;
+  state.admin.isSubmitting = true;
 
   // ✅ ใช้ปุ่มจาก parameter
   if(btn){
@@ -5931,7 +5925,7 @@ async function submitAddProduct(btn){
     showToast(err.message || "เกิดข้อผิดพลาด", "error");
   } finally {
     safeHideLoading(); // 🔒 สำคัญ: ปิด loading ทุกกรณี
-    state.isSubmitting = false;
+    state.admin.isSubmitting = false;
 
     if(btn){
       btn.disabled = false;
