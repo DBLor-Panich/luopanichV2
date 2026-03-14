@@ -5153,9 +5153,8 @@ function openProductEdit(p){
   const latestProduct =
     state.products.find(x => x.productId === p?.productId) || p;
 
-  state.admin.selectedProduct = latestProduct;
-  state.admin.selectedProduct = latestProduct;
-  state.admin.productEdit.compareImagesDraft = (latestProduct.compareImages || "")
+   state.admin.selectedProduct = latestProduct;
+   state.admin.productEdit.compareImagesDraft = (latestProduct.compareImages || "")
     .split(",")
     .map(s => s.trim())
     .filter(Boolean);
@@ -5640,13 +5639,13 @@ async function submitProductEdit(){
     showLoading("กำลังบันทึกการแก้ไขสินค้า...");
 
     // ถ้ามีการเลือกภาพใหม่ → upload ก่อน
-    if (state.editImageFile) {
-      validateProductImageFile(state.editImageFile);
-      imageUrl = await uploadProductImage(state.editImageFile);
-      if (!imageUrl) {
-        throw new Error("ไม่สามารถอัปโหลดรูปได้");
-      }
-    }
+     if (state.admin.productEdit.imageFile) {
+       validateProductImageFile(state.admin.productEdit.imageFile);
+       imageUrl = await uploadProductImage(state.admin.productEdit.imageFile);
+       if (!imageUrl) {
+         throw new Error("ไม่สามารถอัปโหลดรูปได้");
+       }
+     }
 
     // Update product
     const form = new URLSearchParams();
@@ -5668,10 +5667,11 @@ async function submitProductEdit(){
 
     showToast("บันทึกการแก้ไขเรียบร้อย", "success");
 
-    state.selectedProduct = null;
+     state.admin.selectedProduct = null;
 
     // cleanup
-    state.editImageFile = null;
+     state.admin.productEdit.imageFile = null;
+     state.admin.productEdit.compareImagesDraft = [];
     closeProductEdit();
     await refreshProducts();
     await refreshAdminAuditSnapshot();
@@ -5699,7 +5699,7 @@ function confirmDeleteProduct() {
   if (state.mode !== "admin") return;
   if (state.admin.isSubmitting) return;
 
-  const p = state.selectedProduct;
+  const p = state.admin.selectedProduct;
   if (!p) return;
 
   // 🔒 กันลบซ้ำ
@@ -6645,9 +6645,11 @@ function clearAdminSession(){
 
   // 5) เคลียร์ selection/admin draft ที่อาจทำให้หลุด flow
   state.viewer.selectedProduct = null;
-  state.editImageFile = null;
-  state.addImageFile = null;
-  state.smartAddDraft = {
+  state.admin.selectedProduct = null;
+  state.admin.productEdit.imageFile = null;
+  state.admin.productEdit.compareImagesDraft = [];
+   state.addImageFile = null;
+   state.smartAddDraft = {
     name: "",
     price: "",
     costPrice: "",
