@@ -4450,7 +4450,7 @@ async function submitStockIn(){
 
 async function submitStockAdjust(){
   // 🔒 guard
-  if (state.mode !== "admin" || !state.admin.loggedIn || !state.selectedProduct) {
+  if (state.mode !== "admin" || !state.admin.loggedIn || !state.admin.selectedProduct) {
     showToast("Unauthorized", "error");
     return;
   }
@@ -4474,7 +4474,7 @@ async function submitStockAdjust(){
 
   try {
     const res = await adminStockAdjust(
-      state.selectedProduct.productId,
+      state.admin.selectedProduct.productId,
       newQty,
       reason
     );
@@ -4498,7 +4498,7 @@ async function submitStockAdjust(){
 
     // 🔴 CHANGED: หลัง refresh ต้อง lookup object ล่าสุดก่อน
     openAdminProductAction(
-      state.products.find(x => x.productId === state.selectedProduct?.productId)
+      state.products.find(x => x.productId === state.admin.selectedProduct?.productId)
     );
 
   } catch (err) {
