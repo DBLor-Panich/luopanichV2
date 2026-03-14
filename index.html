@@ -4413,7 +4413,7 @@ async function submitStockIn(){
 
   try {
     const res = await adminStockIn(
-      state.selectedProduct.productId,
+      state.admin.selectedProduct.productId,
       qty,
       reason
     );
@@ -6509,7 +6509,7 @@ function exportOrderPrint() {
           window.print();
           window.onafterprint = function() {
          
-// 🔥 ปิด confirmSheet อัตโนมัติ (Safe + Clear State)
+    // 🔥 ปิด confirmSheet อัตโนมัติ (Safe + Clear State)
     if (window.opener && window.opener.closeOverlay) {
       const sheet = window.opener.document.getElementById("confirmSheet");
       if (sheet) {
@@ -6517,9 +6517,10 @@ function exportOrderPrint() {
       }
 
       // 🔴 NEW: clear lastOrder เพื่อกัน reopen state ค้าง
-      if (window.opener.state) {
-        window.opener.state.lastOrder = null;
+      if (window.opener.state?.viewer) {
+        window.opener.state.viewer.lastOrder = null;
       }
+
 
       // 🔴 NEW: reset backdrop lock กันค้าง
       if (window.opener.state?.ui) {
