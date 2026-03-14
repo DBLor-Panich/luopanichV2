@@ -1937,10 +1937,13 @@ const state = {
     ui: {
       activeSheet: null
     },
-    productEdit: {
+productEdit: {
       compareImagesDraft: [],
       imageFile: null
-    },   
+     },
+     addProduct: {
+       imageFile: null
+     },
     // 🔒 admin submit guard
     isSubmitting: false
   },
@@ -5873,14 +5876,14 @@ async function submitAddProduct(btn){
     /* ================= IMAGE UPLOAD ================= */
 
     let imageUrl = "";
-    if (state.addImageFile) {
-      validateProductImageFile(state.addImageFile);
-      showLoading("กำลังอัปโหลดรูปสินค้า...");
-      imageUrl = await uploadProductImage(state.addImageFile);
-      if (!imageUrl) {
-        throw new Error("อัปโหลดรูปไม่สำเร็จ");
-      }
-    }
+    if (state.admin.addProduct.imageFile) {
+       validateProductImageFile(state.admin.addProduct.imageFile);
+       showLoading("กำลังอัปโหลดรูปสินค้า...");
+       imageUrl = await uploadProductImage(state.admin.addProduct.imageFile);
+       if (!imageUrl) {
+         throw new Error("อัปโหลดรูปไม่สำเร็จ");
+       }
+     }
 
     /* ================= SEND TO BACKEND ================= */
     showLoading("กำลังบันทึกข้อมูลสินค้า...");
@@ -5906,7 +5909,7 @@ async function submitAddProduct(btn){
 
     showToast("เพิ่มสินค้าเรียบร้อย 🎉", "success");
 
-    state.addImageFile = null;
+    state.admin.addProduct.imageFile = null;
 // 🧠 SMART MODE SAVE (จำค่าล่าสุดเสมอ)
  state.smartAddDraft = {
    name: "",
@@ -5941,7 +5944,7 @@ async function submitAddProduct(btn){
      fileInput.value = "";
    }
   
-   state.addImageFile = null;
+   state.admin.addProduct.imageFile = null;
    document.getElementById("addProductId").focus();
    document.getElementById("addProductId").select();
  } else {
@@ -6800,7 +6803,7 @@ if (header){
   /* ================= BACK TO TOP SHOW/HIDE ================= */
   if (topBtn){
     // ✅ โผล่เมื่อเลื่อนลงพอสมควร และไม่มี overlay เปิดอยู่
-    const shouldShow = currentY > 600 && state.ui.overlayCount === 0;
+    const shouldShow = currentY > 600 && state.overlay.count === 0;
     topBtn.classList.toggle("show", shouldShow);
   }
 
