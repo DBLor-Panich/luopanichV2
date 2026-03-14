@@ -5585,10 +5585,10 @@ async function submitProductEdit(){
   const detailsText =
   document.getElementById("editDetailsText")?.value.trim() || "";
 
- const compareImages =
-   Array.isArray(state.compareImagesDraft)
-     ? state.compareImagesDraft.join(",")
-     : "";
+  const compareImages =
+    Array.isArray(state.admin.productEdit.compareImagesDraft)
+      ? state.admin.productEdit.compareImagesDraft.join(",")
+      : "";
 
   // 🔒 Validate
   if (
