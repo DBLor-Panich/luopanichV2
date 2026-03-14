@@ -3450,40 +3450,6 @@ function leaveAdminMode(){
   if (typeof renderBadge === "function") renderBadge();
 }
 
-function exitAdmin(){
-  // 🔒 ปิดทุก overlay ผ่าน Overlay Manager (สำคัญที่สุด)
-  document
-    .querySelectorAll(".sheet.show, .side-menu.show")
-    .forEach(el => {
-      closeOverlay(el); // ✅ หัวใจ
-    });
-
-  // ❌ กัน Orders เด้งซ้ำ
-  allowOpenOrders = false;
-  allowOpenStockTimeline = false;
-  allowOpenAddProduct = false;
-
-  // 🧹 CLEAR PERSIST SESSION  ← 🔴 เพิ่มบรรทัดเดียว
-  clearAdminSession();
-
-  // 🔄 reset admin state
-  state.mode = "viewer";
-  state.admin.loggedIn = false;
-  state.admin.user = null;
-  state.admin.token = null;
-  state.admin.orders = [];
-  state.admin.selectedOrder = null;
-  state.admin.logs = [];
-
-  // 🔍 reset search
-  state.search = "";
-
-  // 🔄 render viewer ใหม่แบบ clean
-  renderHeader();
-  renderProducts();
-  if (typeof renderBadge === "function") renderBadge();
-}
-
 function handleBackdropClick(){
   if (state.ui.backdropLocked) {
 
