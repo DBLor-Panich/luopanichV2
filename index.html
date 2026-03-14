@@ -4511,7 +4511,7 @@ function openStockAction(p){
   // 🔒 guard
   if (state.mode !== "admin") return;
 
-  state.selectedProduct = p;
+  state.admin.selectedProduct = p;
 
   adminStockActionSheet.innerHTML = `
     <h3>จัดการสต๊อก</h3>
@@ -5738,7 +5738,7 @@ function confirmDeleteProduct() {
 async function deleteProduct() {
   if (state.admin.isSubmitting) return;
 
-  const p = state.selectedProduct;
+  const p = state.admin.selectedProduct;
   if (!p || !state.admin.token) return;
 
   state.admin.isSubmitting = true;
@@ -5758,7 +5758,7 @@ async function deleteProduct() {
     closeProductEdit();
 
     // 🔒 clear selection ก่อน sync
-    state.selectedProduct = null;
+    state.admin.selectedProduct = null;
 
     // 🔄 refresh สินค้า
     await refreshProducts();
