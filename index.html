@@ -746,15 +746,6 @@ button:disabled {
 
  .filter-dropdown.show{ display:flex; }
 
- .filter-group-label{
-   padding: 6px 12px 2px;
-   font-size: 11px;
-   font-weight: 700;
-   letter-spacing: .4px;
-   color: rgba(235,235,245,.50);
-   text-transform: uppercase;
- }
-
  .filter-item{
    /* 🔴 CHANGED: ทำให้แต่ละแถวอ่านง่าย + มี state */
    padding: 10px 12px;
@@ -771,10 +762,6 @@ button:disabled {
  .filter-item + .filter-item{
    border-top: 1px solid rgba(255,255,255,.08);
  }
- 
- .filter-group-label + .filter-item{
-   border-top: none;
- }
 
  /* 🔴 CHANGED: hover/active ให้รู้ว่ากดได้ */
  @media (hover:hover){
@@ -786,11 +773,6 @@ button:disabled {
    background: rgba(255,255,255,.14);
    transform: scale(.985);
  } 
- 
- .filter-item.active{
-   background: rgba(0,122,255,.16);
-   color: #8ec5ff;
- }
   
 /* ================= HEADER MENU BUTTON (iOS TACTILE) ================= */
 .menu-btn{
@@ -1905,9 +1887,7 @@ Object.assign(window, {
   cancelAdminLogin,
   closeMainMenu,
   closeAddProduct,
-  closeProduct,
-  setViewerSort,
-  setViewerSearchDebounced
+  closeProduct
 });
 
 // 🔒 Intent guards (STEP 2)
@@ -1924,7 +1904,6 @@ const state = {
   viewerFilter: {
     status: "all"
   },
-  viewerSort: "productId_asc",
 
   search: "",
   viewerSearchOpen: false,
@@ -1971,16 +1950,6 @@ const state = {
   }
 };
 
-let viewerSearchDebounceTimer = null;
-
-function setViewerSearchDebounced(value = "") {
-  clearTimeout(viewerSearchDebounceTimer);
-  viewerSearchDebounceTimer = setTimeout(() => {
-    state.search = String(value || "").trim();
-    renderProducts();
-  }, 220);
-}
- 
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
 
 const CART_KEY = "luopanich_cart";
@@ -2284,42 +2253,7 @@ function sortProducts(products) {
     )
   );
 }
-
-function getSortedProducts(products) {
-  const list = Array.isArray(products) ? [...products] : [];
-
-  switch (state.viewerSort) {
-    case "price_asc":
-      return list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-    case "price_desc":
-      return list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-    case "stock_asc":
-      return list.sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0));
-    case "stock_desc":
-      return list.sort((a, b) => Number(b.stock || 0) - Number(a.stock || 0));
-    case "name_asc":
-      return list.sort((a, b) =>
-        String(a.name || "").localeCompare(String(b.name || ""), "th", {
-          sensitivity: "base"
-        })
-      );
-    case "productId_asc":
-    default:
-      return list.sort((a, b) =>
-        String(a.productId || "").localeCompare(
-          String(b.productId || ""),
-          "th",
-          { numeric: true, sensitivity: "base" }
-        )
-      );
-  }
-}
-
-function setViewerSort(value = "productId_asc") {
-  state.viewerSort = String(value || "productId_asc");
-  renderProducts();
-}
- 
+  
 async function refreshProducts() {
   const app = document.getElementById("app");
 
@@ -2860,9 +2794,7 @@ function renderProducts(){
   app.innerHTML = "";
   let found = false;
 
-    const visibleProducts = getSortedProducts(state.products);
-
-    visibleProducts.forEach(p => {
+  state.products.forEach(p => {
     const stockNum = Number(p.stock);
 
   // 🔍 STATUS RESOLVE (ต้องมาก่อน filter ทุกครั้ง)
@@ -2946,26 +2878,8 @@ let statusText  = statusMap[statusKey] || "พร้อมส่ง";
     found = true;
   });
 
-  // ❌ empty state
-   if (!found) {
-    let emptyText = "ยังไม่มีสินค้าให้แสดง";
-
-    if (state.search) {
-      emptyText = "ไม่พบสินค้าที่ค้นหา";
-    } else if (
-      state.mode === "viewer" &&
-      state.viewerFilter &&
-      state.viewerFilter.status !== "all"
-    ) {
-      emptyText = "ไม่มีสินค้าในสถานะนี้";
-    } else if (
-      state.mode === "admin" &&
-      state.admin.filters &&
-      state.admin.filters.status !== "all"
-    ) {
-      emptyText = "ไม่มีสินค้าในสถานะนี้";
-    }
-
+  // ❌ ไม่พบสินค้า
+  if (!found) {
     app.innerHTML = `
       <div style="
         text-align:center;
@@ -2973,7 +2887,7 @@ let statusText  = statusMap[statusKey] || "พร้อมส่ง";
         margin-top:40px;
         font-size:15px;
       ">
-        ${emptyText}
+        ไม่พบสินค้าที่ค้นหา
       </div>
     `;
   }
@@ -3197,13 +3111,13 @@ function renderHeader(){
             </svg>
           </button>
 
-  <input
-    id="viewerSearchInput"
-    placeholder="ค้นหาสินค้า / รหัส"
-    oninput="setViewerSearchDebounced(this.value)"
-    onfocus="focusInput(this)"
-    class="search-input"
-    aria-label="ค้นหาสินค้า"
+ <input
+   id="viewerSearchInput"
+   placeholder="ค้นหาสินค้า / รหัส"
+   oninput="handleSearch(this.value)"
+   onfocus="focusInput(this)"
+   class="search-input"
+   aria-label="ค้นหาสินค้า"
  >
         </div>          
          </div>
@@ -3226,20 +3140,11 @@ function renderHeader(){
      </button>
 
  <div id="filterDropdown" class="filter-dropdown" role="menu" aria-label="ตัวกรองสินค้า">
-   <div class="filter-group-label">สถานะ</div>
-   <button type="button" class="filter-item${state.viewerFilter.status === "all" ? " active" : ""}" role="menuitem" onclick="selectFilter('all')">ทั้งหมด</button>
-   <button type="button" class="filter-item${state.viewerFilter.status === "ready" ? " active" : ""}" role="menuitem" onclick="selectFilter('ready')">พร้อมส่ง</button>
-   <button type="button" class="filter-item${state.viewerFilter.status === "shipping" ? " active" : ""}" role="menuitem" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</button>
-   <button type="button" class="filter-item${state.viewerFilter.status === "warehouse" ? " active" : ""}" role="menuitem" onclick="selectFilter('warehouse')">โกดังไทย</button>
-   <button type="button" class="filter-item${state.viewerFilter.status === "out" ? " active" : ""}" role="menuitem" onclick="selectFilter('out')">หมด</button>
-
-   <div class="filter-group-label">เรียงลำดับ</div>
-   <button type="button" class="filter-item${state.viewerSort === "productId_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('productId_asc')">รหัสสินค้า A-Z</button>
-   <button type="button" class="filter-item${state.viewerSort === "name_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('name_asc')">ชื่อสินค้า A-Z</button>
-   <button type="button" class="filter-item${state.viewerSort === "price_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('price_asc')">ราคาน้อย → มาก</button>
-   <button type="button" class="filter-item${state.viewerSort === "price_desc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('price_desc')">ราคามาก → น้อย</button>
-   <button type="button" class="filter-item${state.viewerSort === "stock_asc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('stock_asc')">สต๊อกน้อยก่อน</button>
-   <button type="button" class="filter-item${state.viewerSort === "stock_desc" ? " active" : ""}" role="menuitem" onclick="setViewerSort('stock_desc')">สต๊อกมากก่อน</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('all')">ทั้งหมด</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('ready')">พร้อมส่ง</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('shipping')">ระหว่างจัดส่ง</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('warehouse')">โกดังไทย</button>
+   <button type="button" class="filter-item" role="menuitem" onclick="selectFilter('out')">หมด</button>
  </div>
    </div>
       
