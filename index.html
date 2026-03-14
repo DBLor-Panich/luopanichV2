@@ -3306,14 +3306,14 @@ function toggleViewerSearch(triggerEl){
 
   if(opened){
     input.value = "";
-    state.search = "";
-    state.viewerSearchOpen = false;
+    state.viewer.search = "";
+    state.viewer.searchOpen = false;
     renderProducts();
     wrap.classList.remove("active");
     syncExpanded(wrap.querySelector(".search-btn"), false);
     restoreTriggerFocus();   
   }else{
-    state.viewerSearchOpen = true;
+    state.viewer.searchOpen = true;
     wrap.classList.add("active");
     syncExpanded(wrap.querySelector(".search-btn"), true);   
     setTimeout(()=>input.focus(),80);
@@ -3342,7 +3342,7 @@ function toggleAdminSearch(triggerEl){
 }
   
 function handleSearch(keyword){
-  state.search = keyword.toLowerCase();
+  state.viewer.search = keyword.toLowerCase();
   renderProducts();
 }
 
@@ -3447,8 +3447,8 @@ function openAdminEntry(){
 
 async function enterAdmin(){
   state.mode = "admin";
-  state.search = ""; // ✅ reset
-  state.viewerSearchOpen = false;
+  state.viewer.search = ""; // ✅ reset
+  state.viewer.searchOpen = false;
 
   // 🔴 CHANGED: render โครงก่อน เพื่อให้ header/admin mode ถูกต้อง
   renderHeader();
@@ -3474,8 +3474,8 @@ function leaveAdminMode(){
 
   // ✅ กลับสู่ viewer mode (UI state only)
   state.mode = "viewer";
-  state.search = "";
-  state.viewerSearchOpen = false;
+  state.viewer.search = "";
+  state.viewer.searchOpen = false;
 
   renderHeader();
   renderProducts();
@@ -3565,9 +3565,9 @@ function closeStockError(){
 }
   
 function openConfirm(){
-  if (state.cart.length === 0) return;
+  if (state.viewer.cart.length === 0) return;
 
-  state.ui.backdropLocked = true; // 🔒 ล็อก backdrop ระหว่าง confirm
+  state.overlay.locked = true; // 🔒 ล็อก backdrop ระหว่าง confirm
 
   // ปิด cart ก่อน
   closeOverlay(cartSheet);
