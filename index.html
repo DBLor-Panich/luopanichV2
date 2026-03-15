@@ -1166,6 +1166,67 @@ textarea {
   color: rgba(235,235,245,.78);
 }
 
+/* ===== STOCK TIMELINE EXPAND DETAIL ===== */
+.timeline-summary{
+  font-size:13px;
+  color:rgba(235,235,245,.78);
+  margin:6px 0 8px;
+}
+
+.timeline-row{
+  font-size:14px;
+  line-height:1.55;
+}
+
+.timeline-row + .timeline-row{
+  margin-top:4px;
+}
+
+.timeline-muted{
+  color:#888;
+}
+
+.timeline-detail-wrap{
+  margin-top:10px;
+}
+
+.timeline-detail-toggle{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  padding:10px 12px;
+  background:rgba(44,44,46,.90);
+  color:#fff;
+  font-size:13px;
+  font-weight:600;
+  text-align:left;
+  cursor:pointer;
+}
+
+.timeline-detail-panel{
+  display:none;
+  margin-top:8px;
+  padding:12px;
+  border-radius:12px;
+  background:rgba(44,44,46,.72);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.timeline-detail-panel.show{
+  display:block;
+}
+
+.timeline-detail-list{
+  display:grid;
+  gap:6px;
+}
+
+.timeline-detail-meta{
+  font-size:13px;
+  color:rgba(235,235,245,.82);
+  line-height:1.5;
+}
+ 
 /* ===== ADMIN LOGIN TWEAK ===== */
 #adminLoginSheet {
   padding-bottom: calc(env(safe-area-inset-bottom) + 24px); /* 🔴 ยกขึ้นจากขอบ */
@@ -4076,6 +4137,9 @@ async function openStockTimeline(force = false) {
     const logs = await fetchStockLogs();
     const safeLogs = Array.isArray(logs) ? logs : [];
 
+    const money = (value) => `฿${Number(value || 0).toLocaleString("th-TH")}`;
+    const esc = (value) => escapeHtml(value ?? "");   
+
     /* ================= GROUP ORDER OUT ================= */
     const orderMap = {};
     const singles = [];
@@ -4092,15 +4156,33 @@ async function openStockTimeline(force = false) {
         orderId: orderRef,
         time,
         by: l.by || "-",
+        note: l.note || l.reason || "",
+        totalSalesAmount: 0,       
         items: []
       };
     }
 
+    // ใช้เวลาล่าสุดของ item ใน order เดียวกัน
+    if (time.getTime() > orderMap[orderRef].time.getTime()) {
+      orderMap[orderRef].time = time;
+    }
+
+    orderMap[orderRef].totalSalesAmount += Number(
+      l.lineTotal ??
+      ((Number(l.salePrice ?? l.price ?? 0)) * Math.abs(Number(l.qty || 0)))
+    );   
+
     orderMap[orderRef].items.push({
       productId: l.productId,
+      productName: l.productName || l.name || "",
       qty: Math.abs(Number(l.qty || 0)),
       before: l.before,
-      after: l.after
+      after: l.after,
+      salePrice: Number(l.salePrice ?? l.price ?? 0),
+      lineTotal: Number(
+        l.lineTotal ??
+        ((Number(l.salePrice ?? l.price ?? 0)) * Math.abs(Number(l.qty || 0)))
+      )
     });
   } else {
     singles.push({
@@ -4120,7 +4202,11 @@ async function openStockTimeline(force = false) {
         orderId: o.orderId,
         time: o.time,
         by: o.by,
-        items: o.items
+        note: o.note || "",
+        items: o.items,
+        totalLines: o.items.length,
+        totalQty: o.items.reduce((sum, item) => sum + Number(item.qty || 0), 0),
+        totalSalesAmount: o.totalSalesAmount
       });
     });
 
@@ -4129,11 +4215,13 @@ async function openStockTimeline(force = false) {
         kind: "STOCK",
         type: l.type,
         productId: l.productId,
+        productName: l.productName || l.name || "",
         qty: l.qty,
         before: l.before,
         after: l.after,
         time: l._time,
-        by: l.by || "-"
+        by: l.by || "-",
+        note: l.note || l.reason || ""
       });
     });
 
@@ -4155,24 +4243,71 @@ async function openStockTimeline(force = false) {
           ? timeline.map(t => {
 
               if (t.kind === "ORDER") {
+                const detailId = `stock-detail-${esc(t.orderId)}`;
+               
                 return `
                   <div class="card">
                     <div class="timeline-tag tag-out">
-                      🧾 ขายออก (ออเดอร์ ${t.orderId})
+                      🧾 ขายออก (ออเดอร์ ${esc(t.orderId)})
                     </div>
 
+                    <div class="timeline-summary">
+                      ${t.totalLines} รายการ · ${t.totalQty} ชิ้น · ${money(t.totalSalesAmount)}
+                    </div>                    
+
                     ${t.items.map(i => `
-                      <div style="font-size:14px;line-height:1.5">
-                        ${i.productId} x ${i.qty}
+                      <div class="timeline-row">
+                        ${esc(i.productId)}
+                        ${i.productName ? ` — ${esc(i.productName)}` : ""}
+                        x ${Number(i.qty || 0)}
                         ${
                           Number.isFinite(i.before)
-                            ? `<span style="color:#888">
+                            ? `<span class="timeline-muted">
                                 (${i.before} → ${i.after})
                               </span>`
                             : ""
                         }
                       </div>
                     `).join("")}
+
+                    <div class="timeline-detail-wrap">
+                      <button
+                        type="button"
+                        class="timeline-detail-toggle"
+                        onclick="
+                          const panel = document.getElementById('${detailId}');
+                          if (!panel) return;
+                          panel.classList.toggle('show');
+                          this.textContent = panel.classList.contains('show')
+                            ? 'ซ่อนรายละเอียด'
+                            : 'ดูรายละเอียดเพิ่มเติม';
+                        "
+                      >
+                        ดูรายละเอียดเพิ่มเติม
+                      </button>
+
+                      <div id="${detailId}" class="timeline-detail-panel">
+                        <div class="timeline-detail-meta">
+                          ยอดรวมสินค้า: ${t.totalLines} รายการ<br>
+                          ยอดรวมจำนวนชิ้น: ${t.totalQty}<br>
+                          ยอดขายรวม: ${money(t.totalSalesAmount)}
+                          ${t.note ? `<br>หมายเหตุ: ${esc(t.note)}` : ""}
+                        </div>
+
+                        <div class="timeline-detail-list" style="margin-top:10px">
+                          ${t.items.map(i => `
+                            <div class="timeline-row">
+                              ${esc(i.productId)}
+                              ${i.productName ? ` — ${esc(i.productName)}` : ""} |
+                              ${Number(i.qty || 0)} ชิ้น
+                              ${Number.isFinite(i.before) ? ` | ${i.before} → ${i.after}` : ""}
+                              | ${money(i.salePrice)}/ชิ้น
+                              | รวม ${money(i.lineTotal)}
+                            </div>
+                          `).join("")}
+                        </div>
+                      </div>
+                    </div>                    
 
                     <div style="font-size:12px;color:#888;margin-top:6px">
                       ${t.time.toLocaleDateString("th-TH")}
@@ -4197,14 +4332,44 @@ async function openStockTimeline(force = false) {
                     ${cfg.text}
                   </div>
 
-                  <div style="font-size:14px">
-                    ${t.productId}
+                  <div class="timeline-row">
+                    ${esc(t.productId)}
+                    ${t.productName ? ` — ${esc(t.productName)}` : ""}
+                    ${Number.isFinite(Number(t.qty)) ? ` x ${Math.abs(Number(t.qty))}` : ""}
                     ${
                       Number.isFinite(t.before)
                         ? ` (${t.before} → ${t.after})`
                         : ""
                     }
                   </div>
+
+                  ${
+                    t.note
+                      ? `
+                        <div class="timeline-detail-wrap">
+                          <button
+                            type="button"
+                            class="timeline-detail-toggle"
+                            onclick="
+                              const panel = this.nextElementSibling;
+                              if (!panel) return;
+                              panel.classList.toggle('show');
+                              this.textContent = panel.classList.contains('show')
+                                ? 'ซ่อนรายละเอียด'
+                                : 'ดูรายละเอียดเพิ่มเติม';
+                            "
+                          >
+                            ดูรายละเอียดเพิ่มเติม
+                          </button>
+                          <div class="timeline-detail-panel">
+                            <div class="timeline-detail-meta">
+                              หมายเหตุ: ${esc(t.note)}
+                            </div>
+                          </div>
+                        </div>
+                      `
+                      : ""
+                  }
 
                   <div style="font-size:12px;color:#888;margin-top:6px">
                     ${t.time.toLocaleDateString("th-TH")}
