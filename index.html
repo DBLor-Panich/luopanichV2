@@ -1,4 +1,4 @@
- <!DOCTYPE html>   
+ <!DOCTYPE html>  
  <html lang="en">
  <head>
  <meta charset="UTF-8" />
@@ -1901,25 +1901,20 @@ Object.assign(window, {
 const state = {
   mode: "viewer",
 
-  viewer: {
-    filter: {
-      status: "all"
-    },
-    search: "",
-    searchOpen: false,
-    selectedProduct: null,
-    qty: 1,
-    cart: [],
-    lastOrder: null,
-    ui: {
-      activeSheet: null
-    },
-    order: {
-      isSubmitting: false
-    }
+  viewerFilter: {
+    status: "all"
   },
 
+  search: "",
+  viewerSearchOpen: false,
   products: [],
+  selectedProduct: null,
+  qty: 1,
+  cart: [],
+  lastOrder: null,
+
+  // 🔒 viewer submit guard (ใช้กับ createOrder)
+  isSubmitting: false,
 
   admin: {
     loggedIn: false,
@@ -1928,22 +1923,13 @@ const state = {
     expiredAt: null,
     orders: [],
     selectedOrder: null,
-    selectedProduct: null,
     logs: [],
-    search: "",
     filters: {
       status: "all"
     },
     ui: {
       activeSheet: null
     },
-productEdit: {
-      compareImagesDraft: [],
-      imageFile: null
-     },
-     addProduct: {
-       imageFile: null
-     },
     // 🔒 admin submit guard
     isSubmitting: false
   },
@@ -1958,14 +1944,9 @@ productEdit: {
     note: ""
   },
 
-  overlay: {
-    count: 0,
-    locked: false,
-    activeSheet: null
-  },
-
-  feedback: {
-    loading: false
+  ui: {
+    overlayCount: 0,
+    backdropLocked: false
   }
 };
 
@@ -1984,7 +1965,7 @@ function escapeHtml(value = "") {
 
 function saveCart() {
   try {
-    localStorage.setItem(CART_KEY, JSON.stringify(state.viewer.cart));
+    localStorage.setItem(CART_KEY, JSON.stringify(state.cart));
   } catch (e) {
     console.warn("saveCart failed", e);
   }
@@ -1997,7 +1978,7 @@ function loadCart() {
 
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      state.viewer.cart = parsed;
+      state.cart = parsed;
     }
   } catch (e) {
     console.warn("loadCart failed", e);
@@ -2098,8 +2079,7 @@ function showLoading(message, timeoutMs = 60000) {
   overlay.offsetHeight;
 
   _loadingShownAt = Date.now();
-  state.feedback.loading = true;
-  state.overlay.locked = true;
+  state.ui.backdropLocked = true;
   if (backdrop) backdrop.style.display = "block";
 
   clearTimeout(_loadingTimer);
@@ -2126,7 +2106,6 @@ function safeHideLoading(fromTimeout = false) {
   setTimeout(() => {
     try {
       if (overlay) overlay.classList.add("hidden");
-       state.feedback.loading = false;
 
       // 🔥 หัวใจ: เคลียร์ timer ของ showLoading
       if (_loadingTimer) {
@@ -2134,11 +2113,11 @@ function safeHideLoading(fromTimeout = false) {
         _loadingTimer = null;
       }
       // 🔒 ปลด lock เฉพาะเมื่อไม่มี overlay เปิดอยู่ (กัน confirm/flow หลุด)
-      if (state.overlay.count === 0) {
-        state.overlay.locked = false;
+      if (state.ui.overlayCount === 0) {
+        state.ui.backdropLocked = false;
       }
 
-      if (state.overlay.count === 0 && backdrop) {
+      if (state.ui.overlayCount === 0 && backdrop) {
         backdrop.style.display = "none";
       }
 
@@ -2324,7 +2303,7 @@ async function createOrder() {
   // 🔴 HARDENING: reload stock snapshot before submit
   const latestProducts = await fetchProducts();
 
-  for (const item of state.viewer.cart) {
+  for (const item of state.cart) {
     const product = latestProducts.find(
       p => p.productId === item.productId
     );
@@ -2340,14 +2319,14 @@ async function createOrder() {
     }
   }
 
-  const total = state.viewer.cart.reduce(
+  const total = state.cart.reduce(
    (s,i)=> s + Number(i.price) * Number(i.qty),
    0
  );
 
   const form = new URLSearchParams();
   form.append("action", "createOrder");
-  form.append("items", JSON.stringify(state.viewer.cart));
+  form.append("items", JSON.stringify(state.cart));
   form.append("total", total);
 
   // ใช้ fetchWithTimeout เพื่อป้องกัน request แขวน
@@ -2378,27 +2357,22 @@ function openOverlay(el){
   if (!el || el.classList.contains("show")) return;
 
   el.classList.add("show");
-  state.overlay.count++;
-  state.overlay.activeSheet = el;
+  state.ui.overlayCount++;
 
   backdrop.style.display = "block";
   setTimeout(() => focusFirstInteractive(el), 0);
 }
 
- function closeOverlay(el){
-   if (!el || !el.classList.contains("show")) return;
+function closeOverlay(el){
+  if (!el || !el.classList.contains("show")) return;
 
-   el.classList.remove("show");
-   state.overlay.count = Math.max(0, state.overlay.count - 1);
-   if (state.overlay.activeSheet === el) {
-     state.overlay.activeSheet =
-       [...document.querySelectorAll(".sheet.show, .side-menu.show")].pop() || null;
-   }
+  el.classList.remove("show");
+  state.ui.overlayCount = Math.max(0, state.ui.overlayCount - 1);
 
   // 🔴 CHANGED: จำว่าเราปิด "cartSheet" อยู่ไหม (เพราะบางครั้งปิดผ่าน backdrop จะไม่เรียก closeCart)
   const closedCartSheet = (el.id === "cartSheet");
 
-  if (state.overlay.count === 0 && !state.overlay.locked) {
+  if (state.ui.overlayCount === 0 && !state.ui.backdropLocked) {
     backdrop.style.display = "none";
 
     // 🔴 FIX: reset floating bar momentum state
@@ -2410,7 +2384,7 @@ function openOverlay(el){
     if (closedCartSheet && typeof renderFloatingBar === "function") {
       requestAnimationFrame(() => {
         // กันเคส user เปิด overlay อื่นทันทีระหว่างเฟรม
-        if (state.mode === "viewer" && state.overlay.count === 0) {
+        if (state.mode === "viewer" && state.ui.overlayCount === 0) {
           renderFloatingBar();
         }
       });
@@ -2588,7 +2562,7 @@ async function fetchOrders(){
 async function checkStockBeforeSubmit() {
   const latestProducts = await fetchProducts();
 
-  for (const item of state.viewer.cart) {
+  for (const item of state.cart) {
     const product = latestProducts.find(
       p => p.productId === item.productId
     );
@@ -2628,8 +2602,7 @@ function renderFloatingBar(){
   if (!bar) return;
 
   // show เฉพาะ viewer + มีของในตะกร้า
-   const hasItems =
-     Array.isArray(state.viewer.cart) && state.viewer.cart.length > 0;
+  const hasItems = Array.isArray(state.cart) && state.cart.length > 0;
    const isViewer = state.mode === "viewer";
 
   // ✅ FIX: กัน ReferenceError ถ้าไม่มีตัวแปร cartSheet (หาจาก DOM โดยตรง)
@@ -3306,20 +3279,19 @@ function toggleViewerSearch(triggerEl){
 
   if(opened){
     input.value = "";
-    state.viewer.search = "";
-    state.viewer.searchOpen = false;
+    state.search = "";
+    state.viewerSearchOpen = false;
     renderProducts();
     wrap.classList.remove("active");
     syncExpanded(wrap.querySelector(".search-btn"), false);
     restoreTriggerFocus();   
   }else{
-    state.viewer.searchOpen = true;
+    state.viewerSearchOpen = true;
     wrap.classList.add("active");
     syncExpanded(wrap.querySelector(".search-btn"), true);   
     setTimeout(()=>input.focus(),80);
   }
 }
-
 
 /* 🔍 admin search toggle (ICON EXPAND) */
 
@@ -3343,10 +3315,9 @@ function toggleAdminSearch(triggerEl){
 }
   
 function handleSearch(keyword){
-  state.viewer.search = keyword.toLowerCase();
+  state.search = keyword.toLowerCase();
   renderProducts();
 }
-
 
 // ================= VIEWER + ADMIN FILTER =================
 
@@ -3357,7 +3328,7 @@ function setViewerStatus(status){
   // 🔒 guard: ป้องกันค่า undefined
   if(!status) return;
 
-  state.viewer.filter.status = status;
+  state.viewerFilter.status = status;
 
   // 🔄 sync UI pill
   renderHeader();
@@ -3365,7 +3336,6 @@ function setViewerStatus(status){
   // 🔄 re-filter product list
   renderProducts();
 }
-
 
 // 🔴 CHANGED: เพิ่ม admin version (รูปแบบเดียวกับ viewer)
 function setAdminStatus(status){
@@ -3450,8 +3420,8 @@ function openAdminEntry(){
 
 async function enterAdmin(){
   state.mode = "admin";
-  state.viewer.search = ""; // ✅ reset
-  state.viewer.searchOpen = false;
+  state.search = ""; // ✅ reset
+  state.viewerSearchOpen = false;
 
   // 🔴 CHANGED: render โครงก่อน เพื่อให้ header/admin mode ถูกต้อง
   renderHeader();
@@ -3477,8 +3447,8 @@ function leaveAdminMode(){
 
   // ✅ กลับสู่ viewer mode (UI state only)
   state.mode = "viewer";
-  state.viewer.search = "";
-  state.viewer.searchOpen = false;
+  state.search = "";
+  state.viewerSearchOpen = false;
 
   renderHeader();
   renderProducts();
@@ -3486,16 +3456,15 @@ function leaveAdminMode(){
 }
 
 function handleBackdropClick(){
-   if (state.overlay.locked) {
+  if (state.ui.backdropLocked) {
 
     console.warn('[Backdrop] force unlock');
 
    // 🔴 FIX: force reset overlay system (emergency exit)
-    state.overlay.locked = false;
-    const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
-    openEls.forEach(el => el.classList.remove("show"));
-    state.overlay.count = 0;
-    state.overlay.activeSheet = null;
+   state.ui.backdropLocked = false;
+   const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
+   openEls.forEach(el => el.classList.remove("show"));
+   state.ui.overlayCount = 0;
 
     safeHideLoading();   // ✅ ไม่มีทาง error
     showToast("ยกเลิกการดำเนินการ", "warning", 1200);
@@ -3504,7 +3473,6 @@ function handleBackdropClick(){
 
   closeTopSheet();
 }
-
 
 function closeTopSheet(){
   const sheets = [
@@ -3568,9 +3536,9 @@ function closeStockError(){
 }
   
 function openConfirm(){
-  if (state.viewer.cart.length === 0) return;
+  if (state.cart.length === 0) return;
 
-  state.overlay.locked = true; // 🔒 ล็อก backdrop ระหว่าง confirm
+  state.ui.backdropLocked = true; // 🔒 ล็อก backdrop ระหว่าง confirm
 
   // ปิด cart ก่อน
   closeOverlay(cartSheet);
@@ -4418,7 +4386,7 @@ async function submitStockIn(){
 
   try {
     const res = await adminStockIn(
-      state.admin.selectedProduct.productId,
+      state.selectedProduct.productId,
       qty,
       reason
     );
@@ -4455,7 +4423,7 @@ async function submitStockIn(){
 
 async function submitStockAdjust(){
   // 🔒 guard
-  if (state.mode !== "admin" || !state.admin.loggedIn || !state.admin.selectedProduct) {
+  if (state.mode !== "admin" || !state.admin.loggedIn || !state.selectedProduct) {
     showToast("Unauthorized", "error");
     return;
   }
@@ -4479,7 +4447,7 @@ async function submitStockAdjust(){
 
   try {
     const res = await adminStockAdjust(
-      state.admin.selectedProduct.productId,
+      state.selectedProduct.productId,
       newQty,
       reason
     );
@@ -4503,7 +4471,7 @@ async function submitStockAdjust(){
 
     // 🔴 CHANGED: หลัง refresh ต้อง lookup object ล่าสุดก่อน
     openAdminProductAction(
-      state.products.find(x => x.productId === state.admin.selectedProduct?.productId)
+      state.products.find(x => x.productId === state.selectedProduct?.productId)
     );
 
   } catch (err) {
@@ -4519,7 +4487,7 @@ function openStockAction(p){
   // 🔒 guard
   if (state.mode !== "admin") return;
 
-  state.admin.selectedProduct = p;
+  state.selectedProduct = p;
 
   adminStockActionSheet.innerHTML = `
     <h3>จัดการสต๊อก</h3>
@@ -4931,11 +4899,9 @@ function closeMainMenu(){
 
  // ================= GLOBAL KEYBOARD SUPPORT =================
  document.addEventListener("keydown", (e) => {
-   const activeOverlay =
-     state.overlay.activeSheet ||
-     [...document.querySelectorAll(".sheet.show, .side-menu.show")].pop();
+   const activeOverlay = [...document.querySelectorAll(".sheet.show, .side-menu.show")].pop();
 
-     if (e.key === "Escape") {
+   if (e.key === "Escape") {
      const filter = document.getElementById("filterDropdown");
      if (filter?.classList.contains("show")) {
        filter.classList.remove("show");
@@ -4957,7 +4923,7 @@ function closeMainMenu(){
        return;
      }
 
-     if (activeOverlay && !state.overlay.locked) {
+     if (activeOverlay && !state.ui.backdropLocked) {
        if (activeOverlay === mainMenuSheet) return closeMainMenu();
        return closeOverlay(activeOverlay);
      }
@@ -4998,9 +4964,8 @@ function openProduct(p){
   }
 
   // 🟢 VIEWER FLOW
-  state.viewer.selectedProduct = p;
-  state.viewer.qty = 1;
-  state.viewer.ui.activeSheet = "product";
+  state.selectedProduct = p;
+  state.qty = 1;
 
   renderProductSheet();
 
@@ -5014,16 +4979,15 @@ function cancelAdminLogin(){
 }
   
 function closeProduct(){
-  state.viewer.ui.activeSheet = null;
   closeOverlay(productSheet);
 }
 
 async function submitOrder(){
   // ❌ ห้ามใช้ state.loading เป็น guard
-  if (state.viewer.order.isSubmitting || state.viewer.cart.length === 0) return;
+  if (state.isSubmitting || state.cart.length === 0) return;
 
-  state.viewer.order.isSubmitting = true;
-  state.overlay.locked = true;
+  state.isSubmitting = true;
+  state.ui.backdropLocked = true;
 
   try {
     // ================= STEP 1: CHECK STOCK =================
@@ -5044,16 +5008,16 @@ async function submitOrder(){
     }
 
     // ================= SUCCESS =================
-     state.viewer.lastOrder = {
-       orderId: res.data.orderId,
-       items: JSON.parse(JSON.stringify(state.viewer.cart)),
-       total: state.viewer.cart.reduce(
-         (s,i)=> s + Number(i.price) * Number(i.qty),
-         0
-       ),
-       createdAt: new Date(),
-       poNumber: state.poNumber || ""
-     };
+    state.lastOrder = {
+      orderId: res.data.orderId,
+      items: JSON.parse(JSON.stringify(state.cart)),
+      total: state.cart.reduce(
+        (s,i)=> s + Number(i.price) * Number(i.qty),
+        0
+      ),
+ createdAt: new Date(),
+ poNumber: state.poNumber || ""
+    };
 
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
     showToast("กดปุ่มเพื่อดาวน์โหลดใบสั่งซื้อ", "info", 3000);
@@ -5073,7 +5037,7 @@ async function submitOrder(){
    <button class="btn btn-secondary"
     style="margin-top:8px"
     onclick="
-      state.overlay.locked = false;
+      state.ui.backdropLocked = false;
       closeOverlay(confirmSheet);
     ">
     ปิด
@@ -5082,7 +5046,7 @@ async function submitOrder(){
 
 // confirmSheet เปิดอยู่แล้ว ไม่ต้อง reopen
 
-    state.viewer.cart = [];
+    state.cart = [];
     clearCartStorage();
     state.poNumber = "";
     if (typeof renderBadge === "function") renderBadge();
@@ -5102,9 +5066,10 @@ async function submitOrder(){
     );
   } finally {
     safeHideLoading();
-     state.viewer.order.isSubmitting = false;
-     if (state.overlay.count === 0) {
-       state.overlay.locked = false;
+    state.isSubmitting = false;
+    // 🔒 ปลด lock เฉพาะเมื่อไม่มี sheet เปิดอยู่ (กัน race condition)
+    if (state.ui.overlayCount === 0) {
+      state.ui.backdropLocked = false;
     }
   }
 }
@@ -5134,7 +5099,7 @@ function closeCart(){
 }
 
 function removeItem(idx){
-  state.viewer.cart.splice(idx, 1);
+  state.cart.splice(idx, 1);
 
   // ✅ PERSIST: บันทึก cart ทุกครั้งที่มีการเปลี่ยน
   saveCart();
@@ -5146,7 +5111,7 @@ function removeItem(idx){
   // 🔔 Feedback: แจ้งผู้ใช้ทันทีว่าลบแล้ว
   showToast("ลบสินค้าออกจากตะกร้าแล้ว", "warning");
 
-  if(state.viewer.cart.length === 0){
+  if(state.cart.length === 0){
     hardResetUI();   // ✅ ปิดทุก sheet + backdrop
   } else {
     renderCart();
@@ -5161,8 +5126,8 @@ function openProductEdit(p){
   const latestProduct =
     state.products.find(x => x.productId === p?.productId) || p;
 
-   state.admin.selectedProduct = latestProduct;
-   state.admin.productEdit.compareImagesDraft = (latestProduct.compareImages || "")
+  state.selectedProduct = latestProduct;
+  state.compareImagesDraft = (latestProduct.compareImages || "")
     .split(",")
     .map(s => s.trim())
     .filter(Boolean);
@@ -5351,16 +5316,16 @@ function openProductEditById(productId){
   openProductEdit(p);
 } 
 
- function removeCompareImage(index){
-   if (!Array.isArray(state.admin.productEdit.compareImagesDraft)) return;
+function removeCompareImage(index){
+  if (!Array.isArray(state.compareImagesDraft)) return;
 
-   state.admin.productEdit.compareImagesDraft.splice(index, 1);
+  state.compareImagesDraft.splice(index, 1);
 
   // re-render preview อย่างเดียว
   const wrap = document.getElementById("comparePreview");
   if (!wrap) return;
 
-  wrap.innerHTML = state.admin.productEdit.compareImagesDraft.map((url, idx) => `
+  wrap.innerHTML = state.compareImagesDraft.map((url, idx) => `
     <div style="position:relative">
       <img src="${escapeHtml(url)}"
            style="
@@ -5390,32 +5355,32 @@ function openProductEditById(productId){
   `).join("");
 }
 
- function handleImagePreview(input){
-   const file = input.files[0];
-   if(!file) return;
+function handleImagePreview(input){
+  const file = input.files[0];
+  if(!file) return;
 
-  try {
-    validateProductImageFile(file);
-  } catch (err) {
-    input.value = "";
-    state.admin.productEdit.imageFile = null;
-    const img = document.getElementById("imagePreview");
-    if (img && state.admin.selectedProduct?.image) {
-      img.src = state.admin.selectedProduct.image;
-    }
-    showToast(err.message || "ไฟล์รูปไม่ถูกต้อง", "error");
-    return;
-  } 
+ try {
+   validateProductImageFile(file);
+ } catch (err) {
+   input.value = "";
+   state.editImageFile = null;
+   const img = document.getElementById("imagePreview");
+   if (img && state.selectedProduct?.image) {
+     img.src = state.selectedProduct.image;
+   }
+   showToast(err.message || "ไฟล์รูปไม่ถูกต้อง", "error");
+   return;
+ } 
 
-   const reader = new FileReader();
-   reader.onload = () => {
-     document.getElementById("imagePreview").src = reader.result;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById("imagePreview").src = reader.result;
 
-     // เก็บไฟล์ไว้รอ STEP 7.5.2
-     state.admin.productEdit.imageFile = file;
-   };
-   reader.readAsDataURL(file);
- }
+    // เก็บไฟล์ไว้รอ STEP 7.5.2
+    state.editImageFile = file;
+  };
+  reader.readAsDataURL(file);
+}
 
 async function handleCompareImagesUpload(input){
   const files = Array.from(input.files || []);
@@ -5438,12 +5403,12 @@ async function handleCompareImagesUpload(input){
     }
 
    // ✅ STEP 8: merge เข้า state เดียว
-   state.admin.productEdit.compareImagesDraft.push(...urls);
+   state.compareImagesDraft.push(...urls);
 
    // 🔄 re-render preview ผ่าน state (มีปุ่ม ❌)
    const wrap = document.getElementById("comparePreview");
    if (wrap) {
-     wrap.innerHTML = state.admin.productEdit.compareImagesDraft.map((url, idx) => `
+     wrap.innerHTML = state.compareImagesDraft.map((url, idx) => `
        <div style="position:relative">
          <img src="${escapeHtml(url)}"
               style="
@@ -5593,10 +5558,10 @@ async function submitProductEdit(){
   const detailsText =
   document.getElementById("editDetailsText")?.value.trim() || "";
 
-  const compareImages =
-    Array.isArray(state.admin.productEdit.compareImagesDraft)
-      ? state.admin.productEdit.compareImagesDraft.join(",")
-      : "";
+ const compareImages =
+   Array.isArray(state.compareImagesDraft)
+     ? state.compareImagesDraft.join(",")
+     : "";
 
   // 🔒 Validate
   if (
@@ -5647,13 +5612,13 @@ async function submitProductEdit(){
     showLoading("กำลังบันทึกการแก้ไขสินค้า...");
 
     // ถ้ามีการเลือกภาพใหม่ → upload ก่อน
-     if (state.admin.productEdit.imageFile) {
-       validateProductImageFile(state.admin.productEdit.imageFile);
-       imageUrl = await uploadProductImage(state.admin.productEdit.imageFile);
-       if (!imageUrl) {
-         throw new Error("ไม่สามารถอัปโหลดรูปได้");
-       }
-     }
+    if (state.editImageFile) {
+      validateProductImageFile(state.editImageFile);
+      imageUrl = await uploadProductImage(state.editImageFile);
+      if (!imageUrl) {
+        throw new Error("ไม่สามารถอัปโหลดรูปได้");
+      }
+    }
 
     // Update product
     const form = new URLSearchParams();
@@ -5675,11 +5640,10 @@ async function submitProductEdit(){
 
     showToast("บันทึกการแก้ไขเรียบร้อย", "success");
 
-     state.admin.selectedProduct = null;
+    state.selectedProduct = null;
 
     // cleanup
-     state.admin.productEdit.imageFile = null;
-     state.admin.productEdit.compareImagesDraft = [];
+    state.editImageFile = null;
     closeProductEdit();
     await refreshProducts();
     await refreshAdminAuditSnapshot();
@@ -5707,7 +5671,7 @@ function confirmDeleteProduct() {
   if (state.mode !== "admin") return;
   if (state.admin.isSubmitting) return;
 
-  const p = state.admin.selectedProduct;
+  const p = state.selectedProduct;
   if (!p) return;
 
   // 🔒 กันลบซ้ำ
@@ -5746,7 +5710,7 @@ function confirmDeleteProduct() {
 async function deleteProduct() {
   if (state.admin.isSubmitting) return;
 
-  const p = state.admin.selectedProduct;
+  const p = state.selectedProduct;
   if (!p || !state.admin.token) return;
 
   state.admin.isSubmitting = true;
@@ -5766,7 +5730,7 @@ async function deleteProduct() {
     closeProductEdit();
 
     // 🔒 clear selection ก่อน sync
-    state.admin.selectedProduct = null;
+    state.selectedProduct = null;
 
     // 🔄 refresh สินค้า
     await refreshProducts();
@@ -5881,14 +5845,14 @@ async function submitAddProduct(btn){
     /* ================= IMAGE UPLOAD ================= */
 
     let imageUrl = "";
-    if (state.admin.addProduct.imageFile) {
-       validateProductImageFile(state.admin.addProduct.imageFile);
-       showLoading("กำลังอัปโหลดรูปสินค้า...");
-       imageUrl = await uploadProductImage(state.admin.addProduct.imageFile);
-       if (!imageUrl) {
-         throw new Error("อัปโหลดรูปไม่สำเร็จ");
-       }
-     }
+    if (state.addImageFile) {
+      validateProductImageFile(state.addImageFile);
+      showLoading("กำลังอัปโหลดรูปสินค้า...");
+      imageUrl = await uploadProductImage(state.addImageFile);
+      if (!imageUrl) {
+        throw new Error("อัปโหลดรูปไม่สำเร็จ");
+      }
+    }
 
     /* ================= SEND TO BACKEND ================= */
     showLoading("กำลังบันทึกข้อมูลสินค้า...");
@@ -5914,7 +5878,7 @@ async function submitAddProduct(btn){
 
     showToast("เพิ่มสินค้าเรียบร้อย 🎉", "success");
 
-    state.admin.addProduct.imageFile = null;
+    state.addImageFile = null;
 // 🧠 SMART MODE SAVE (จำค่าล่าสุดเสมอ)
  state.smartAddDraft = {
    name: "",
@@ -5949,7 +5913,7 @@ async function submitAddProduct(btn){
      fileInput.value = "";
    }
   
-   state.admin.addProduct.imageFile = null;
+   state.addImageFile = null;
    document.getElementById("addProductId").focus();
    document.getElementById("addProductId").select();
  } else {
@@ -6514,7 +6478,7 @@ function exportOrderPrint() {
           window.print();
           window.onafterprint = function() {
          
-    // 🔥 ปิด confirmSheet อัตโนมัติ (Safe + Clear State)
+// 🔥 ปิด confirmSheet อัตโนมัติ (Safe + Clear State)
     if (window.opener && window.opener.closeOverlay) {
       const sheet = window.opener.document.getElementById("confirmSheet");
       if (sheet) {
@@ -6522,10 +6486,9 @@ function exportOrderPrint() {
       }
 
       // 🔴 NEW: clear lastOrder เพื่อกัน reopen state ค้าง
-      if (window.opener.state?.viewer) {
-        window.opener.state.viewer.lastOrder = null;
+      if (window.opener.state) {
+        window.opener.state.lastOrder = null;
       }
-
 
       // 🔴 NEW: reset backdrop lock กันค้าง
       if (window.opener.state?.ui) {
@@ -6563,7 +6526,7 @@ function finishAdminAction({ refresh = true } = {}) {
   allowOpenAddProduct = false;
 
   // 🔍 RESET SEARCH (กัน filter ค้าง)
-  state.admin.search = "";
+  state.search = "";
 
   // 🔄 optional refresh สินค้า
   if (refresh) {
@@ -6624,26 +6587,26 @@ function clearAdminSession(){
   state.admin.logs = [];
   state.admin.ui.activeSheet = null;
   state.admin.isSubmitting = false;
+  state.isSubmitting = false;
 }
 
- function exitAdmin(opts = {}){
-   const { silent = false } = opts;
+function exitAdmin(opts = {}){
+  const { silent = false } = opts;
 
-   // 1) ปลดล็อก backdrop / loading เสมอ (กันค้าง)
-   state.overlay.locked = false;
-   safeHideLoading();
+  // 1) ปลดล็อก backdrop / loading เสมอ (กันค้าง)
+  state.ui.backdropLocked = false;
+  safeHideLoading();
 
-   // 2) ปิด overlay/sheet ทุกตัวแบบ force (กัน overlayCount เพี้ยน)
-   const sheets = [
-     ...getAdminSheets(),
-     productSheet,
-     confirmSheet
-   ];
+  // 2) ปิด overlay/sheet ทุกตัวแบบ force (กัน overlayCount เพี้ยน)
+  const sheets = [
+    ...getAdminSheets(),
+    productSheet,
+    confirmSheet
+  ];
 
-   sheets.forEach(el => el.classList.remove("show"));
-   state.overlay.count = 0;
-   state.overlay.activeSheet = null;
-   backdrop.style.display = "none";
+  sheets.forEach(el => el.classList.remove("show"));
+  state.ui.overlayCount = 0;
+  backdrop.style.display = "none";
 
   // 3) ล้าง session (จุดเดียว)
   clearAdminSession();
@@ -6653,12 +6616,10 @@ function clearAdminSession(){
   state.admin.ui.activeSheet = null;
 
   // 5) เคลียร์ selection/admin draft ที่อาจทำให้หลุด flow
-  state.viewer.selectedProduct = null;
-  state.admin.selectedProduct = null;
-  state.admin.productEdit.imageFile = null;
-  state.admin.productEdit.compareImagesDraft = [];
-   state.addImageFile = null;
-   state.smartAddDraft = {
+  state.selectedProduct = null;
+  state.editImageFile = null;
+  state.addImageFile = null;
+  state.smartAddDraft = {
     name: "",
     price: "",
     costPrice: "",
@@ -6681,19 +6642,14 @@ window.forceUnlockUI = function(){
   console.warn('[forceUnlockUI] manual reset');
 
   // reset flags
-  state.viewer.order.isSubmitting = false;
-  state.admin.isSubmitting = false;
-  state.overlay.locked = false;
-  state.overlay.count =
-     document.querySelectorAll(".sheet.show, .side-menu.show").length;
+  state.isSubmitting = false;
+  state.ui.backdropLocked = false;
+  state.ui.overlayCount =
+    document.querySelectorAll(".sheet.show, .side-menu.show").length;
   // close all overlays
   document
     .querySelectorAll(".sheet.show, .side-menu.show")
     .forEach(el => el.classList.remove("show"));
-
-  state.overlay.count = 0;
-  state.overlay.activeSheet = null;
-  state.feedback.loading = false; 
 
   // hide loading overlay
   const overlay = document.getElementById("loading-overlay");
@@ -6809,7 +6765,7 @@ if (header){
   /* ================= BACK TO TOP SHOW/HIDE ================= */
   if (topBtn){
     // ✅ โผล่เมื่อเลื่อนลงพอสมควร และไม่มี overlay เปิดอยู่
-    const shouldShow = currentY > 600 && state.overlay.count === 0;
+    const shouldShow = currentY > 600 && state.ui.overlayCount === 0;
     topBtn.classList.toggle("show", shouldShow);
   }
 
