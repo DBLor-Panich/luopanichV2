@@ -4140,6 +4140,24 @@ async function openStockTimeline(force = false) {
     const money = (value) => `฿${Number(value || 0).toLocaleString("th-TH")}`;
     const esc = (value) => escapeHtml(value ?? "");   
 
+    // ✅ ensure orders พร้อมใช้สำหรับ fallback ราคา/ยอดรวม
+    if (!Array.isArray(state.admin.orders) || state.admin.orders.length === 0) {
+      try {
+        const freshOrders = await fetchOrders();
+        state.admin.orders = Array.isArray(freshOrders) ? freshOrders : [];
+      } catch (orderErr) {
+        console.warn("openStockTimeline: preload orders failed", orderErr);
+      }
+    }
+   
+    // ✅ fallback ราคา/ยอดรวมจาก order จริง ถ้า stock log ไม่มีราคา
+    const orderLookup = new Map(
+      (Array.isArray(state.admin.orders) ? state.admin.orders : []).map(o => [
+        String(o.orderId || "").trim(),
+        o
+      ])
+    );   
+
     /* ================= GROUP ORDER OUT ================= */
     const orderMap = {};
     const singles = [];
@@ -4151,13 +4169,32 @@ async function openStockTimeline(force = false) {
   const orderRef = l.orderId || l.ref || null;
 
   if (l.type === "OUT" && orderRef) {
+    const matchedOrder = orderLookup.get(String(orderRef).trim());
+    const matchedOrderItem = Array.isArray(matchedOrder?.items)
+      ? matchedOrder.items.find(item =>
+          String(item.productId || "").trim() === String(l.productId || "").trim()
+        )
+      : null;
+
+    const fallbackSalePrice = Number(
+      l.salePrice ??
+      l.price ??
+      matchedOrderItem?.price ??
+      0
+    );
+
+    const fallbackLineTotal = Number(
+      l.lineTotal ??
+      (fallbackSalePrice * Math.abs(Number(l.qty || 0)))
+    );
+   
     if (!orderMap[orderRef]) {
       orderMap[orderRef] = {
         orderId: orderRef,
         time,
         by: l.by || "-",
         note: l.note || l.reason || "",
-        totalSalesAmount: 0,       
+        totalSalesAmount: Number(matchedOrder?.total || 0),
         items: []
       };
     }
@@ -4171,10 +4208,10 @@ async function openStockTimeline(force = false) {
       orderMap[orderRef].time = time;
     }
 
-    orderMap[orderRef].totalSalesAmount += Number(
-      l.lineTotal ??
-      ((Number(l.salePrice ?? l.price ?? 0)) * Math.abs(Number(l.qty || 0)))
-    );   
+    // ✅ ถ้า order.total ไม่มี ค่อยสะสมจากรายการย่อย
+    if (!Number(orderMap[orderRef].totalSalesAmount)) {
+      orderMap[orderRef].totalSalesAmount += fallbackLineTotal;
+    }   
 
     orderMap[orderRef].items.push({
       productId: l.productId,
@@ -4182,11 +4219,8 @@ async function openStockTimeline(force = false) {
       qty: Math.abs(Number(l.qty || 0)),
       before: l.before,
       after: l.after,
-      salePrice: Number(l.salePrice ?? l.price ?? 0),
-      lineTotal: Number(
-        l.lineTotal ??
-        ((Number(l.salePrice ?? l.price ?? 0)) * Math.abs(Number(l.qty || 0)))
-      )
+      salePrice: fallbackSalePrice,
+      lineTotal: fallbackLineTotal
     });
   } else {
     singles.push({
