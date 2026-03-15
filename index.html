@@ -4162,6 +4162,10 @@ async function openStockTimeline(force = false) {
       };
     }
 
+    if (!orderMap[orderRef].note && (l.note || l.reason)) {
+      orderMap[orderRef].note = l.note || l.reason || "";
+    }   
+
     // ใช้เวลาล่าสุดของ item ใน order เดียวกัน
     if (time.getTime() > orderMap[orderRef].time.getTime()) {
       orderMap[orderRef].time = time;
@@ -4261,7 +4265,7 @@ async function openStockTimeline(force = false) {
                         ${i.productName ? ` — ${esc(i.productName)}` : ""}
                         x ${Number(i.qty || 0)}
                         ${
-                          Number.isFinite(i.before)
+                          Number.isFinite(Number(i.before))
                             ? `<span class="timeline-muted">
                                 (${i.before} → ${i.after})
                               </span>`
@@ -4300,7 +4304,7 @@ async function openStockTimeline(force = false) {
                               ${esc(i.productId)}
                               ${i.productName ? ` — ${esc(i.productName)}` : ""} |
                               ${Number(i.qty || 0)} ชิ้น
-                              ${Number.isFinite(i.before) ? ` | ${i.before} → ${i.after}` : ""}
+                              ${Number.isFinite(Number(i.before)) ? ` | ${i.before} → ${i.after}` : ""}
                               | ${money(i.salePrice)}/ชิ้น
                               | รวม ${money(i.lineTotal)}
                             </div>
@@ -4337,7 +4341,7 @@ async function openStockTimeline(force = false) {
                     ${t.productName ? ` — ${esc(t.productName)}` : ""}
                     ${Number.isFinite(Number(t.qty)) ? ` x ${Math.abs(Number(t.qty))}` : ""}
                     ${
-                      Number.isFinite(t.before)
+                      Number.isFinite(Number(t.before))
                         ? ` (${t.before} → ${t.after})`
                         : ""
                     }
@@ -4927,7 +4931,7 @@ function openAddProduct(force = false){
       border-radius:12px;
       padding:10px 12px;
     "
-  <textarea id="addNote">${safeNote}</textarea>
+  >${safeNote}</textarea>
 </div>
 
     <div class="form-group">
