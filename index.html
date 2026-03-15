@@ -220,7 +220,23 @@ header.scrolled{
     inset 0 1px 0 rgba(255,255,255,.35);
   }
   .container{padding:16px;display:grid;gap:16px;}
-  
+
+.pagination{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:8px;
+  padding:12px 0 calc(env(safe-area-inset-bottom) + 8px);
+}
+
+.pagination-info{
+  flex:1;
+  text-align:center;
+  font-size:14px;
+  color:rgba(245,245,247,.92);
+  line-height:1.35;
+}
   .card{
   background: rgba(28,28,30,.72);
   backdrop-filter: blur(20px) saturate(160%);
@@ -1962,6 +1978,11 @@ Object.assign(window, {
 const state = {
   mode: "viewer",
 
+  pagination: {
+    page: 1,
+    pageSize: 100
+  },
+ 
   viewerFilter: {
     status: "all"
   },
@@ -2852,8 +2873,7 @@ function renderProducts(){
     return;
   }
 
-  app.innerHTML = "";
-  let found = false;
+  const filteredProducts = [];
 
   state.products.forEach(p => {
     const stockNum = Number(p.stock);
@@ -2890,18 +2910,36 @@ if (
     ) {
       if (resolvedStatus !== state.admin.filters.status) return;
     } 
-    
-/* ================= STATUS LOGIC ================= */
-const statusMap = {
-  ready:     "พร้อมส่ง",
-  shipping:  "อยู่ระหว่างจัดส่ง",
-  warehouse: "อยู่โกดังไทย",
-  out:       "หมด"
-};
 
-const statusKey = resolvedStatus;
-let statusClass = statusKey;
-let statusText  = statusMap[statusKey] || "พร้อมส่ง";
+    filteredProducts.push({
+      ...p,
+      resolvedStatus
+    });
+  });
+
+  const pageSize = Number(state.pagination?.pageSize) || 100;
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(Math.max(1, Number(state.pagination?.page) || 1), totalPages);
+  state.pagination.page = safePage;
+
+  const startIndex = (safePage - 1) * pageSize;
+  const pageItems = filteredProducts.slice(startIndex, startIndex + pageSize);
+
+  app.innerHTML = "";
+  let found = false;
+
+  pageItems.forEach(p => {
+    const statusMap = {
+      ready:     "พร้อมส่ง",
+      shipping:  "อยู่ระหว่างจัดส่ง",
+      warehouse: "อยู่โกดังไทย",
+      out:       "หมด"
+    };
+ 
+    const statusKey = p.resolvedStatus;
+    let statusClass = statusKey;
+    let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
     /* ================= CARD ================= */
     const card = document.createElement("div");
@@ -2951,9 +2989,54 @@ let statusText  = statusMap[statusKey] || "พร้อมส่ง";
         ไม่พบสินค้าที่ค้นหา
       </div>
     `;
+    return;   
   }
+
+  if (totalItems > pageSize) {
+    const pagination = document.createElement("div");
+    pagination.className = "pagination";
+    pagination.innerHTML = `
+      <button
+        class="btn btn-outline"
+        style="width:auto;padding:10px 14px"
+        ${safePage === 1 ? "disabled" : ""}
+        onclick="changePage(-1)">
+        ก่อนหน้า
+      </button>
+
+      <div class="pagination-info">
+        หน้า ${safePage} / ${totalPages}
+        <br>
+        <span style="font-size:12px;color:rgba(235,235,245,.72)">
+          ${totalItems.toLocaleString()} รายการ
+        </span>
+      </div>
+
+      <button
+        class="btn btn-outline"
+        style="width:auto;padding:10px 14px"
+        ${safePage === totalPages ? "disabled" : ""}
+        onclick="changePage(1)">
+        ถัดไป
+      </button>
+    `;
+    app.appendChild(pagination);
+  } 
 }
 
+function changePage(delta){
+  const nextPage = (Number(state.pagination.page) || 1) + Number(delta || 0);
+  if (nextPage < 1) return;
+
+  state.pagination.page = nextPage;
+  renderProducts();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+Object.assign(window, {
+  changePage
+});
+ 
 function renderProductSheet(){
   const p = state.selectedProduct;
   if (!productSheet || !p) return;
@@ -3341,6 +3424,7 @@ function toggleViewerSearch(triggerEl){
   if(opened){
     input.value = "";
     state.search = "";
+    state.pagination.page = 1;
     state.viewerSearchOpen = false;
     renderProducts();
     wrap.classList.remove("active");
@@ -3377,6 +3461,7 @@ function toggleAdminSearch(triggerEl){
   
 function handleSearch(keyword){
   state.search = keyword.toLowerCase();
+  state.pagination.page = 1;
   renderProducts();
 }
 
@@ -3390,6 +3475,7 @@ function setViewerStatus(status){
   if(!status) return;
 
   state.viewerFilter.status = status;
+  state.pagination.page = 1;
 
   // 🔄 sync UI pill
   renderHeader();
@@ -3406,6 +3492,7 @@ function setAdminStatus(status){
   if(!status) return;
 
   state.admin.filters.status = status;
+  state.pagination.page = 1;
 
   renderHeader();
   renderProducts();
@@ -3482,6 +3569,7 @@ function openAdminEntry(){
 async function enterAdmin(){
   state.mode = "admin";
   state.search = ""; // ✅ reset
+  state.pagination.page = 1;
   state.viewerSearchOpen = false;
 
   // 🔴 CHANGED: render โครงก่อน เพื่อให้ header/admin mode ถูกต้อง
