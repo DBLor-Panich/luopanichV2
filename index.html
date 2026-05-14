@@ -2869,6 +2869,15 @@ function renderFloatingBar(){
   const bar = document.getElementById("floatingBar");
   if (!bar) return;
 
+ // 🔴 CHANGED: STEP 2 LOCK MODE GUARD
+ if (
+   state.mode === "locked" &&
+   state.viewerAuthorized !== true
+ ) {
+   bar.classList.remove("show");
+   return;
+ }
+
   // show เฉพาะ viewer + มีของในตะกร้า
   const hasItems = Array.isArray(state.cart) && state.cart.length > 0;
 
