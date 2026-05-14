@@ -7664,6 +7664,9 @@ const __domReady = new Promise((resolve) => {
  if (loadViewerSession()) {
    state.viewerAuthorized = true;
    state.mode = "viewer";
+
+   // 🔴 CHANGED: STEP 4 REMEMBER SESSION
+   saveViewerSession();  
  }
    
  // 🔴 CHANGED: STEP 2 VIEWER PASSCODE
