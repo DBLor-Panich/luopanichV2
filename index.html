@@ -2872,6 +2872,15 @@ function renderFloatingBar(){
   // show เฉพาะ viewer + มีของในตะกร้า
   const hasItems = Array.isArray(state.cart) && state.cart.length > 0;
 
+ // 🔴 CHANGED: STEP 2 LOCK MODE
+ if (
+   state.mode === "locked" &&
+   state.viewerAuthorized !== true
+ ) {
+   bar.classList.remove("show");
+   return;
+ }
+
  const isViewer =
    state.mode === "viewer" &&
    state.viewerAuthorized === true;
@@ -5695,6 +5704,15 @@ function closeMainMenu(){
  
 /* ================= VIEWER FLOW ================= */
 function openProduct(p){
+
+ // 🔴 CHANGED: STEP 2 VIEWER PASSCODE GUARD
+ if (
+   state.mode === "locked" &&
+   state.viewerAuthorized !== true
+ ) {
+   showToast("กรุณาใส่รหัสผ่านก่อน", "warning");
+   return;
+ }
   // 🔴 ADMIN FLOW
   // แอดมิน → ไม่เปิด product sheet แบบผู้ใช้
   if (state.mode === "admin") {
@@ -7568,7 +7586,14 @@ const __domReady = new Promise((resolve) => {
     // ✅ ADD: wait until #floatingBar / #btnTop / etc are in DOM
     await __domReady;
     // 🔴 CHANGED (STEP A5): Reload ต้องกลับ Viewer เสมอ (แม้ restore admin สำเร็จ)
-    state.mode = "viewer";
+
+ // 🔴 CHANGED: STEP 2 VIEWER PASSCODE
+ // ห้าม bypass lock mode ตอน reload
+ if (state.viewerAuthorized === true) {
+   state.mode = "viewer";
+ } else {
+   state.mode = "locked";
+ }
     state.search = "";
 
     const restored = loadAdminSession();
