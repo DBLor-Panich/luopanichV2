@@ -2881,15 +2881,6 @@ function renderFloatingBar(){
   // show เฉพาะ viewer + มีของในตะกร้า
   const hasItems = Array.isArray(state.cart) && state.cart.length > 0;
 
- // 🔴 CHANGED: STEP 2 LOCK MODE
- if (
-   state.mode === "locked" &&
-   state.viewerAuthorized !== true
- ) {
-   bar.classList.remove("show");
-   return;
- }
-
  const isViewer =
    state.mode === "viewer" &&
    state.viewerAuthorized === true;
