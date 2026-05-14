@@ -2123,6 +2123,8 @@ const state = {
 
 const CART_KEY = "luopanich_cart";
 const LAST_ORDER_KEY = "luopanich_last_order"; 
+ // 🔴 CHANGED: STEP 4 VIEWER SESSION
+ const VIEWER_SESSION_KEY = "luopanich_viewer_session"; 
 
 function escapeHtml(value = "") {
   return String(value)
@@ -2239,7 +2241,57 @@ function loadLastOrder() {
 function clearLastOrderStorage() {
   localStorage.removeItem(LAST_ORDER_KEY);
 }
- 
+
+ // ================= VIEWER SESSION =================
+
+ function saveViewerSession() {
+   try {
+     const payload = {
+       authorized: true,
+       expiredAt: Date.now() + (12 * 60 * 60 * 1000)
+     };
+
+     localStorage.setItem(
+       VIEWER_SESSION_KEY,
+       JSON.stringify(payload)
+     );
+
+   } catch (e) {
+     console.warn("saveViewerSession failed", e);
+   }
+ }
+
+ function loadViewerSession() {
+   try {
+     const raw = localStorage.getItem(VIEWER_SESSION_KEY);
+     if (!raw) return false;
+
+     const parsed = JSON.parse(raw);
+
+     if (
+       !parsed ||
+       parsed.authorized !== true ||
+       !parsed.expiredAt
+     ) {
+       return false;
+     }
+
+     if (Date.now() > Number(parsed.expiredAt)) {
+       clearViewerSession();
+       return false;
+     }
+
+     return true;
+
+   } catch (e) {
+     console.warn("loadViewerSession failed", e);
+     return false;
+   }
+ }
+
+ function clearViewerSession() {
+   localStorage.removeItem(VIEWER_SESSION_KEY);
+ } 
 
 /* ================= SKU AUTO RUN UTILITY ================= */
 // 🔴 ADDED: หา SKU ถัดไปจาก state.products เช่น A001 -> A002
@@ -7608,6 +7660,12 @@ const __domReady = new Promise((resolve) => {
     await __domReady;
     // 🔴 CHANGED (STEP A5): Reload ต้องกลับ Viewer เสมอ (แม้ restore admin สำเร็จ)
 
+ // 🔴 CHANGED: STEP 4 AUTO RESTORE VIEWER SESSION
+ if (loadViewerSession()) {
+   state.viewerAuthorized = true;
+   state.mode = "viewer";
+ }
+   
  // 🔴 CHANGED: STEP 2 VIEWER PASSCODE
  // ห้าม bypass lock mode ตอน reload
  if (state.viewerAuthorized === true) {
