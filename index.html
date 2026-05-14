@@ -218,6 +218,8 @@ header.scrolled{
   box-shadow:
     0 10px 24px rgba(0,0,0,.14),
     inset 0 1px 0 rgba(255,255,255,.35);
+  margin-left:8px;
+  flex-shrink:0;   
   }
   .container{padding:16px;display:grid;gap:16px;}
 
@@ -281,7 +283,7 @@ header.scrolled{
   border-radius: 22px 22px 0 0;
   box-shadow: var(--shadow-float);
 
-  padding: 20px 20px 24px; /* เว้นล่างให้หายอึดอัด */
+  padding: 16px 16px 24px; /* ลดด้านข้างให้พอดีมือถือมากขึ้น */
 
   /* ✅ CORE FIX */
   max-height: calc(100dvh - 40px);   /* ใช้ dvh แทน vh */
@@ -461,6 +463,84 @@ button:disabled {
   transform: scale(var(--tap-scale-primary));
 }
 
+.admin-sheet-topbar{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:12px;
+  width:100%;
+}
+
+.admin-sheet-topbar .back-btn{
+  width:auto;
+  flex:0 0 auto;
+  padding:10px 14px;
+  min-height:44px;
+  align-self:flex-start;
+}
+
+.admin-sheet-topbar h3{
+  margin:0;
+  flex:1;
+  min-width:0;
+  line-height:1.2;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+
+.dashboard-title-main,
+.dashboard-title-sub{
+  display:block;
+}
+
+.dashboard-title-sub{
+  margin-top:4px;
+  font-size:16px;
+  font-weight:600;
+  color:rgba(235,235,245,.82);
+}
+
+.dashboard-filter-wrap{
+  width:100%;
+  max-width:100%;
+  margin:0 auto 14px;
+  box-sizing:border-box;
+}
+
+.dashboard-filter-wrap .form-group{
+  margin-left:0;
+  margin-right:0;
+}
+ 
+.dashboard-filter-wrap .form-group input{
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+} 
+
+@media (max-width: 480px){
+  .admin-sheet-topbar{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    align-items:start;
+    gap:12px;
+  }
+
+  .admin-sheet-topbar .back-btn{
+    padding:10px 12px;
+    font-size:14px;
+  }
+
+  .admin-sheet-topbar h3{
+    font-size:18px;
+  }
+
+  .dashboard-title-sub{
+     font-size:15px;
+   
+  } 
+}
+ 
   .cart-item{
   display:flex;
   justify-content:space-between;
@@ -1964,7 +2044,8 @@ Object.assign(window, {
   cancelAdminLogin,
   closeMainMenu,
   closeAddProduct,
-  closeProduct
+  closeProduct,
+  reopenLastOrderSheet
 });
 
 // 🔒 Intent guards (STEP 2)
@@ -2007,7 +2088,9 @@ const state = {
     selectedOrder: null,
     logs: [],
     filters: {
-      status: "all"
+      status: "all",
+      dashboardFrom: "",
+      dashboardTo: ""
     },
     ui: {
       activeSheet: null
@@ -2035,6 +2118,7 @@ const state = {
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
 
 const CART_KEY = "luopanich_cart";
+const LAST_ORDER_KEY = "luopanich_last_order"; 
 
 function escapeHtml(value = "") {
   return String(value)
@@ -2070,6 +2154,88 @@ function loadCart() {
 function clearCartStorage() {
   localStorage.removeItem(CART_KEY);
 }  
+ 
+state.lastOrder = loadLastOrder();
+
+function renderLastOrderSheet() {
+  const order = state.lastOrder;
+  if (!order) {
+    showToast("ไม่พบบิลล่าสุด", "warning");
+    return;
+  }
+
+  confirmSheet.innerHTML = `
+    <h3>บิลล่าสุด</h3>
+    <div style="margin-top:12px">
+      เลขที่ใบสั่งซื้อ: ${escapeHtml(order.orderId)}
+    </div>
+    <div style="margin-top:6px;color:rgba(235,235,245,.72);font-size:14px">
+      PO: ${escapeHtml(order.poNumber || "-")}
+    </div>
+    <button class="btn btn-primary"
+      style="margin-top:16px"
+      onclick="exportOrderPrint()">
+      ดาวน์โหลดใบสั่งซื้อ
+    </button>
+    <button class="btn btn-secondary"
+      style="margin-top:8px"
+      onclick="
+        state.ui.backdropLocked = false;
+        closeOverlay(confirmSheet);
+      ">
+      ปิด
+    </button>
+  `;
+}
+
+function reopenLastOrderSheet() {
+  const adminValid =
+    state.mode === "admin" &&
+    state.admin?.loggedIn &&
+    state.admin?.token &&
+    !isAdminSessionExpired();
+
+  if (!adminValid) {
+    showToast("เฉพาะแอดมินเท่านั้นที่เปิดบิลล่าสุดได้", "warning");
+    return;
+  }
+
+  if (!state.lastOrder) {
+    showToast("ยังไม่มีบิลล่าสุดให้เรียกดู", "warning");
+    return;
+  }
+
+  renderLastOrderSheet();
+  openOverlay(confirmSheet);
+}
+ 
+function saveLastOrder() {
+  try {
+    if (!state.lastOrder) return;
+    localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(state.lastOrder));
+  } catch (e) {
+    console.warn("saveLastOrder failed", e);
+  }
+}
+
+function loadLastOrder() {
+  try {
+    const raw = localStorage.getItem(LAST_ORDER_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.orderId) return null;
+    return parsed;
+  } catch (e) {
+    console.warn("loadLastOrder failed", e);
+    return null;
+  }
+}
+
+function clearLastOrderStorage() {
+  localStorage.removeItem(LAST_ORDER_KEY);
+}
+ 
 
 /* ================= SKU AUTO RUN UTILITY ================= */
 // 🔴 ADDED: หา SKU ถัดไปจาก state.products เช่น A001 -> A002
@@ -2410,7 +2576,8 @@ async function createOrder() {
   form.append("action", "createOrder");
   form.append("items", JSON.stringify(state.cart));
   form.append("total", total);
-
+  form.append("poNumber", String(state.poNumber || "").trim());
+ 
   // ใช้ fetchWithTimeout เพื่อป้องกัน request แขวน
   const res = await fetchWithTimeout(API_URL, {
     method: "POST",
@@ -3206,12 +3373,14 @@ function renderConfirmSheet(){
     <div class="total">ยอดรวม: ฿${total}</div>
 
     <div class="form-group" style="margin-top:12px">
-     <label>เลข PO (ถ้ามี)</label>
-     <input
-       id="poInput"
-       placeholder="กรอกเลข PO"
-       oninput="state.poNumber = this.value.trim()">
-   </div>
+     <label>เลข PO <span style="color:#ff3b30">*</span></label>
+      <input
+        id="poInput"
+        value="${esc(state.poNumber || "")}"
+        placeholder="กรอกเลข PO"
+        required
+        oninput="state.poNumber = this.value.trim()">
+    </div>
 
 
 <button class="btn btn-primary"
@@ -4074,11 +4243,109 @@ async function handleAdminLogin(btn){
   }
 }
 
-async function openAdminDashboard(mode = "PENDING", force = false) {
-  // ❌ ต้องมี intent จริง
+function toYmdLocal(value) {
+  const d = value ? new Date(value) : new Date();
+  if (Number.isNaN(d.getTime())) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getOrderDateValue(order) {
+  return (
+    order?.createdAt ||
+    order?.created_at ||
+    order?.timestamp ||
+    order?.date ||
+    ""
+  );
+}
+
+function isOrderInRange(order, fromYmd, toYmd) {
+  const raw = getOrderDateValue(order);
+  if (!raw) return false;
+
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return false;
+
+  const orderYmd = toYmdLocal(d);
+  if (fromYmd && orderYmd < fromYmd) return false;
+  if (toYmd && orderYmd > toYmd) return false;
+  return true;
+}
+
+function getDashboardProductCostMap() {
+  return new Map(
+    (Array.isArray(state.products) ? state.products : []).map(p => [
+      String(p.productId || "").trim(),
+      Number(p.costPrice || 0)
+    ])
+  );
+}
+
+function calculateDashboardSummary(orders) {
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const productCostMap = getDashboardProductCostMap();
+
+  let totalSales = 0;
+  let totalCost = 0;
+  let totalProfit = 0;
+  let totalQty = 0;
+
+  safeOrders.forEach(order => {
+    const items = Array.isArray(order.items) ? order.items : [];
+
+    items.forEach(item => {
+      const qty = Number(item.qty || 0);
+      const sellPrice = Number(item.price || 0);
+      const fallbackCost = productCostMap.get(String(item.productId || "").trim()) || 0;
+      const costPrice = Number(
+        item.costPrice ?? item.unitCost ?? fallbackCost
+      );
+
+      const lineSales = sellPrice * qty;
+      const lineCost = costPrice * qty;
+
+      totalSales += lineSales;
+      totalCost += lineCost;
+      totalProfit += (lineSales - lineCost);
+      totalQty += qty;
+    });
+  });
+
+  return {
+    orderCount: safeOrders.length,
+    totalQty,
+    totalSales,
+    totalCost,
+    totalProfit
+  };
+}
+
+function applyAdminDashboardRange() {
+  const from = document.getElementById("dashboardDateFrom")?.value || "";
+  const to = document.getElementById("dashboardDateTo")?.value || "";
+
+  state.admin.filters.dashboardFrom = from;
+  state.admin.filters.dashboardTo = to;
+
+  openAdminDashboard("SUMMARY", true);
+}
+
+function resetAdminDashboardRange() {
+  const today = toYmdLocal(new Date());
+  const firstDay = today.slice(0, 8) + "01";
+
+  state.admin.filters.dashboardFrom = firstDay;
+  state.admin.filters.dashboardTo = today;
+
+  openAdminDashboard("SUMMARY", true);
+}
+
+async function openAdminDashboard(mode = "SUMMARY", force = false) {
   if (!force && !allowOpenOrders) return;
 
-  // 🔐 session guard (ก่อนเปิด UI)
   if (
     !state.admin.loggedIn ||
     !state.admin.token ||
@@ -4089,55 +4356,153 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
     return;
   }
 
-  // 🔒 ใช้แล้วปิดทันที (กันเด้งซ้ำ)
   allowOpenOrders = false;
-
-  // ✅ ปิด Stock Timeline
   closeOverlay(adminStockSheet);
-
-  // 🔍 reset search
   state.search = "";
 
-  // ✅ Loading UI
-  adminDashboardSheet.innerHTML = `
-    <h3>${mode === "PENDING"
-      ? "Orders (รอดำเนินการ)"
-      : "Order History"}</h3>
+  const today = toYmdLocal(new Date());
+  const firstDay = today.slice(0, 8) + "01";
 
-    <div class="loading">กำลังโหลดรายการ</div>
+  if (!state.admin.filters.dashboardFrom) {
+    state.admin.filters.dashboardFrom = firstDay;
+  }
+  if (!state.admin.filters.dashboardTo) {
+    state.admin.filters.dashboardTo = today;
+  }
+
+  adminDashboardSheet.innerHTML = `
+    <h3>📊 Admin Dashboard</h3>
+    <div class="loading">กำลังโหลดข้อมูล</div>
   `;
 
   openOverlay(adminDashboardSheet);
 
   try {
+    if (!Array.isArray(state.products) || state.products.length === 0) {
+      await refreshProducts();
+    }
+
     state.admin.orders = await fetchOrders();
 
-    const orders = state.admin.orders.filter(o =>
-      mode === "PENDING"
-        ? o.status === "PENDING"
-        : o.status !== "PENDING"
-    );
+    const from = state.admin.filters.dashboardFrom || "";
+    const to = state.admin.filters.dashboardTo || "";
+
+    const approvedOrders = (Array.isArray(state.admin.orders)
+      ? state.admin.orders
+      : []
+    ).filter(o => {
+      const status = String(o.status || "").toUpperCase();
+      return status === "APPROVED" && isOrderInRange(o, from, to);
+    });
+
+    const pendingOrders = (Array.isArray(state.admin.orders)
+      ? state.admin.orders
+      : []
+    ).filter(o => String(o.status || "").toUpperCase() === "PENDING");
+
+    const pendingCount = (Array.isArray(state.admin.orders)
+      ? state.admin.orders
+      : []
+    ).filter(o => String(o.status || "").toUpperCase() === "PENDING").length;
+
+    const summary = calculateDashboardSummary(approvedOrders);
+
+    if (mode === "PENDING") {
+      adminDashboardSheet.innerHTML = `
+        <div class="admin-sheet-topbar">
+          <button class="btn btn-outline back-btn"
+            onclick="backToAdminMainMenu()">
+            ← กลับเมนู
+          </button>
+          <h3>📦 Pending Orders</h3>
+        </div>
+
+        ${
+          pendingOrders.length
+            ? pendingOrders.map(o => `
+                <div class="card" onclick="openAdminOrder('${escAttr(o.orderId)}')">
+                  <div class="name">${esc(o.orderId)}</div>
+                  <div>Status: ${esc(o.status)}</div>
+                  <div>Total: ฿${Number(o.total || 0).toLocaleString("th-TH")}</div>
+                  <div class="stock">วันที่: ${esc(getOrderDateValue(o) || "-")}</div>
+                </div>
+              `).join("")
+            : `
+              <div style="color:#888;text-align:center;margin-top:24px">
+                ไม่มีออเดอร์รอดำเนินการ
+              </div>
+            `
+        }
+      `;
+      return;
+    }   
 
     adminDashboardSheet.innerHTML = `
-      <h3>${mode === "PENDING"
-        ? "Orders (รอดำเนินการ)"
-        : "Order History"}</h3>
+      <div class="admin-sheet-topbar">
+        <button class="btn btn-outline back-btn"
+          onclick="backToAdminMainMenu()">
+          ← กลับเมนู
+        </button>
+        <h3>
+          <span class="dashboard-title-main">📊 Admin Dashboard</span>
+          <span class="dashboard-title-sub">(เฉพาะ APPROVED)</span>
+        </h3>
+      </div>
+
+      <div class="dashboard-filter-wrap">
+        <div class="form-group">
+          <label>ตั้งแต่วันที่</label>
+          <input id="dashboardDateFrom" type="date" value="${escAttr(from)}">
+        </div>
+
+        <div class="form-group">
+          <label>ถึงวันที่</label>
+          <input id="dashboardDateTo" type="date" value="${escAttr(to)}">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn btn-primary" onclick="applyAdminDashboardRange()">
+          ดูสรุป
+        </button>
+        <button class="btn btn-outline" onclick="resetAdminDashboardRange()">
+          รีเซ็ต
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="name">ยอดขายรวม</div>
+        <div class="price">฿${Number(summary.totalSales).toLocaleString("th-TH")}</div>
+        <div class="stock">จำนวนออเดอร์: ${summary.orderCount}</div>
+      </div>
+
+      <div class="card">
+        <div class="name">ต้นทุนรวม</div>
+        <div class="price">฿${Number(summary.totalCost).toLocaleString("th-TH")}</div>
+        <div class="stock">จำนวนสินค้าที่ขาย: ${summary.totalQty}</div>
+      </div>
+
+      <div class="card">
+        <div class="name">กำไรรวม</div>
+        <div class="price">฿${Number(summary.totalProfit).toLocaleString("th-TH")}</div>
+        <div class="stock">Orders รอดำเนินการ: ${pendingCount}</div>
+      </div>
+
+      <h3 style="margin-top:18px">รายการออเดอร์ APPROVED ที่นำมาคิด</h3>
 
       ${
-        orders.length
-          ? orders.map(o => `
-              <div class="card"
-                onclick="openAdminOrder('${o.orderId}')">
-                <div class="name">${o.orderId}</div>
-                <div>Status: ${o.status}</div>
-                <div>Total: ฿${Number(o.total).toLocaleString()}</div>
+        approvedOrders.length
+          ? approvedOrders.map(o => `
+              <div class="card" onclick="openAdminOrder('${escAttr(o.orderId)}')">
+                <div class="name">${esc(o.orderId)}</div>
+                <div>Status: ${esc(o.status)}</div>
+                <div>Total: ฿${Number(o.total || 0).toLocaleString("th-TH")}</div>
+                <div class="stock">วันที่: ${esc(getOrderDateValue(o) || "-")}</div>
               </div>
             `).join("")
           : `
             <div style="color:#888;text-align:center;margin-top:24px">
-              ${mode === "PENDING"
-                ? "ไม่มีรายการรอดำเนินการ"
-                : "ไม่มีประวัติออเดอร์"}
+              ไม่มีออเดอร์สถานะ APPROVED ในช่วงวันที่ที่เลือก
             </div>
           `
       }
@@ -4145,7 +4510,6 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
   } catch (err) {
     console.error(err);
 
-    // 🔴 ถ้าเป็น session error → ออกทันที
     if (
       err.message?.includes("Session") ||
       err.message?.includes("token")
@@ -4156,15 +4520,15 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
     }
 
     adminDashboardSheet.innerHTML = `
-      <h3>Orders</h3>
+      <h3>📊 Admin Dashboard</h3>
 
       <div style="text-align:center;color:#d93025;margin-top:32px">
-        ไม่สามารถโหลดรายการออเดอร์ได้
+        ไม่สามารถโหลดข้อมูลแดชบอร์ดได้
       </div>
 
       <button class="btn btn-secondary"
         style="width:100%;margin-top:16px"
-        onclick="allowOpenOrders = true; openAdminDashboard('${mode}', true)">
+        onclick="allowOpenOrders = true; openAdminDashboard('SUMMARY', true)">
         🔄 ลองใหม่
       </button>
 
@@ -4177,10 +4541,30 @@ async function openAdminDashboard(mode = "PENDING", force = false) {
   }
 }
 
+function getPendingOrdersCount() {
+  return (Array.isArray(state.admin.orders) ? state.admin.orders : [])
+    .filter(o => String(o.status || "").toUpperCase() === "PENDING")
+    .length;
+}
 
-function handleOpenOrders() {
+function backToAdminMainMenu() {
+  closeOverlay(adminDashboardSheet);
+  openMainMenu(document.querySelector(".menu-btn"));
+} 
+ 
+function handleOpenDashboard() {
+  allowOpenOrders = true;
+  openAdminDashboard("SUMMARY");
+}
+
+function handleOpenPendingOrders() {
   allowOpenOrders = true;
   openAdminDashboard("PENDING");
+} 
+ 
+function handleOpenOrders() {
+  allowOpenOrders = true;
+  openAdminDashboard("SUMMARY");
 }
 
 
@@ -4612,7 +4996,7 @@ async function handleApprove() {
     // ✅ อนุญาตให้เปิด Orders (เฉพาะ flow นี้)
     allowOpenOrders = true;
 
-    // ✅ กลับไปหน้า Orders (รอดำเนินการ)
+    // ✅ กลับไปหน้า Pending Orders เพื่อทำรายการต่อได้ทันที
     await openAdminDashboard("PENDING", true);
 
   } catch (err) {
@@ -4887,6 +5271,8 @@ function openMainMenu(triggerEl){
 
   // ✅ STEP A2: เงื่อนไข "ล็อกอินแล้ว" ต้องอิงสิทธิ์ (adminValid) ไม่ใช่โหมด UI
   const isAuthed = !!adminValid;
+  const hasLastOrder = !!(state.lastOrder && state.lastOrder.orderId);
+  const pendingCount = getPendingOrdersCount();
 
   // ✅ STEP 2: Main Menu v1 = Login only (ถ้ายังไม่อยู่ admin mode)
   mainMenuSheet.innerHTML = `
@@ -4903,9 +5289,25 @@ function openMainMenu(triggerEl){
                   👁 กลับสู่ Viewer
                 </button>
 
+               ${
+                 hasLastOrder
+                   ? `
+                       <button class="btn btn-primary"
+                         onclick="closeMainMenu(); reopenLastOrderSheet();">
+                         🧾 บิลล่าสุด
+                       </button>
+                     `
+                   : ``
+               }
+
                 <button class="btn btn-primary"
-                  onclick="closeMainMenu(); handleOpenOrders();">
-                  📦 Orders
+                  onclick="closeMainMenu(); handleOpenDashboard();">
+                  📊 Dashboard
+                </button>
+
+                <button class="btn btn-secondary"
+                  onclick="closeMainMenu(); handleOpenPendingOrders();">
+                  📦 Pending Orders ${pendingCount > 0 ? `<span class="badge">${pendingCount}</span>` : ``}
                 </button>
 
                 <button class="btn btn-secondary"
@@ -4924,6 +5326,7 @@ function openMainMenu(triggerEl){
                 </button>
               `
             : `
+             
                 <button class="btn btn-primary"
                   onclick="closeMainMenu(); enterAdmin();">
                  🧭 ไป Admin Dashboard
@@ -5276,6 +5679,14 @@ function closeProduct(){
 async function submitOrder(){
   // ❌ ห้ามใช้ state.loading เป็น guard
   if (state.isSubmitting || state.cart.length === 0) return;
+ 
+ const poNumber = String(state.poNumber || "").trim();
+ if (!poNumber) {
+   showToast("กรุณากรอกเลข PO", "warning");
+   const poInput = document.getElementById("poInput");
+   if (poInput) poInput.focus();
+   return;
+ }
 
   state.isSubmitting = true;
   state.ui.backdropLocked = true;
@@ -5309,32 +5720,14 @@ async function submitOrder(){
  createdAt: new Date(),
  poNumber: state.poNumber || ""
     };
+   
+    saveLastOrder();
 
     showToast('สร้างใบสั่งซื้อเรียบร้อยแล้ว', 'success');
     showToast("กดปุ่มเพื่อดาวน์โหลดใบสั่งซื้อ", "info", 3000);
 
- // เปิด confirmSheet ใหม่พร้อมปุ่มดาวน์โหลด
- confirmSheet.innerHTML = `
-   <h3>สร้างใบสั่งซื้อสำเร็จ</h3>
-   <div style="margin-top:12px">
-     เลขที่ใบสั่งซื้อ: ${escapeHtml(res.data.orderId)}
-   </div>
-   <button class="btn btn-primary"
-     style="margin-top:16px"
-     onclick="exportOrderPrint()">
-     ดาวน์โหลดใบสั่งซื้อ
-   </button>
-
-   <button class="btn btn-secondary"
-    style="margin-top:8px"
-    onclick="
-      state.ui.backdropLocked = false;
-      closeOverlay(confirmSheet);
-    ">
-    ปิด
-  </button>
- `;
-
+    renderLastOrderSheet();
+   
 // confirmSheet เปิดอยู่แล้ว ไม่ต้อง reopen
 
     state.cart = [];
@@ -6777,9 +7170,8 @@ function exportOrderPrint() {
       }
 
       // 🔴 NEW: clear lastOrder เพื่อกัน reopen state ค้าง
-      if (window.opener.state) {
-        window.opener.state.lastOrder = null;
-      }
+      // ❌ ห้าม clear lastOrder ที่นี่
+      // ต้องคงไว้เพื่อให้ผู้ใช้กลับมาโหลดบิลล่าสุดได้ภายหลัง
 
       // 🔴 NEW: reset backdrop lock กันค้าง
       if (window.opener.state?.ui) {
