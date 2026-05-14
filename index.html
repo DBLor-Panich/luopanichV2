@@ -2647,7 +2647,12 @@ function closeOverlay(el){
     if (closedCartSheet && typeof renderFloatingBar === "function") {
       requestAnimationFrame(() => {
         // กันเคส user เปิด overlay อื่นทันทีระหว่างเฟรม
-        if (state.mode === "viewer" && state.ui.overlayCount === 0) {
+
+ if (
+   state.mode === "viewer" &&
+   state.viewerAuthorized === true &&
+   state.ui.overlayCount === 0
+ ) {
           renderFloatingBar();
         }
       });
