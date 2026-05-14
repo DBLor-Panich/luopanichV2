@@ -2057,7 +2057,11 @@ Object.assign(window, {
 /* ================= GLOBAL STATE (UPGRADED / SAFE) ================= */
 
 const state = {
-  mode: "viewer",
+  // 🔴 CHANGED: STEP 1 LOCK MODE
+  mode: "locked",
+
+  // 🔴 CHANGED: viewer access state
+  viewerAuthorized: false,
 
   pagination: {
     page: 1,
@@ -2503,6 +2507,16 @@ function sortProducts(products) {
 }
   
 async function refreshProducts() {
+ // 🔴 CHANGED: STEP 1 LOCK MODE GUARD
+ if (
+   state.mode === "locked" &&
+   state.viewerAuthorized !== true &&
+   state.mode !== "admin"
+ ) {
+   console.warn("[LOCKED] refreshProducts blocked");
+   return;
+ }
+ 
   const app = document.getElementById("app");
 
   // ✅ Premium Skeleton เฉพาะตอน "ยังไม่มีรายการ" (ลดอาการวูบ/กระพริบ)
@@ -2852,7 +2866,10 @@ function renderFloatingBar(){
 
   // show เฉพาะ viewer + มีของในตะกร้า
   const hasItems = Array.isArray(state.cart) && state.cart.length > 0;
-   const isViewer = state.mode === "viewer";
+
+ const isViewer =
+   state.mode === "viewer" &&
+   state.viewerAuthorized === true;
 
   // ✅ FIX: กัน ReferenceError ถ้าไม่มีตัวแปร cartSheet (หาจาก DOM โดยตรง)
   const cartSheetEl = document.getElementById("cartSheet");
@@ -3013,7 +3030,27 @@ function closeProductInfoSheet(){
   }
 }  
   
-function renderProducts(){
+function renderProducts() {
+
+ // 🔴 CHANGED: STEP 1 VIEWER LOCK
+ if (
+   state.mode === "locked" &&
+   state.viewerAuthorized !== true &&
+   state.mode !== "admin"
+ ) {
+   const app = document.getElementById("app");
+
+   if (app) {
+     app.innerHTML = `
+       <div class="loading">
+         ระบบถูกล็อก กรุณายืนยันตัวตน
+       </div>
+     `;
+   }
+
+   return;
+ }
+ 
   const app = document.getElementById("app");
 
   const escapeHTML = (str="") =>
@@ -3764,7 +3801,10 @@ function leaveAdminMode(){
   allowOpenAddProduct = false;
 
   // ✅ กลับสู่ viewer mode (UI state only)
-  state.mode = "viewer";
+
+  // 🔴 CHANGED: return to locked mode
+  state.mode = "locked";
+  state.viewerAuthorized = false;
   state.search = "";
   state.viewerSearchOpen = false;
 
@@ -7295,7 +7335,10 @@ function exitAdmin(opts = {}){
   clearAdminSession();
 
   // 4) กลับสู่ viewer mode เสมอ (ตามตัวเลือก A)
-  state.mode = "viewer";
+
+  // 🔴 CHANGED: STEP 1 LOCK MODE
+  state.mode = "locked";
+  state.viewerAuthorized = false;
   state.admin.ui.activeSheet = null;
 
   // 5) เคลียร์ selection/admin draft ที่อาจทำให้หลุด flow
