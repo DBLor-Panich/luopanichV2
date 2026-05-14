@@ -2421,6 +2421,27 @@ function isAuthError(message = "") {
  }
 
  async function postFormAction(form, { timeout = 30000 } = {}) {
+
+ // 🔴 CHANGED: STEP 3A CENTRAL ADMIN TOKEN GUARD
+ const action = String(form?.get?.("action") || "");
+
+ const adminActions = [
+   "adminProducts",
+   "stockIn",
+   "stockAdjust",
+   "approveOrder",
+   "rejectOrder",
+   "uploadProductImage",
+   "changePassword"
+ ];
+
+ if (
+   adminActions.includes(action) &&
+   !state.admin?.token
+ ) {
+   throw new Error("Missing token");
+ }
+                    
    const res = await fetchWithTimeout(API_URL, {
      method: "POST",
      body: form
