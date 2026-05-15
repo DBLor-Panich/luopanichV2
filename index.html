@@ -7711,6 +7711,40 @@ async function restoreAdminSessionIfValid() {
      </button>
    `;
  }
+
+ function verifyViewerPasscode() {
+   const input =
+     document.getElementById("viewerPassInput");
+
+   const passcode =
+     String(input?.value || "").trim();
+
+   if (!passcode) {
+     showToast("กรุณากรอกรหัสผ่าน", "warning");
+     return;
+   }
+
+   // 🔴 CHANGED: replace with real passcode later
+   const VALID_PASSCODE = "1234";
+
+   if (passcode !== VALID_PASSCODE) {
+     showToast("รหัสผ่านไม่ถูกต้อง", "error");
+     return;
+   }
+
+   state.viewerAuthorized = true;
+   state.mode = "viewer";
+
+   saveViewerSession();
+
+   closeOverlay(confirmSheet);
+
+   renderHeader();
+   renderProducts();
+   updateAccessDeniedScreen();
+
+   showToast("เข้าสู่ระบบสำเร็จ", "success");
+ }
   
 /* ================= INIT APP (CLEAN / SAFE) ================= */
  /* ================= LIQUID HEADER SCROLL EFFECT ================= */
