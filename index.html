@@ -7734,66 +7734,137 @@ async function restoreAdminSessionIfValid() {
 
  /* ================= VIEWER ACCESS ================= */
 
- function openViewerAccessSheet() {
-   renderViewerAccessSheet();
-   openOverlay(confirmSheet);
- }
+function openViewerAccessSheet() {
 
- function renderViewerAccessSheet() {
-   confirmSheet.innerHTML = `
-     <h3>ปลดล็อกระบบ</h3>
+  // 🔴 CHANGED: hide access screen before opening unlock sheet
+  const accessScreen =
+    document.getElementById("accessDeniedScreen");
 
-     <div class="form-group">
- <label for="viewerPassInput">
-   รหัสผ่าน
- </label>
-       <input
-         id="viewerPassInput"
-         type="password"
-         placeholder="กรอกรหัสผ่าน">
-     </div>
+  if (accessScreen) {
+    accessScreen.classList.add("hidden");
+  }
 
-     <button
-       class="btn btn-primary"
-       onclick="verifyViewerPasscode()">
-       เข้าสู่ระบบ
-     </button>
-   `;
- }
+  renderViewerAccessSheet();
 
- function verifyViewerPasscode() {
-   const input =
-     document.getElementById("viewerPassInput");
+  openOverlay(confirmSheet);
+}
 
-   const passcode =
-     String(input?.value || "").trim();
 
-   if (!passcode) {
-     showToast("กรุณากรอกรหัสผ่าน", "warning");
-     return;
-   }
+function renderViewerAccessSheet() {
 
-   // 🔴 CHANGED: replace with real passcode later
-   const VALID_PASSCODE = "1234";
+  confirmSheet.innerHTML = `
+    <div class="viewer-access-sheet">
 
-   if (passcode !== VALID_PASSCODE) {
-     showToast("รหัสผ่านไม่ถูกต้อง", "error");
-     return;
-   }
+      <h3 class="sheet-title">
+        ปลดล็อกระบบ
+      </h3>
 
-   state.viewerAuthorized = true;
-   state.mode = "viewer";
+      <div class="form-group">
 
-   saveViewerSession();
+        <label for="viewerPassInput">
+          รหัสผ่าน
+        </label>
 
-   closeOverlay(confirmSheet);
+        <input
+          id="viewerPassInput"
+          type="password"
+          class="input"
+          placeholder="กรอกรหัสผ่าน"
+          autocomplete="off"
+        />
 
-   renderHeader();
-   renderProducts();
-   updateAccessDeniedScreen();
+      </div>
 
-   showToast("เข้าสู่ระบบสำเร็จ", "success");
- }
+      <div class="sheet-actions">
+
+        <button
+          class="btn btn-secondary"
+          onclick="closeViewerAccessSheet()">
+
+          ยกเลิก
+
+        </button>
+
+        <button
+          class="btn btn-primary"
+          onclick="verifyViewerPasscode()">
+
+          เข้าสู่ระบบ
+
+        </button>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+function closeViewerAccessSheet() {
+
+  closeOverlay(confirmSheet);
+
+  // 🔴 CHANGED: restore access denied screen
+  updateAccessDeniedScreen();
+}
+
+
+function verifyViewerPasscode() {
+
+  const input =
+    document.getElementById("viewerPassInput");
+
+  const passcode =
+    String(input?.value || "").trim();
+
+  if (!passcode) {
+
+    // 🔴 CHANGED: restore lock screen state
+    updateAccessDeniedScreen();
+
+    showToast(
+      "กรุณากรอกรหัสผ่าน",
+      "warning"
+    );
+
+    return;
+  }
+
+  // 🔴 CHANGED: replace with real passcode later
+  const VALID_PASSCODE = "1234";
+
+  if (passcode !== VALID_PASSCODE) {
+
+    // 🔴 CHANGED: restore lock screen state
+    updateAccessDeniedScreen();
+
+    showToast(
+      "รหัสผ่านไม่ถูกต้อง",
+      "error"
+    );
+
+    return;
+  }
+
+  // 🔴 CHANGED: viewer unlock success
+  state.viewerAuthorized = true;
+  state.mode = "viewer";
+
+  saveViewerSession();
+
+  closeOverlay(confirmSheet);
+
+  renderHeader();
+  renderProducts();
+
+  // 🔴 CHANGED: hide denied screen after unlock success
+  updateAccessDeniedScreen();
+
+  showToast(
+    "เข้าสู่ระบบสำเร็จ",
+    "success"
+  );
+}
   
 /* ================= INIT APP (CLEAN / SAFE) ================= */
  /* ================= LIQUID HEADER SCROLL EFFECT ================= */
