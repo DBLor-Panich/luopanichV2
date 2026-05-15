@@ -2161,6 +2161,7 @@ Object.assign(window, {
 
 const locked =
   state.viewerAuthorized !== true &&
+  
   !state.viewerAccessOpen
 
 if (locked) {
@@ -2229,11 +2230,11 @@ const state = {
 
 ui: {
   overlayCount: 0,
-  backdropLocked: false,
+  backdropLocked: false
+},
 
-  // 🔴 CHANGED:
-  viewerAccessOpen: false
-}
+ // 🔴 CHANGED:
+ viewerAccessOpen: false
 };
 
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
