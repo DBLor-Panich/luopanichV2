@@ -2125,7 +2125,9 @@ function getAdminSheets() {
 // ✅ expose เฉพาะ public actions ที่ inline handler ยังจำเป็นต้องใช้
 Object.assign(window, {
   // 🔴 CHANGED: STEP 7 VIEWER ACCESS
-  openViewerAccessSheet, 
+  openViewerAccessSheet,
+  closeViewerAccessSheet,
+  verifyViewerPasscode,
   openChangePasswordSheet,
   submitChangePassword,
   cancelAdminLogin,
