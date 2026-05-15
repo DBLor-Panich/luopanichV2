@@ -2161,7 +2161,7 @@ Object.assign(window, {
 
 const locked =
   state.viewerAuthorized !== true &&
-  !viewerAccessSheet.classList.contains("show");
+  !state.viewerAccessOpen
 
 if (locked) {
   el.style.display = "flex";
@@ -2227,10 +2227,13 @@ const state = {
     note: ""
   },
 
-  ui: {
-    overlayCount: 0,
-    backdropLocked: false
-  }
+ui: {
+  overlayCount: 0,
+  backdropLocked: false,
+
+  // 🔴 CHANGED:
+  viewerAccessOpen: false
+}
 };
 
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
@@ -7789,6 +7792,7 @@ function openViewerAccessSheet() {
   // 🔴 CHANGED:
   // force open โดยตรง
   viewerAccessSheet.classList.add("show");
+  state.viewerAccessOpen = true;
   updateAccessDeniedScreen();
 
 if (accessScreen) {
@@ -7854,6 +7858,7 @@ function closeViewerAccessSheet() {
   // 🔴 CHANGED:
   // force close popup จริง
   viewerAccessSheet.classList.remove("show");
+  state.viewerAccessOpen = false;
 
   // 🔴 CHANGED:
   // reset overlay state
