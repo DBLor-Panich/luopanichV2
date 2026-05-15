@@ -7691,7 +7691,27 @@ async function restoreAdminSessionIfValid() {
    renderViewerAccessSheet();
    openOverlay(confirmSheet);
  }
- 
+
+ function renderViewerAccessSheet() {
+   confirmSheet.innerHTML = `
+     <h3>ปลดล็อกระบบ</h3>
+
+     <div class="form-group">
+       <label>รหัสผ่าน</label>
+       <input
+         id="viewerPassInput"
+         type="password"
+         placeholder="กรอกรหัสผ่าน">
+     </div>
+
+     <button
+       class="btn btn-primary"
+       onclick="verifyViewerPasscode()">
+       เข้าสู่ระบบ
+     </button>
+   `;
+ }
+  
 /* ================= INIT APP (CLEAN / SAFE) ================= */
  /* ================= LIQUID HEADER SCROLL EFFECT ================= */
  let _lastScrollY = 0;
