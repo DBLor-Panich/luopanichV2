@@ -2139,6 +2139,16 @@ Object.assign(window, {
 
   
 /* ================= GLOBAL STATE (UPGRADED / SAFE) ================= */
+ function updateAccessDeniedScreen() {
+   const el = document.getElementById("accessDeniedScreen");
+   if (!el) return;
+
+   const locked =
+     state.mode === "locked" ||
+     state.viewerAuthorized !== true;
+
+   el.classList.toggle("hidden", !locked);
+ }
 
 const state = {
   // 🔴 CHANGED: STEP 1 LOCK MODE
@@ -2669,17 +2679,6 @@ function isAuthError(message = "") {
    return json;
  } 
 
- function updateAccessDeniedScreen() {
-   const el = document.getElementById("accessDeniedScreen");
-   if (!el) return;
-
-   const locked =
-     state.mode === "locked" ||
-     state.viewerAuthorized !== true;
-
-   el.classList.toggle("hidden", !locked);
- }
- 
 /* ================= API LAYER ================= */
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
@@ -3281,7 +3280,6 @@ function closeProductInfoSheet(){
 }  
   
 function renderProducts() {
-
  if (state.mode === "locked") {
    app.innerHTML = "";
    return;
