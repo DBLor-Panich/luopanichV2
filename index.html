@@ -2019,6 +2019,10 @@ textarea {
    color:rgba(235,235,245,.72);
  }
 
+ #viewerAccessSheet{
+  z-index: 5000;
+}
+ 
 </style>
 </head>
 <body>
@@ -7774,13 +7778,9 @@ function openViewerAccessSheet() {
   // force open โดยตรง
   viewerAccessSheet.classList.add("show");
 
-  requestAnimationFrame(() => {
-
-    if (accessScreen) {
-      accessScreen.classList.add("hidden");
-    }
-
-  });
+if (accessScreen) {
+  accessScreen.style.display = "none";
+ }
 }
 
 function renderViewerAccessSheet() {
@@ -7834,7 +7834,12 @@ function renderViewerAccessSheet() {
 
 
 function closeViewerAccessSheet() {
+const accessScreen =
+  document.getElementById("accessDeniedScreen");
 
+if (accessScreen) {
+  accessScreen.style.display = "flex";
+}
   closeOverlay(viewerAccessSheet);
 
   // 🔴 CHANGED: restore access denied screen
