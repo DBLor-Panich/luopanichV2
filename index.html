@@ -7749,14 +7749,31 @@ function openViewerAccessSheet() {
   const accessScreen =
     document.getElementById("accessDeniedScreen");
 
+  // 🔴 CHANGED:
+  // reset overlay state กันระบบค้าง
+  state.ui.overlayCount = 0;
+  state.ui.backdropLocked = false;
+
+  // 🔴 CHANGED:
+  // force close sheet ค้างทั้งหมด
+  document
+    .querySelectorAll(".sheet.show, .side-menu.show")
+    .forEach(el => {
+      el.classList.remove("show");
+    });
+
+  // 🔴 CHANGED:
+  // reset backdrop
+  if (backdrop) {
+    backdrop.style.display = "block";
+  }
+
   renderViewerAccessSheet();
 
   // 🔴 CHANGED:
-  // เปิด sheet ก่อน
-  openOverlay(viewerAccessSheet);
+  // force show โดยตรง
+  viewerAccessSheet.classList.add("show");
 
-  // 🔴 CHANGED:
-  // ค่อยซ่อน lock screen หลัง frame render
   requestAnimationFrame(() => {
 
     if (accessScreen) {
@@ -7864,7 +7881,7 @@ function verifyViewerPasscode() {
 
   saveViewerSession();
 
-  closeOverlay(confirmSheet);
+  closeOverlay(viewerAccessSheet);
 
   renderHeader();
   renderProducts();
