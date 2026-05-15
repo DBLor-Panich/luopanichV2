@@ -2426,6 +2426,10 @@ function forceViewerRelock() {
 
  clearCartStorage();
  clearLastOrderStorage();
+
+  // 🔴 CHANGED: clear runtime cart state
+  state.cart = [];
+  state.lastOrder = null;
  
   state.viewerAuthorized = false;
   state.mode = "locked";
