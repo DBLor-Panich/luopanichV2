@@ -7660,8 +7660,13 @@ function exitAdmin(opts = {}){
   // 4) กลับสู่ viewer mode เสมอ (ตามตัวเลือก A)
 
   // 🔴 CHANGED: STEP 1 LOCK MODE
-  state.mode = "locked";
-  state.viewerAuthorized = false;
+  // 🔴 CHANGED:
+  // กลับ viewer mode หลังออกจาก admin
+  state.mode = "viewer";
+
+  // 🔴 CHANGED:
+  // viewer ยัง authorized อยู่
+  state.viewerAuthorized = true;
   state.admin.ui.activeSheet = null;
 
   // 5) เคลียร์ selection/admin draft ที่อาจทำให้หลุด flow
@@ -7679,6 +7684,9 @@ function exitAdmin(opts = {}){
 
   // 6) rerender เฉพาะที่จำเป็น (ไม่แตะ flow อื่น)
   renderHeader();
+  // 🔴 CHANGED:
+  // โหลดสินค้าใหม่หลังกลับ viewer
+  refreshProducts(); 
   renderProducts();
   if (typeof renderBadge === "function") renderBadge();
 
@@ -7839,15 +7847,33 @@ function renderViewerAccessSheet() {
 
 
 function closeViewerAccessSheet() {
-const accessScreen =
-  document.getElementById("accessDeniedScreen");
 
-if (accessScreen) {
-  accessScreen.style.display = "flex";
-}
-  closeOverlay(viewerAccessSheet);
+  const accessScreen =
+    document.getElementById("accessDeniedScreen");
 
-  // 🔴 CHANGED: restore access denied screen
+  // 🔴 CHANGED:
+  // force close popup จริง
+  viewerAccessSheet.classList.remove("show");
+
+  // 🔴 CHANGED:
+  // reset overlay state
+  state.ui.overlayCount = 0;
+  state.ui.backdropLocked = false;
+
+  // 🔴 CHANGED:
+  // hide backdrop
+  if (backdrop) {
+    backdrop.style.display = "none";
+  }
+
+  // 🔴 CHANGED:
+  // restore lock screen
+  if (accessScreen) {
+    accessScreen.style.display = "flex";
+  }
+
+  // 🔴 CHANGED:
+  // sync access state ใหม่
   updateAccessDeniedScreen();
 }
  
@@ -7869,35 +7895,71 @@ function verifyViewerPasscode() {
     return;
   }
 
-  // 🔴 CHANGED: replace with real passcode later
+  // 🔴 CHANGED:
+  // replace with production passcode later
   const VALID_PASSCODE = "1234";
 
   if (passcode !== VALID_PASSCODE) {
 
-    // 🔴 CHANGED: restore lock screen state
-    updateAccessDeniedScreen();
+    // 🔴 CHANGED:
+    // keep unlock sheet open
+    // DO NOT restore access screen here
 
     showToast(
       "รหัสผ่านไม่ถูกต้อง",
       "error"
     );
 
+    // 🔴 CHANGED:
+    // refocus input
+    requestAnimationFrame(() => {
+      input?.focus();
+      input?.select?.();
+    });
+
     return;
   }
 
-  // 🔴 CHANGED: viewer unlock success
+  // 🔴 CHANGED:
+  // unlock viewer state
   state.viewerAuthorized = true;
   state.mode = "viewer";
 
   saveViewerSession();
 
-  closeOverlay(viewerAccessSheet);
+  // 🔴 CHANGED:
+  // close unlock sheet correctly
+  viewerAccessSheet.classList.remove("show");
 
+  // 🔴 CHANGED:
+  // reset overlay system
+  state.ui.overlayCount = 0;
+  state.ui.backdropLocked = false;
+
+  // 🔴 CHANGED:
+  // hide backdrop
+  if (backdrop) {
+    backdrop.style.display = "none";
+  }
+
+  // 🔴 CHANGED:
+  // hide access denied screen
+  const accessScreen =
+    document.getElementById("accessDeniedScreen");
+
+  if (accessScreen) {
+    accessScreen.style.display = "none";
+  }
+
+  // 🔴 CHANGED:
+  // render viewer immediately
   renderHeader();
-  renderProducts();
 
-  // 🔴 CHANGED: hide denied screen after unlock success
-  updateAccessDeniedScreen();
+  // 🔴 CHANGED:
+  // load products again after unlock
+  refreshProducts();
+
+  renderProducts();
 
   showToast(
     "เข้าสู่ระบบสำเร็จ",
