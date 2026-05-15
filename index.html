@@ -2159,11 +2159,15 @@ Object.assign(window, {
    const el = document.getElementById("accessDeniedScreen");
    if (!el) return;
 
-   const locked =
-     state.mode === "locked" ||
-     state.viewerAuthorized !== true;
+const locked =
+  state.viewerAuthorized !== true &&
+  !viewerAccessSheet.classList.contains("show");
 
-   el.classList.toggle("hidden", !locked);
+if (locked) {
+  el.style.display = "flex";
+} else {
+  el.style.display = "none";
+}
  }
 
 const state = {
@@ -7777,6 +7781,7 @@ function openViewerAccessSheet() {
   // 🔴 CHANGED:
   // force open โดยตรง
   viewerAccessSheet.classList.add("show");
+  updateAccessDeniedScreen();
 
 if (accessScreen) {
   accessScreen.style.display = "none";
