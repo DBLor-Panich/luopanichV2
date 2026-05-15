@@ -2293,6 +2293,54 @@ function clearLastOrderStorage() {
    localStorage.removeItem(VIEWER_SESSION_KEY);
  } 
 
+// 🔴 ADDED: STEP 5 PRODUCTION EXPIRE CHECK
+function enforceViewerSessionExpiration() {
+  try {
+    if (state.viewerAuthorized !== true) return;
+
+    const raw = localStorage.getItem(VIEWER_SESSION_KEY);
+    if (!raw) {
+      forceViewerRelock();
+      return;
+    }
+
+    const parsed = JSON.parse(raw);
+
+    if (
+      !parsed ||
+      parsed.authorized !== true ||
+      !parsed.expiredAt
+    ) {
+      forceViewerRelock();
+      return;
+    }
+
+    if (Date.now() > Number(parsed.expiredAt)) {
+      forceViewerRelock();
+    }
+
+  } catch (e) {
+    console.warn("enforceViewerSessionExpiration failed", e);
+    forceViewerRelock();
+  }
+}
+
+// 🔴 ADDED: SINGLE SOURCE OF TRUTH
+function forceViewerRelock() {
+  clearViewerSession();
+
+  state.viewerAuthorized = false;
+  state.mode = "locked";
+
+  renderHeader();
+  renderProducts();
+
+  showToast("Session หมดอายุ กรุณาใส่รหัสใหม่", "warning");
+}
+
+// 🔴 ADDED: runtime protection
+setInterval(enforceViewerSessionExpiration, 60000);
+ 
 /* ================= SKU AUTO RUN UTILITY ================= */
 // 🔴 ADDED: หา SKU ถัดไปจาก state.products เช่น A001 -> A002
 function getNextProductId(currentValue = "") {
