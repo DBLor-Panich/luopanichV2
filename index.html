@@ -7746,19 +7746,25 @@ async function restoreAdminSessionIfValid() {
 
 function openViewerAccessSheet() {
 
-  // 🔴 CHANGED: hide access screen before opening unlock sheet
   const accessScreen =
     document.getElementById("accessDeniedScreen");
 
-  if (accessScreen) {
-    accessScreen.classList.add("hidden");
-  }
-
   renderViewerAccessSheet();
 
+  // 🔴 CHANGED:
+  // เปิด sheet ก่อน
   openOverlay(viewerAccessSheet);
-}
 
+  // 🔴 CHANGED:
+  // ค่อยซ่อน lock screen หลัง frame render
+  requestAnimationFrame(() => {
+
+    if (accessScreen) {
+      accessScreen.classList.add("hidden");
+    }
+
+  });
+}
 
 function renderViewerAccessSheet() {
 
@@ -7817,8 +7823,7 @@ function closeViewerAccessSheet() {
   // 🔴 CHANGED: restore access denied screen
   updateAccessDeniedScreen();
 }
-
-
+ 
 function verifyViewerPasscode() {
 
   const input =
@@ -7828,9 +7833,6 @@ function verifyViewerPasscode() {
     String(input?.value || "").trim();
 
   if (!passcode) {
-
-    // 🔴 CHANGED: restore lock screen state
-    updateAccessDeniedScreen();
 
     showToast(
       "กรุณากรอกรหัสผ่าน",
