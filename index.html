@@ -2085,6 +2085,7 @@ textarea {
   
 <script>
 /* ================= STEP 2: ประกาศ backdrop (UPGRADED) ================= */
+const app = document.getElementById("app"); 
 const backdrop = document.getElementById("globalBackdrop");
 const cartSheet = document.getElementById("cartSheet");
   
@@ -2752,8 +2753,6 @@ async function refreshProducts() {
    return;
  }
  
-  const app = document.getElementById("app");
-
   // ✅ Premium Skeleton เฉพาะตอน "ยังไม่มีรายการ" (ลดอาการวูบ/กระพริบ)
   if (app && (!Array.isArray(state.products) || state.products.length === 0)) {
     const skeleton = Array.from({ length: 6 }).map(() => `
@@ -3291,7 +3290,6 @@ function renderProducts() {
    state.viewerAuthorized !== true &&
    state.mode !== "admin"
  ) {
-   const app = document.getElementById("app");
 
    if (app) {
      app.innerHTML = `
@@ -3303,8 +3301,6 @@ function renderProducts() {
 
    return;
  }
- 
-  const app = document.getElementById("app");
 
   const escapeHTML = (str="") =>
     String(str ?? "")
@@ -7688,7 +7684,12 @@ async function restoreAdminSessionIfValid() {
   clearAdminSession();
   return false;
 }
-  
+
+ function openViewerAccessSheet() {
+   renderViewerAccessSheet();
+   openOverlay(confirmSheet);
+ }
+ 
 /* ================= INIT APP (CLEAN / SAFE) ================= */
  /* ================= LIQUID HEADER SCROLL EFFECT ================= */
  let _lastScrollY = 0;
