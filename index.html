@@ -2332,6 +2332,12 @@ function forceViewerRelock() {
   state.viewerAuthorized = false;
   state.mode = "locked";
 
+ // 🔴 CHANGED: close viewer overlays on expire
+ closeOverlay(productSheet);
+ closeOverlay(qtySheet);
+ closeOverlay(cartSheet);
+ closeOverlay(confirmSheet); 
+
   renderHeader();
   renderProducts();
 
