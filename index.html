@@ -2854,49 +2854,90 @@ async function createOrder() {
   return json;
 }
 
+/* ================= OVERLAY MANAGER ================= */
+
 function openOverlay(el){
+
+  // 🔴 CHANGED: null guard
   if (!el || el.classList.contains("show")) return;
 
   el.classList.add("show");
-  state.ui.overlayCount++;
 
-  backdrop.style.display = "block";
-  setTimeout(() => focusFirstInteractive(el), 0);
+  // 🔴 CHANGED: sync from real DOM
+  state.ui.overlayCount =
+    document.querySelectorAll(
+      ".sheet.show, .side-menu.show"
+    ).length;
+
+  // 🔴 CHANGED: safe backdrop guard
+  if (backdrop) {
+    backdrop.style.display = "block";
+  }
+
+  setTimeout(() => {
+    if (typeof focusFirstInteractive === "function") {
+      focusFirstInteractive(el);
+    }
+  }, 0);
 }
 
+
 function closeOverlay(el){
+
+  // 🔴 CHANGED: null guard
   if (!el || !el.classList.contains("show")) return;
 
   el.classList.remove("show");
-  state.ui.overlayCount = Math.max(0, state.ui.overlayCount - 1);
 
-  // 🔴 CHANGED: จำว่าเราปิด "cartSheet" อยู่ไหม (เพราะบางครั้งปิดผ่าน backdrop จะไม่เรียก closeCart)
-  const closedCartSheet = (el.id === "cartSheet");
+  // 🔴 CHANGED: sync from real DOM
+  state.ui.overlayCount =
+    document.querySelectorAll(
+      ".sheet.show, .side-menu.show"
+    ).length;
 
-  if (state.ui.overlayCount === 0 && !state.ui.backdropLocked) {
-    backdrop.style.display = "none";
+  // 🔴 CHANGED: จำว่าเราปิด cartSheet หรือไม่
+  const closedCartSheet =
+    (el.id === "cartSheet");
 
-    // 🔴 FIX: reset floating bar momentum state
-    const bar = document.getElementById("floatingBar");
-    if (bar) bar.classList.remove("scroll-hide");
+  if (
+    state.ui.overlayCount === 0 &&
+    !state.ui.backdropLocked
+  ) {
 
-    // 🔴 CHANGED: ถ้าเพิ่งปิด cartSheet และกลับสู่ viewer จริง → ต้องคืน floatingBar ถ้า cart ยังมีของ
-    // ใช้ rAF เพื่อให้ DOM/overlayCount settle ก่อน (กันเคสปิดแล้ว bar ไม่กลับ)
-    if (closedCartSheet && typeof renderFloatingBar === "function") {
+    // 🔴 CHANGED: safe backdrop guard
+    if (backdrop) {
+      backdrop.style.display = "none";
+    }
+
+    // 🔴 FIX: reset floating bar state
+    const bar =
+      document.getElementById("floatingBar");
+
+    if (bar) {
+      bar.classList.remove("scroll-hide");
+    }
+
+    // 🔴 CHANGED: คืน floating bar
+    if (
+      closedCartSheet &&
+      typeof renderFloatingBar === "function"
+    ) {
+
       requestAnimationFrame(() => {
-        // กันเคส user เปิด overlay อื่นทันทีระหว่างเฟรม
 
- if (
-   state.mode === "viewer" &&
-   state.viewerAuthorized === true &&
-   state.ui.overlayCount === 0
- ) {
+        if (
+          state.mode === "viewer" &&
+          state.viewerAuthorized === true &&
+          state.ui.overlayCount === 0
+        ) {
           renderFloatingBar();
         }
+
       });
+
     }
   }
- 
+
   restoreTriggerFocus();
 }
 
@@ -7701,7 +7742,9 @@ async function restoreAdminSessionIfValid() {
      <h3>ปลดล็อกระบบ</h3>
 
      <div class="form-group">
-       <label>รหัสผ่าน</label>
+ <label for="viewerPassInput">
+   รหัสผ่าน
+ </label>
        <input
          id="viewerPassInput"
          type="password"
