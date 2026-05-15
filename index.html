@@ -8,6 +8,7 @@
  <title>Stock Viewer</title>
 
 <!-- ================= UI STYLE ================= -->
+  
 <style>
   :root {
   /* ================= PHASE 3: TYPOGRAPHY / HIERARCHY ================= */
@@ -1954,7 +1955,70 @@ textarea {
   line-height:1.25;
   padding-right:6px; /* กันชิดขอบขาว */
 }
-  
+
+ /* ================= ACCESS DENIED SCREEN ================= */
+
+ .access-screen{
+   position:fixed;
+   inset:0;
+   z-index:4000;
+
+   display:flex;
+   align-items:center;
+   justify-content:center;
+
+   padding:24px;
+
+   background:
+     radial-gradient(circle at top,
+       rgba(0,122,255,.12),
+       transparent 40%),
+     #0f0f12;
+
+   backdrop-filter:blur(24px);
+   -webkit-backdrop-filter:blur(24px);
+ }
+
+ .access-card{
+   width:100%;
+   max-width:360px;
+
+   padding:28px 22px;
+
+   border-radius:28px;
+
+   background:rgba(28,28,30,.78);
+
+   border:1px solid rgba(255,255,255,.08);
+
+   box-shadow:
+     var(--shadow-floating),
+     inset 0 1px 0 rgba(255,255,255,.08);
+
+   text-align:center;
+ }
+
+ .access-icon{
+   font-size:44px;
+   margin-bottom:14px;
+ }
+
+ .access-title{
+   font-size:24px;
+   font-weight:700;
+   color:#fff;
+ }
+
+ .access-subtitle{
+   margin-top:8px;
+   margin-bottom:22px;
+
+   font-size:14px;
+   line-height:1.5;
+
+   color:rgba(235,235,245,.72);
+ }
+
 </style>
 </head>
 <body>
@@ -1974,6 +2038,26 @@ textarea {
  ></div>
 
 <!-- ================= VIEWER SHEETS ================= -->
+ <div id="accessDeniedScreen" class="access-screen hidden">
+   <div class="access-card">
+     <div class="access-icon">🔒</div>
+
+     <div class="access-title">
+       Access Denied
+     </div>
+
+     <div class="access-subtitle">
+       กรุณาใส่รหัสเพื่อเข้าสู่ระบบ
+     </div>
+
+     <button
+       class="btn btn-primary"
+       onclick="openViewerAccessSheet()">
+       ปลดล็อก
+     </button>
+   </div>
+ </div>
+ 
  <div id="productSheet" class="sheet sheet-product" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="qtySheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="cartSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
@@ -2353,6 +2437,8 @@ function forceViewerRelock() {
   renderHeader();
   renderProducts();
 
+  updateAccessDeniedScreen();
+
   showToast("Session หมดอายุ กรุณาใส่รหัสใหม่", "warning");
 }
 
@@ -2583,6 +2669,17 @@ function isAuthError(message = "") {
    return json;
  } 
 
+ function updateAccessDeniedScreen() {
+   const el = document.getElementById("accessDeniedScreen");
+   if (!el) return;
+
+   const locked =
+     state.mode === "locked" ||
+     state.viewerAuthorized !== true;
+
+   el.classList.toggle("hidden", !locked);
+ }
+ 
 /* ================= API LAYER ================= */
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
@@ -3184,6 +3281,11 @@ function closeProductInfoSheet(){
 }  
   
 function renderProducts() {
+
+ if (state.mode === "locked") {
+   app.innerHTML = "";
+   return;
+ }
 
  // 🔴 CHANGED: STEP 1 VIEWER LOCK
  if (
