@@ -2335,6 +2335,11 @@ function forceViewerRelock() {
  // 🔴 CHANGED: reset transient viewer state
  state.selectedProduct = null;
  state.qty = 1;
+
+ // 🔴 CHANGED: reset transient viewer search/filter
+ state.search = "";
+ state.viewerSearchOpen = false;
+ state.viewerFilter.status = "all";
  
  // 🔴 CHANGED: close viewer overlays on expire
  closeOverlay(productSheet);
