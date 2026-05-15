@@ -2063,6 +2063,11 @@ textarea {
  <div id="cartSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="confirmSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="stockSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
+ <div id="viewerAccessSheet"
+      class="sheet"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"></div>
 
 <!-- 🖼️ IMAGE VIEWER (FULLSCREEN) -->
 <div id="imageViewerSheet" class="sheet image-viewer-sheet" role="dialog" aria-modal="true" tabindex="-1">
@@ -2093,6 +2098,8 @@ const cartSheet = document.getElementById("cartSheet");
 const productSheet = document.getElementById("productSheet");
 const qtySheet = document.getElementById("qtySheet");
 const confirmSheet = document.getElementById("confirmSheet");
+ const viewerAccessSheet =
+   document.getElementById("viewerAccessSheet"); 
 const stockSheet = document.getElementById("stockSheet");
 const adminLoginSheet = document.getElementById("adminLoginSheet");
 const adminDashboardSheet = document.getElementById("adminDashboardSheet");
@@ -4144,6 +4151,7 @@ function closeTopSheet(){
     document.getElementById("adminStockSheet"),
 
     // 🔵 VIEWER FLOW
+    document.getElementById("viewerAccessSheet"),
     document.getElementById("confirmSheet"),
     document.getElementById("cartSheet"),
     document.getElementById("qtySheet"),
@@ -7748,13 +7756,13 @@ function openViewerAccessSheet() {
 
   renderViewerAccessSheet();
 
-  openOverlay(confirmSheet);
+  openOverlay(viewerAccessSheet);
 }
 
 
 function renderViewerAccessSheet() {
 
-  confirmSheet.innerHTML = `
+  viewerAccessSheet.innerHTML = `
     <div class="viewer-access-sheet">
 
       <h3 class="sheet-title">
@@ -7804,7 +7812,7 @@ function renderViewerAccessSheet() {
 
 function closeViewerAccessSheet() {
 
-  closeOverlay(confirmSheet);
+  closeOverlay(viewerAccessSheet);
 
   // 🔴 CHANGED: restore access denied screen
   updateAccessDeniedScreen();
