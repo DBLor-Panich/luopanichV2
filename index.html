@@ -7750,12 +7750,12 @@ function openViewerAccessSheet() {
     document.getElementById("accessDeniedScreen");
 
   // 🔴 CHANGED:
-  // reset overlay state กันระบบค้าง
+  // reset overlay system กัน state ค้าง
   state.ui.overlayCount = 0;
   state.ui.backdropLocked = false;
 
   // 🔴 CHANGED:
-  // force close sheet ค้างทั้งหมด
+  // force close ทุก overlay ที่อาจค้าง
   document
     .querySelectorAll(".sheet.show, .side-menu.show")
     .forEach(el => {
@@ -7771,7 +7771,7 @@ function openViewerAccessSheet() {
   renderViewerAccessSheet();
 
   // 🔴 CHANGED:
-  // force show โดยตรง
+  // force open โดยตรง
   viewerAccessSheet.classList.add("show");
 
   requestAnimationFrame(() => {
