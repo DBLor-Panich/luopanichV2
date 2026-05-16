@@ -4209,23 +4209,46 @@ function leaveAdminMode(){
   if (typeof renderBadge === "function") renderBadge();
 }
 
-function handleBackdropClick(){
-  if (state.ui.backdropLocked) {
+function handleBackdropClick() {
 
-    console.warn('[Backdrop] force unlock');
+  // 🔴 CHANGED:
+  // HARD LOCK:
+  // ยังไม่ authorize = ห้ามปิด unlock sheet
+  if (
+    state.viewerAuthorized !== true &&
+    state.viewerAccessOpen === true
+  ) {
 
-   // 🔴 FIX: force reset overlay system (emergency exit)
-   state.ui.backdropLocked = false;
-   const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
-   openEls.forEach(el => el.classList.remove("show"));
-   state.ui.overlayCount = 0;
+    // 🔴 CHANGED:
+    // reopen + block bypass
+    openOverlay(viewerAccessSheet);
 
-    safeHideLoading();   // ✅ ไม่มีทาง error
-    showToast("ยกเลิกการดำเนินการ", "warning", 1200);
     return;
   }
 
-  closeTopSheet();
+  // =========================
+  // EXISTING FLOW
+  // =========================
+
+  closeOverlay(productSheet);
+  closeOverlay(qtySheet);
+  closeOverlay(cartSheet);
+  closeOverlay(confirmSheet);
+  closeOverlay(stockSheet);
+
+  closeOverlay(adminLoginSheet);
+  closeOverlay(adminDashboardSheet);
+  closeOverlay(adminOrderSheet);
+  closeOverlay(adminStockSheet);
+
+  closeOverlay(adminProductActionSheet);
+  closeOverlay(adminProductEditSheet);
+  closeOverlay(adminStockActionSheet);
+  closeOverlay(adminAddProductSheet);
+
+  closeOverlay(viewerAccessSheet);
+
+  closeMainMenu?.();
 }
 
 function closeTopSheet(){
@@ -7845,8 +7868,9 @@ async function restoreAdminSessionIfValid() {
 
 function openViewerAccessSheet() {
 
-  const accessScreen =
-    document.getElementById("accessDeniedScreen");
+  // 🔴 CHANGED:
+  // mark access flow opened
+  state.viewerAccessOpen = true;
 
   // 🔴 CHANGED:
   // reset overlay system กัน state ค้าง
@@ -7870,13 +7894,14 @@ function openViewerAccessSheet() {
   renderViewerAccessSheet();
 
   // 🔴 CHANGED:
-  // force open โดยตรง
+  // force open access sheet
   viewerAccessSheet.classList.add("show");
-  updateAccessDeniedScreen();
 
-if (accessScreen) {
-  accessScreen.style.display = "none";
- }
+  // 🔴 CHANGED:
+  // IMPORTANT:
+  // ห้ามซ่อน accessDeniedScreen
+  // เพราะมันคือ hard lock layer
+  updateAccessDeniedScreen();
 }
 
 function renderViewerAccessSheet() {
