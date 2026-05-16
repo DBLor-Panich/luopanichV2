@@ -2155,21 +2155,30 @@ Object.assign(window, {
 
   
 /* ================= GLOBAL STATE (UPGRADED / SAFE) ================= */
- function updateAccessDeniedScreen() {
-   const el = document.getElementById("accessDeniedScreen");
-   if (!el) return;
+function updateAccessDeniedScreen() {
 
-const locked =
-  state.viewerAuthorized !== true &&
-  
-  !state.viewerAccessOpen
+  const el =
+    document.getElementById("accessDeniedScreen");
 
-if (locked) {
-  el.style.display = "flex";
-} else {
-  el.style.display = "none";
+  if (!el) return;
+
+  // 🔴 CHANGED:
+  // ล็อกจนกว่าจะ verify สำเร็จจริงเท่านั้น
+  const locked =
+    state.viewerAuthorized !== true;
+
+  if (locked) {
+
+    // 🔴 CHANGED:
+    // ใช้ hidden class แทน style ตรง
+    el.classList.remove("hidden");
+
+  } else {
+
+    el.classList.add("hidden");
+
+  }
 }
- }
 
 const state = {
   // 🔴 CHANGED: STEP 1 LOCK MODE
@@ -7793,7 +7802,6 @@ function openViewerAccessSheet() {
   // 🔴 CHANGED:
   // force open โดยตรง
   viewerAccessSheet.classList.add("show");
-  state.viewerAccessOpen = true;
   updateAccessDeniedScreen();
 
 if (accessScreen) {
