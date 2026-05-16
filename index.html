@@ -2158,33 +2158,64 @@ Object.assign(window, {
 function updateAccessDeniedScreen() {
 
   const el =
-    document.getElementById("accessDeniedScreen");
+    document.getElementById(
+      "accessDeniedScreen"
+    );
 
   if (!el) return;
 
   // 🔴 CHANGED:
-  // ล็อกจนกว่าจะ verify สำเร็จจริงเท่านั้น
+  // locked state
   const locked =
     state.viewerAuthorized !== true;
 
   if (locked) {
 
-   // 🔴 CHANGED:
-   // HARD CLEAR PRODUCT DOM
-   // ป้องกันสินค้า render ค้างใต้ lock screen
-   if (app) {
-     app.innerHTML = "";
-   } 
+    // 🔴 CHANGED:
+    // HARD CLEAR UI
+    // กันสินค้า render ค้าง
+    if (app) {
+      app.innerHTML = "";
+    }
 
     // 🔴 CHANGED:
-    // ใช้ hidden class แทน style ตรง
+    // ซ่อน header interaction
+    const header =
+      document.getElementById(
+        "appHeader"
+      );
+
+    if (header) {
+      header.innerHTML = "";
+    }
+
+    // 🔴 CHANGED:
+    // reset transient viewer ui
+    state.search = "";
+    state.viewerSearchOpen = false;
+
+    // 🔴 CHANGED:
+    // close viewer overlays
+    closeOverlay(productSheet);
+    closeOverlay(qtySheet);
+    closeOverlay(cartSheet);
+    closeOverlay(confirmSheet);
+
+    // 🔴 CHANGED:
+    // show access lock screen
     el.classList.remove("hidden");
 
-  } else {
-
-    el.classList.add("hidden");
-
+    return;
   }
+
+  // 🔴 CHANGED:
+  // unlock success
+  el.classList.add("hidden");
+
+  // 🔴 CHANGED:
+  // render after authorize only
+  renderHeader();
+  renderProducts();
 }
 
 const state = {
