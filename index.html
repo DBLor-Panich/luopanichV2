@@ -7869,24 +7869,31 @@ async function restoreAdminSessionIfValid() {
 function openViewerAccessSheet() {
 
   // 🔴 CHANGED:
-  // mark access flow opened
+  // mark viewer access flow opened
   state.viewerAccessOpen = true;
 
   // 🔴 CHANGED:
-  // reset overlay system กัน state ค้าง
+  // reset overlay state
   state.ui.overlayCount = 0;
   state.ui.backdropLocked = false;
 
   // 🔴 CHANGED:
-  // force close ทุก overlay ที่อาจค้าง
+  // force close floating overlays
   document
     .querySelectorAll(".sheet.show, .side-menu.show")
     .forEach(el => {
+
+      // 🔴 CHANGED:
+      // ห้ามปิด viewerAccessSheet ตัวเอง
+      if (el.id === "viewerAccessSheet") {
+        return;
+      }
+
       el.classList.remove("show");
     });
 
   // 🔴 CHANGED:
-  // reset backdrop
+  // backdrop active
   if (backdrop) {
     backdrop.style.display = "block";
   }
@@ -7894,13 +7901,12 @@ function openViewerAccessSheet() {
   renderViewerAccessSheet();
 
   // 🔴 CHANGED:
-  // force open access sheet
+  // open access dialog
   viewerAccessSheet.classList.add("show");
 
   // 🔴 CHANGED:
   // IMPORTANT:
   // ห้ามซ่อน accessDeniedScreen
-  // เพราะมันคือ hard lock layer
   updateAccessDeniedScreen();
 }
 
