@@ -1,4 +1,4 @@
- <!DOCTYPE html>   
+ <!DOCTYPE html>  
  <html lang="en">
  <head>
  <meta charset="UTF-8" />
@@ -8,7 +8,6 @@
  <title>Stock Viewer</title>
 
 <!-- ================= UI STYLE ================= -->
-  
 <style>
   :root {
   /* ================= PHASE 3: TYPOGRAPHY / HIERARCHY ================= */
@@ -1955,74 +1954,7 @@ textarea {
   line-height:1.25;
   padding-right:6px; /* กันชิดขอบขาว */
 }
-
- /* ================= ACCESS DENIED SCREEN ================= */
-
- .access-screen{
-   position:fixed;
-   inset:0;
-   z-index:4000;
-
-   display:flex;
-   align-items:center;
-   justify-content:center;
-
-   padding:24px;
-
-   background:
-     radial-gradient(circle at top,
-       rgba(0,122,255,.12),
-       transparent 40%),
-     #0f0f12;
-
-   backdrop-filter:blur(24px);
-   -webkit-backdrop-filter:blur(24px);
- }
-
- .access-card{
-   width:100%;
-   max-width:360px;
-
-   padding:28px 22px;
-
-   border-radius:28px;
-
-   background:rgba(28,28,30,.78);
-
-   border:1px solid rgba(255,255,255,.08);
-
-   box-shadow:
-     var(--shadow-floating),
-     inset 0 1px 0 rgba(255,255,255,.08);
-
-   text-align:center;
- }
-
- .access-icon{
-   font-size:44px;
-   margin-bottom:14px;
- }
-
- .access-title{
-   font-size:24px;
-   font-weight:700;
-   color:#fff;
- }
-
- .access-subtitle{
-   margin-top:8px;
-   margin-bottom:22px;
-
-   font-size:14px;
-   line-height:1.5;
-
-   color:rgba(235,235,245,.72);
- }
-
- #viewerAccessSheet{
-  z-index: 5000;
-}
- 
+  
 </style>
 </head>
 <body>
@@ -2042,36 +1974,11 @@ textarea {
  ></div>
 
 <!-- ================= VIEWER SHEETS ================= -->
- <div id="accessDeniedScreen" class="access-screen hidden">
-   <div class="access-card">
-     <div class="access-icon">🔒</div>
-
-     <div class="access-title">
-       Access Denied
-     </div>
-
-     <div class="access-subtitle">
-       กรุณาใส่รหัสเพื่อเข้าสู่ระบบ
-     </div>
-
-     <button
-       class="btn btn-primary"
-       onclick="openViewerAccessSheet()">
-       ปลดล็อก
-     </button>
-   </div>
- </div>
- 
  <div id="productSheet" class="sheet sheet-product" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="qtySheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="cartSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="confirmSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="stockSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
- <div id="viewerAccessSheet"
-      class="sheet"
-      role="dialog"
-      aria-modal="true"
-      tabindex="-1"></div>
 
 <!-- 🖼️ IMAGE VIEWER (FULLSCREEN) -->
 <div id="imageViewerSheet" class="sheet image-viewer-sheet" role="dialog" aria-modal="true" tabindex="-1">
@@ -2094,7 +2001,6 @@ textarea {
   
 <script>
 /* ================= STEP 2: ประกาศ backdrop (UPGRADED) ================= */
-const app = document.getElementById("app"); 
 const backdrop = document.getElementById("globalBackdrop");
 const cartSheet = document.getElementById("cartSheet");
   
@@ -2102,8 +2008,6 @@ const cartSheet = document.getElementById("cartSheet");
 const productSheet = document.getElementById("productSheet");
 const qtySheet = document.getElementById("qtySheet");
 const confirmSheet = document.getElementById("confirmSheet");
- const viewerAccessSheet =
-   document.getElementById("viewerAccessSheet"); 
 const stockSheet = document.getElementById("stockSheet");
 const adminLoginSheet = document.getElementById("adminLoginSheet");
 const adminDashboardSheet = document.getElementById("adminDashboardSheet");
@@ -2135,10 +2039,6 @@ function getAdminSheets() {
 
 // ✅ expose เฉพาะ public actions ที่ inline handler ยังจำเป็นต้องใช้
 Object.assign(window, {
-  // 🔴 CHANGED: STEP 7 VIEWER ACCESS
-  openViewerAccessSheet,
-  closeViewerAccessSheet,
-  verifyViewerPasscode,
   openChangePasswordSheet,
   submitChangePassword,
   cancelAdminLogin,
@@ -2155,77 +2055,9 @@ Object.assign(window, {
 
   
 /* ================= GLOBAL STATE (UPGRADED / SAFE) ================= */
-function updateAccessDeniedScreen() {
-
-  const el =
-    document.getElementById(
-      "accessDeniedScreen"
-    );
-
-  if (!el) return;
-
-  // 🔴 CHANGED:
-  // locked state
-  const locked =
-    state.viewerAuthorized !== true;
-
-  if (locked) {
-
-    // 🔴 CHANGED:
-    // HARD CLEAR UI
-    // กันสินค้า render ค้าง
-    if (app) {
-      app.innerHTML = "";
-    }
-
-    // 🔴 CHANGED:
-    // ซ่อน header interaction
-    const header =
-      document.getElementById(
-        "appHeader"
-      );
-
-    if (header) {
-      header.innerHTML = "";
-    }
-
-    // 🔴 CHANGED:
-    // reset transient viewer ui
-    state.search = "";
-    state.viewerSearchOpen = false;
-
-    // 🔴 CHANGED:
-    // close viewer overlays
-    closeOverlay(productSheet);
-    closeOverlay(qtySheet);
-    closeOverlay(cartSheet);
-    closeOverlay(confirmSheet);
-
-    // 🔴 CHANGED:
-    // show access lock screen
-    el.classList.remove("hidden");
-
-    return;
-  }
-
-// 🔴 CHANGED:
-// unlock success
-el.classList.add("hidden");
-
-// 🔴 CHANGED:
-// IMPORTANT:
-// access controller ต้อง "ควบคุมเฉพาะ access state"
-// ห้าม render products ตรงนี้
-// เพราะ refreshProducts() เป็น owner อยู่แล้ว
-renderHeader();
-}
 
 const state = {
-  // 🔴 CHANGED: STEP 1 LOCK MODE
-  mode: "locked",
-
-  // 🔴 CHANGED: viewer access state
-  viewerAuthorized: false,
+  mode: "viewer",
 
   pagination: {
     page: 1,
@@ -2277,21 +2109,16 @@ const state = {
     note: ""
   },
 
-ui: {
-  overlayCount: 0,
-  backdropLocked: false
-},
-
- // 🔴 CHANGED:
- viewerAccessOpen: false
+  ui: {
+    overlayCount: 0,
+    backdropLocked: false
+  }
 };
 
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
 
 const CART_KEY = "luopanich_cart";
 const LAST_ORDER_KEY = "luopanich_last_order"; 
- // 🔴 CHANGED: STEP 4 VIEWER SESSION
- const VIEWER_SESSION_KEY = "luopanich_viewer_session"; 
 
 function escapeHtml(value = "") {
   return String(value)
@@ -2408,130 +2235,8 @@ function loadLastOrder() {
 function clearLastOrderStorage() {
   localStorage.removeItem(LAST_ORDER_KEY);
 }
-
- // ================= VIEWER SESSION =================
-
- function saveViewerSession() {
-   try {
-     const payload = {
-       authorized: true,
-       expiredAt: Date.now() + (12 * 60 * 60 * 1000)
-     };
-
-     localStorage.setItem(
-       VIEWER_SESSION_KEY,
-       JSON.stringify(payload)
-     );
-
-   } catch (e) {
-     console.warn("saveViewerSession failed", e);
-   }
- }
-
- function loadViewerSession() {
-   try {
-     const raw = localStorage.getItem(VIEWER_SESSION_KEY);
-     if (!raw) return false;
-
-     const parsed = JSON.parse(raw);
-
-     if (
-       !parsed ||
-       parsed.authorized !== true ||
-       !parsed.expiredAt
-     ) {
-       return false;
-     }
-
-     if (Date.now() > Number(parsed.expiredAt)) {
-       clearViewerSession();
-       return false;
-     }
-
-     return true;
-
-   } catch (e) {
-     console.warn("loadViewerSession failed", e);
-     return false;
-   }
- }
-
- function clearViewerSession() {
-   localStorage.removeItem(VIEWER_SESSION_KEY);
- } 
-
-// 🔴 ADDED: STEP 5 PRODUCTION EXPIRE CHECK
-function enforceViewerSessionExpiration() {
-  try {
-    if (state.viewerAuthorized !== true) return;
-
-    const raw = localStorage.getItem(VIEWER_SESSION_KEY);
-    if (!raw) {
-      forceViewerRelock();
-      return;
-    }
-
-    const parsed = JSON.parse(raw);
-
-    if (
-      !parsed ||
-      parsed.authorized !== true ||
-      !parsed.expiredAt
-    ) {
-      forceViewerRelock();
-      return;
-    }
-
-    if (Date.now() > Number(parsed.expiredAt)) {
-      forceViewerRelock();
-    }
-
-  } catch (e) {
-    console.warn("enforceViewerSessionExpiration failed", e);
-    forceViewerRelock();
-  }
-}
-
-// 🔴 ADDED: SINGLE SOURCE OF TRUTH
-function forceViewerRelock() {
-  clearViewerSession();
-
- clearCartStorage();
- clearLastOrderStorage();
-
-  // 🔴 CHANGED: clear runtime cart state
-  state.cart = [];
-  state.lastOrder = null;
  
-  state.viewerAuthorized = false;
-  state.mode = "locked";
 
- // 🔴 CHANGED: reset transient viewer state
- state.selectedProduct = null;
- state.qty = 1;
-
- // 🔴 CHANGED: reset transient viewer search/filter
- state.search = "";
- state.viewerSearchOpen = false;
- state.viewerFilter.status = "all";
- 
- // 🔴 CHANGED: close viewer overlays on expire
- closeOverlay(productSheet);
- closeOverlay(qtySheet);
- closeOverlay(cartSheet);
- closeOverlay(confirmSheet); 
-
-  renderHeader();
-  renderProducts();
-
-  updateAccessDeniedScreen();
-
-  showToast("Session หมดอายุ กรุณาใส่รหัสใหม่", "warning");
-}
-
-// 🔴 ADDED: runtime protection
-setInterval(enforceViewerSessionExpiration, 60000);
- 
 /* ================= SKU AUTO RUN UTILITY ================= */
 // 🔴 ADDED: หา SKU ถัดไปจาก state.products เช่น A001 -> A002
 function getNextProductId(currentValue = "") {
@@ -2712,27 +2417,6 @@ function isAuthError(message = "") {
  }
 
  async function postFormAction(form, { timeout = 30000 } = {}) {
-
- // 🔴 CHANGED: STEP 3A CENTRAL ADMIN TOKEN GUARD
- const action = String(form?.get?.("action") || "");
-
- const adminActions = [
-   "adminProducts",
-   "stockIn",
-   "stockAdjust",
-   "approveOrder",
-   "rejectOrder",
-   "uploadProductImage",
-   "changePassword"
- ];
-
- if (
-   adminActions.includes(action) &&
-   !state.admin?.token
- ) {
-   throw new Error("Missing token");
- }
-                    
    const res = await fetchWithTimeout(API_URL, {
      method: "POST",
      body: form
@@ -2819,16 +2503,8 @@ function sortProducts(products) {
 }
   
 async function refreshProducts() {
- // 🔴 CHANGED: STEP 1 LOCK MODE GUARD
- if (
-   state.mode === "locked" &&
-   state.viewerAuthorized !== true &&
-   state.mode !== "admin"
- ) {
-   console.warn("[LOCKED] refreshProducts blocked");
-   return;
- }
- 
+  const app = document.getElementById("app");
+
   // ✅ Premium Skeleton เฉพาะตอน "ยังไม่มีรายการ" (ลดอาการวูบ/กระพริบ)
   if (app && (!Array.isArray(state.products) || state.products.length === 0)) {
     const skeleton = Array.from({ length: 6 }).map(() => `
@@ -2926,90 +2602,44 @@ async function createOrder() {
   return json;
 }
 
-/* ================= OVERLAY MANAGER ================= */
-
 function openOverlay(el){
-
-  // 🔴 CHANGED: null guard
   if (!el || el.classList.contains("show")) return;
 
   el.classList.add("show");
+  state.ui.overlayCount++;
 
-  // 🔴 CHANGED: sync from real DOM
-  state.ui.overlayCount =
-    document.querySelectorAll(
-      ".sheet.show, .side-menu.show"
-    ).length;
-
-  // 🔴 CHANGED: safe backdrop guard
-  if (backdrop) {
-    backdrop.style.display = "block";
-  }
-
-  setTimeout(() => {
-    if (typeof focusFirstInteractive === "function") {
-      focusFirstInteractive(el);
-    }
-  }, 0);
+  backdrop.style.display = "block";
+  setTimeout(() => focusFirstInteractive(el), 0);
 }
 
-
 function closeOverlay(el){
-
-  // 🔴 CHANGED: null guard
   if (!el || !el.classList.contains("show")) return;
 
   el.classList.remove("show");
+  state.ui.overlayCount = Math.max(0, state.ui.overlayCount - 1);
 
-  // 🔴 CHANGED: sync from real DOM
-  state.ui.overlayCount =
-    document.querySelectorAll(
-      ".sheet.show, .side-menu.show"
-    ).length;
+  // 🔴 CHANGED: จำว่าเราปิด "cartSheet" อยู่ไหม (เพราะบางครั้งปิดผ่าน backdrop จะไม่เรียก closeCart)
+  const closedCartSheet = (el.id === "cartSheet");
 
-  // 🔴 CHANGED: จำว่าเราปิด cartSheet หรือไม่
-  const closedCartSheet =
-    (el.id === "cartSheet");
+  if (state.ui.overlayCount === 0 && !state.ui.backdropLocked) {
+    backdrop.style.display = "none";
 
-  if (
-    state.ui.overlayCount === 0 &&
-    !state.ui.backdropLocked
-  ) {
+    // 🔴 FIX: reset floating bar momentum state
+    const bar = document.getElementById("floatingBar");
+    if (bar) bar.classList.remove("scroll-hide");
 
-    // 🔴 CHANGED: safe backdrop guard
-    if (backdrop) {
-      backdrop.style.display = "none";
-    }
-
-    // 🔴 FIX: reset floating bar state
-    const bar =
-      document.getElementById("floatingBar");
-
-    if (bar) {
-      bar.classList.remove("scroll-hide");
-    }
-
-    // 🔴 CHANGED: คืน floating bar
-    if (
-      closedCartSheet &&
-      typeof renderFloatingBar === "function"
-    ) {
-
+    // 🔴 CHANGED: ถ้าเพิ่งปิด cartSheet และกลับสู่ viewer จริง → ต้องคืน floatingBar ถ้า cart ยังมีของ
+    // ใช้ rAF เพื่อให้ DOM/overlayCount settle ก่อน (กันเคสปิดแล้ว bar ไม่กลับ)
+    if (closedCartSheet && typeof renderFloatingBar === "function") {
       requestAnimationFrame(() => {
-
-        if (
-          state.mode === "viewer" &&
-          state.viewerAuthorized === true &&
-          state.ui.overlayCount === 0
-        ) {
+        // กันเคส user เปิด overlay อื่นทันทีระหว่างเฟรม
+        if (state.mode === "viewer" && state.ui.overlayCount === 0) {
           renderFloatingBar();
         }
-
       });
-
     }
   }
-
+ 
   restoreTriggerFocus();
 }
 
@@ -3220,21 +2850,9 @@ function renderFloatingBar(){
   const bar = document.getElementById("floatingBar");
   if (!bar) return;
 
- // 🔴 CHANGED: STEP 2 LOCK MODE GUARD
- if (
-   state.mode === "locked" &&
-   state.viewerAuthorized !== true
- ) {
-   bar.classList.remove("show");
-   return;
- }
-
   // show เฉพาะ viewer + มีของในตะกร้า
   const hasItems = Array.isArray(state.cart) && state.cart.length > 0;
-
- const isViewer =
-   state.mode === "viewer" &&
-   state.viewerAuthorized === true;
+   const isViewer = state.mode === "viewer";
 
   // ✅ FIX: กัน ReferenceError ถ้าไม่มีตัวแปร cartSheet (หาจาก DOM โดยตรง)
   const cartSheetEl = document.getElementById("cartSheet");
@@ -3395,136 +3013,139 @@ function closeProductInfoSheet(){
   }
 }  
   
-/* ================= RENDER PRODUCTS ================= */
-function renderProducts() {
+function renderProducts(){
+  const app = document.getElementById("app");
 
-// 🔴 CHANGED:
-// HARD LOCK GATE
-// ยังไม่ authorize = ห้าม render ทุกกรณี
-if (
-  state.mode === "locked" ||
-  state.viewerAuthorized !== true
-) {
-
-  if (app) {
-    app.innerHTML = "";
-  }
-
-  return;
-}
-
-  // 🔴 CHANGED:
-  // safety guard
+  const escapeHTML = (str="") =>
+    String(str ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#39;");
+  
+  // 🔒 GUARD สำคัญที่สุด
   if (!Array.isArray(state.products)) {
-
+    console.error("renderProducts: products is not array", state.products);
     app.innerHTML = `
-      <div class="loading">
+      <div style="
+        text-align:center;
+        color:#d93025;
+        margin-top:40px;
+        font-size:15px;
+      ">
         ไม่สามารถโหลดรายการสินค้าได้
       </div>
     `;
-
     return;
   }
-
-  // 🔴 CHANGED:
-  // escape helper
-  const escapeHTML = (str = "") =>
-    String(str ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
 
   const filteredProducts = [];
 
   state.products.forEach(p => {
+    const stockNum = Number(p.stock);
 
-    const stockNum =
-      Number(p.stock);
-
+  // 🔍 STATUS RESOLVE (ต้องมาก่อน filter ทุกครั้ง)
     const resolvedStatus =
       stockNum <= 0
         ? "out"
-        : String(
-            p.status || "ready"
-          )
-            .trim()
-            .toLowerCase();
+        : String(p.status || "ready").trim().toLowerCase();  
 
-    // 🔴 CHANGED:
-    // viewer hide inactive
-    if (
-      state.mode === "viewer" &&
-      !p.active
-    ) {
-      return;
-    }
+    // ❌ ไม่แสดงสินค้าที่ปิดขาย (viewer เท่านั้น)
+    if (state.mode === "viewer" && !p.active) return;
 
-    // 🔍 SEARCH FILTER
+    // 🔍 SEARCH FILTER (ชื่อ + รหัส)
     if (state.search) {
-
-      const text =
-        (
-          String(p.name || "") +
-          String(p.productId || "")
-        ).toLowerCase();
-
-      if (
-        !text.includes(
-          String(state.search)
-            .toLowerCase()
-        )
-      ) {
-        return;
-      }
+      const text = (p.name + p.productId).toLowerCase();
+      if (!text.includes(String(state.search).toLowerCase())) return;
     }
 
-    // 🔍 VIEWER FILTER
-    if (
-      state.mode === "viewer" &&
-      state.viewerFilter &&
-      state.viewerFilter.status !== "all"
-    ) {
+// 🔍 STATUS FILTER (Viewer/Admin use resolved status)
+if (
+  state.mode === "viewer" &&
+  state.viewerFilter &&
+  state.viewerFilter.status !== "all"
+) {
+  if (resolvedStatus !== state.viewerFilter.status) return;
+}
 
-      if (
-        resolvedStatus !==
-        state.viewerFilter.status
-      ) {
-        return;
-      }
-    }
-
-    // 🔍 ADMIN FILTER
+// 🔴 CHANGED: admin filter (ต้องอยู่หลัง resolvedStatus เสมอ)
     if (
       state.mode === "admin" &&
       state.admin.filters &&
       state.admin.filters.status !== "all"
     ) {
-
-      if (
-        resolvedStatus !==
-        state.admin.filters.status
-      ) {
-        return;
-      }
-    }
+      if (resolvedStatus !== state.admin.filters.status) return;
+    } 
 
     filteredProducts.push({
       ...p,
       resolvedStatus
     });
-
   });
 
-  // 🔴 CHANGED:
-  // clear app ก่อน render ใหม่
+  const pageSize = Number(state.pagination?.pageSize) || 100;
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(Math.max(1, Number(state.pagination?.page) || 1), totalPages);
+  state.pagination.page = safePage;
+
+  const startIndex = (safePage - 1) * pageSize;
+  const pageItems = filteredProducts.slice(startIndex, startIndex + pageSize);
+
   app.innerHTML = "";
+  let found = false;
 
-  // 🔴 CHANGED:
-  // no products
-  if (!filteredProducts.length) {
+  pageItems.forEach(p => {
+    const statusMap = {
+      ready:     "พร้อมส่ง",
+      shipping:  "อยู่ระหว่างจัดส่ง",
+      warehouse: "อยู่โกดังไทย",
+      out:       "หมด"
+    };
+ 
+    const statusKey = p.resolvedStatus;
+    let statusClass = statusKey;
+    let statusText  = statusMap[statusKey] || "พร้อมส่ง";
 
+    /* ================= CARD ================= */
+    const card = document.createElement("div");
+    card.className = "product-card";
+
+    card.onclick = () => {
+      if (state.mode === "admin") {
+        openAdminProductAction(p);
+      } else {
+        openProduct(p);
+      }
+    };
+
+    card.innerHTML = `
+      <img class="thumb"
+        src="${p.image ? escapeHTML(p.image) : "about:blank"}"
+        alt="${escapeHTML(p.name)}"
+        onerror="this.style.display='none'">
+
+      <div class="info">
+        <div class="name">${escapeHTML(p.name)}</div>
+        <div class="sku">รหัส: ${escapeHTML(p.productId)}</div>
+        <div class="price">ราคา: ฿${Number(p.price).toLocaleString()}</div>
+
+        <div class="meta">
+          <span class="qty">จำนวน: ${p.stock}</span>
+          <span class="status ${statusClass}">
+            ${statusText}
+          </span>
+        </div>
+      </div>
+    `;
+
+    app.appendChild(card);
+    found = true;
+  });
+
+  // ❌ ไม่พบสินค้า
+  if (!found) {
     app.innerHTML = `
       <div style="
         text-align:center;
@@ -3532,100 +3153,44 @@ if (
         margin-top:40px;
         font-size:15px;
       ">
-        ไม่พบสินค้า
+        ไม่พบสินค้าที่ค้นหา
       </div>
     `;
-
-    return;
+    return;   
   }
 
-  filteredProducts.forEach(p => {
+  if (totalItems > pageSize) {
+    const pagination = document.createElement("div");
+    pagination.className = "pagination";
+    pagination.innerHTML = `
+      <button
+        class="btn btn-outline"
+        style="width:auto;padding:10px 14px"
+        ${safePage === 1 ? "disabled" : ""}
+        onclick="changePage(-1)">
+        ก่อนหน้า
+      </button>
 
-    const statusMap = {
-      ready: "พร้อมส่ง",
-      shipping: "อยู่ระหว่างจัดส่ง",
-      warehouse: "อยู่โกดังไทย",
-      out: "หมด"
-    };
-
-    const statusClass =
-      p.resolvedStatus;
-
-    const statusText =
-      statusMap[p.resolvedStatus] ||
-      "พร้อมส่ง";
-
-    const card =
-      document.createElement("div");
-
-    card.className =
-      "product-card";
-
-    card.onclick = () => {
-
-      if (
-        state.mode === "admin"
-      ) {
-
-        openAdminProductAction(p);
-
-      } else {
-
-        openProduct(p);
-
-      }
-    };
-
-    card.innerHTML = `
-      <img
-        class="thumb"
-        src="${
-          p.image
-            ? escapeHTML(p.image)
-            : "about:blank"
-        }"
-        alt="${escapeHTML(p.name)}"
-        onerror="this.style.display='none'"
-      >
-
-      <div class="info">
-
-        <div class="name">
-          ${escapeHTML(p.name)}
-        </div>
-
-        <div class="sku">
-          รหัส:
-          ${escapeHTML(p.productId)}
-        </div>
-
-        <div class="price">
-          ราคา:
-          ฿${Number(p.price).toLocaleString()}
-        </div>
-
-        <div class="meta">
-
-          <span class="qty">
-            จำนวน: ${p.stock}
-          </span>
-
-          <span class="status ${statusClass}">
-            ${statusText}
-          </span>
-
-        </div>
-
+      <div class="pagination-info">
+        หน้า ${safePage} / ${totalPages}
+        <br>
+        <span style="font-size:12px;color:rgba(235,235,245,.72)">
+          ${totalItems.toLocaleString()} รายการ
+        </span>
       </div>
+
+      <button
+        class="btn btn-outline"
+        style="width:auto;padding:10px 14px"
+        ${safePage === totalPages ? "disabled" : ""}
+        onclick="changePage(1)">
+        ถัดไป
+      </button>
     `;
-
-    app.appendChild(card);
-
-  });
-
+    app.appendChild(pagination);
+  } 
 }
 
- 
 function changePage(delta){
   const nextPage = (Number(state.pagination.page) || 1) + Number(delta || 0);
   if (nextPage < 1) return;
@@ -4187,111 +3752,44 @@ async function enterAdmin(){
 }
 
 // ✅ STEP 1: UI-only mode switch (ไม่ยุ่ง session/token)
-// ✅ STEP 1: UI-only mode switch (ไม่ยุ่ง session/token)
 function leaveAdminMode(){
-
-  // 🔴 CHANGED:
-  // close overlays first
+  // 🔒 ปิด overlay ทั้งหมดแบบเดิม (UI layer)
   document
     .querySelectorAll(".sheet.show, .side-menu.show")
-    .forEach(el => {
+    .forEach(el => closeOverlay(el));
 
-      // 🔴 CHANGED:
-      // force close without state race
-      el.classList.remove("show");
-    });
-
-  // 🔴 CHANGED:
-  // reset overlay system
-  state.ui.overlayCount = 0;
-
-  if (backdrop) {
-    backdrop.style.display = "none";
-  }
-
-  // 🔴 CHANGED:
-  // reset intent guards
+  // กัน intent เด้งซ้ำ (UI guard)
   allowOpenOrders = false;
   allowOpenStockTimeline = false;
   allowOpenAddProduct = false;
 
-  // 🔴 CHANGED:
-  // return to viewer mode ONLY
-  // ❌ ห้ามกลับ locked
+  // ✅ กลับสู่ viewer mode (UI state only)
   state.mode = "viewer";
-
-  // 🔴 CHANGED:
-  // preserve viewer authorization
-  state.viewerAuthorized = true;
-
-  // 🔴 CHANGED:
-  // clear transient ui state only
   state.search = "";
   state.viewerSearchOpen = false;
 
-  // 🔴 CHANGED:
-  // clear selection
-  state.selectedProduct = null;
-  state.qty = 1;
-
-  // 🔴 CHANGED:
-  // clear admin ui state
-  state.admin.ui.activeSheet = null;
-
-  // 🔴 CHANGED:
-  // rerender clean viewer
   renderHeader();
   renderProducts();
-
-  if (typeof renderBadge === "function") {
-    renderBadge();
-  }
-
-  // 🔴 CHANGED:
-  // ensure access screen hidden
-  updateAccessDeniedScreen();
+  if (typeof renderBadge === "function") renderBadge();
 }
 
-function handleBackdropClick() {
+function handleBackdropClick(){
+  if (state.ui.backdropLocked) {
 
-  // 🔴 CHANGED:
-  // HARD LOCK:
-  // ยังไม่ authorize = ห้ามปิด unlock sheet
-  if (
-    state.viewerAuthorized !== true &&
-    state.viewerAccessOpen === true
-  ) {
+    console.warn('[Backdrop] force unlock');
 
-    // 🔴 CHANGED:
-    // reopen + block bypass
-    openOverlay(viewerAccessSheet);
+   // 🔴 FIX: force reset overlay system (emergency exit)
+   state.ui.backdropLocked = false;
+   const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
+   openEls.forEach(el => el.classList.remove("show"));
+   state.ui.overlayCount = 0;
 
+    safeHideLoading();   // ✅ ไม่มีทาง error
+    showToast("ยกเลิกการดำเนินการ", "warning", 1200);
     return;
   }
 
-  // =========================
-  // EXISTING FLOW
-  // =========================
-
-  closeOverlay(productSheet);
-  closeOverlay(qtySheet);
-  closeOverlay(cartSheet);
-  closeOverlay(confirmSheet);
-  closeOverlay(stockSheet);
-
-  closeOverlay(adminLoginSheet);
-  closeOverlay(adminDashboardSheet);
-  closeOverlay(adminOrderSheet);
-  closeOverlay(adminStockSheet);
-
-  closeOverlay(adminProductActionSheet);
-  closeOverlay(adminProductEditSheet);
-  closeOverlay(adminStockActionSheet);
-  closeOverlay(adminAddProductSheet);
-
-  closeOverlay(viewerAccessSheet);
-
-  closeMainMenu?.();
+  closeTopSheet();
 }
 
 function closeTopSheet(){
@@ -4308,7 +3806,6 @@ function closeTopSheet(){
     document.getElementById("adminStockSheet"),
 
     // 🔵 VIEWER FLOW
-    document.getElementById("viewerAccessSheet"),
     document.getElementById("confirmSheet"),
     document.getElementById("cartSheet"),
     document.getElementById("qtySheet"),
@@ -6153,15 +5650,6 @@ function closeMainMenu(){
  
 /* ================= VIEWER FLOW ================= */
 function openProduct(p){
-
- // 🔴 CHANGED: STEP 2 VIEWER PASSCODE GUARD
- if (
-   state.mode === "locked" &&
-   state.viewerAuthorized !== true
- ) {
-   showToast("กรุณาใส่รหัสผ่านก่อน", "warning");
-   return;
- }
   // 🔴 ADMIN FLOW
   // แอดมิน → ไม่เปิด product sheet แบบผู้ใช้
   if (state.mode === "admin") {
@@ -7807,15 +7295,7 @@ function exitAdmin(opts = {}){
   clearAdminSession();
 
   // 4) กลับสู่ viewer mode เสมอ (ตามตัวเลือก A)
-
-  // 🔴 CHANGED: STEP 1 LOCK MODE
-  // 🔴 CHANGED:
-  // กลับ viewer mode หลังออกจาก admin
   state.mode = "viewer";
-
-  // 🔴 CHANGED:
-  // viewer ยัง authorized อยู่
-  state.viewerAuthorized = true;
   state.admin.ui.activeSheet = null;
 
   // 5) เคลียร์ selection/admin draft ที่อาจทำให้หลุด flow
@@ -7833,9 +7313,6 @@ function exitAdmin(opts = {}){
 
   // 6) rerender เฉพาะที่จำเป็น (ไม่แตะ flow อื่น)
   renderHeader();
-  // 🔴 CHANGED:
-  // โหลดสินค้าใหม่หลังกลับ viewer
-  refreshProducts(); 
   renderProducts();
   if (typeof renderBadge === "function") renderBadge();
 
@@ -7905,243 +7382,6 @@ async function restoreAdminSessionIfValid() {
 
   clearAdminSession();
   return false;
-}
-
- /* ================= VIEWER ACCESS ================= */
-
-function openViewerAccessSheet() {
-
-  // 🔴 CHANGED:
-  // mark viewer access flow opened
-  state.viewerAccessOpen = true;
-
-  // 🔴 CHANGED:
-  // reset overlay state
-  state.ui.overlayCount = 0;
-  state.ui.backdropLocked = false;
-
-  // 🔴 CHANGED:
-  // force close floating overlays
-  document
-    .querySelectorAll(".sheet.show, .side-menu.show")
-    .forEach(el => {
-
-      // 🔴 CHANGED:
-      // ห้ามปิด viewerAccessSheet ตัวเอง
-      if (el.id === "viewerAccessSheet") {
-        return;
-      }
-
-      el.classList.remove("show");
-    });
-
-  // 🔴 CHANGED:
-  // backdrop active
-  if (backdrop) {
-    backdrop.style.display = "block";
-  }
-
-  renderViewerAccessSheet();
-
-  // 🔴 CHANGED:
-  // open access dialog
-  viewerAccessSheet.classList.add("show");
-
-  // 🔴 CHANGED:
-  // IMPORTANT:
-  // ห้ามซ่อน accessDeniedScreen
-  updateAccessDeniedScreen();
-}
-
-function renderViewerAccessSheet() {
-
-  viewerAccessSheet.innerHTML = `
-    <div class="viewer-access-sheet">
-
-      <h3 class="sheet-title">
-        ปลดล็อกระบบ
-      </h3>
-
-      <div class="form-group">
-
-        <label for="viewerPassInput">
-          รหัสผ่าน
-        </label>
-
-        <input
-          id="viewerPassInput"
-          type="password"
-          class="input"
-          placeholder="กรอกรหัสผ่าน"
-          autocomplete="off"
-        />
-
-      </div>
-
-      <div class="sheet-actions">
-
-        <button
-          class="btn btn-secondary"
-          onclick="closeViewerAccessSheet()">
-
-          ยกเลิก
-
-        </button>
-
-        <button
-          class="btn btn-primary"
-          onclick="verifyViewerPasscode()">
-
-          เข้าสู่ระบบ
-
-        </button>
-
-      </div>
-
-    </div>
-  `;
-}
-
-
-function closeViewerAccessSheet() {
-
-  const accessScreen =
-    document.getElementById("accessDeniedScreen");
-
-  // 🔴 CHANGED:
-  // force close popup จริง
-  viewerAccessSheet.classList.remove("show");
-  state.viewerAccessOpen = false;
-
-  // 🔴 CHANGED:
-  // reset overlay state
-  state.ui.overlayCount = 0;
-  state.ui.backdropLocked = false;
-
-  // 🔴 CHANGED:
-  // hide backdrop
-  if (backdrop) {
-    backdrop.style.display = "none";
-  }
-
-  // 🔴 CHANGED:
-  // restore lock screen
-  if (accessScreen) {
-    accessScreen.style.display = "flex";
-  }
-
-  // 🔴 CHANGED:
-  // sync access state ใหม่
-  updateAccessDeniedScreen();
-}
- async function verifyViewerPasscode() {
-
-  const input =
-    document.getElementById("viewerPassInput");
-
-  const passcode =
-    String(input?.value || "").trim();
-
-  if (!passcode) {
-
-    showToast(
-      "กรุณากรอกรหัสผ่าน",
-      "warning"
-    );
-
-    return;
-  }
-
-  // 🔴 CHANGED:
-  // replace with production passcode later
-  const VALID_PASSCODE = "1234";
-
-  if (passcode !== VALID_PASSCODE) {
-
-    // 🔴 CHANGED:
-    // keep unlock sheet open
-    // DO NOT restore access screen here
-
-    showToast(
-      "รหัสผ่านไม่ถูกต้อง",
-      "error"
-    );
-
-    // 🔴 CHANGED:
-    // refocus input
-    requestAnimationFrame(() => {
-      input?.focus();
-      input?.select?.();
-    });
-
-    return;
-  }
-
-  // 🔴 CHANGED:
-  // unlock viewer state
-  state.viewerAuthorized = true;
-  state.mode = "viewer";
-
-  saveViewerSession();
-
-  // 🔴 CHANGED:
-  // close unlock sheet correctly
-  viewerAccessSheet.classList.remove("show");
-
-  // 🔴 CHANGED:
-  // reset overlay system
-  state.ui.overlayCount = 0;
-  state.ui.backdropLocked = false;
-
-  // 🔴 CHANGED:
-  // hide backdrop
-  if (backdrop) {
-    backdrop.style.display = "none";
-  }
-
-  // 🔴 CHANGED:
-  // reset viewer access flow state
-  state.viewerAccessOpen = false;
-
-  // 🔴 CHANGED:
-  // use centralized lock-screen controller
-  // DO NOT use inline style display:none
-  updateAccessDeniedScreen();
-
-  try {
-
-    // 🔴 CHANGED:
-    // IMPORTANT:
-    // wait products BEFORE render flow continues
-    await refreshProducts();
-
-  } catch (err) {
-
-    console.error(
-      "verifyViewerPasscode refreshProducts failed:",
-      err
-    );
-
-    showToast(
-      "ไม่สามารถโหลดสินค้าได้",
-      "error"
-    );
-
-    return;
-  }
-
-  // 🔴 CHANGED:
-  // render header after unlock/data ready
-  renderHeader();
-
-  // 🔴 CHANGED:
-  // render final synced state
-  renderProducts();
-
-  showToast(
-    "เข้าสู่ระบบสำเร็จ",
-    "success"
-  );
 }
   
 /* ================= INIT APP (CLEAN / SAFE) ================= */
@@ -8280,21 +7520,7 @@ const __domReady = new Promise((resolve) => {
     // ✅ ADD: wait until #floatingBar / #btnTop / etc are in DOM
     await __domReady;
     // 🔴 CHANGED (STEP A5): Reload ต้องกลับ Viewer เสมอ (แม้ restore admin สำเร็จ)
-
- // 🔴 CHANGED: STEP 4 AUTO RESTORE VIEWER SESSION
- if (loadViewerSession()) {
-   state.viewerAuthorized = true;
-   state.mode = "viewer";
-
- }
-   
- // 🔴 CHANGED: STEP 2 VIEWER PASSCODE
- // ห้าม bypass lock mode ตอน reload
- if (state.viewerAuthorized === true) {
-   state.mode = "viewer";
- } else {
-   state.mode = "locked";
- }
+    state.mode = "viewer";
     state.search = "";
 
     const restored = loadAdminSession();
