@@ -3398,11 +3398,8 @@ function renderProducts() {
 
   // 🔴 CHANGED:
   // HARD LOCK:
-  // ห้าม render viewer ถ้ายังไม่ authorize จริง
-  if (
-    state.mode === "locked" ||
-    state.viewerAuthorized !== true
-  ) {
+  // ยังไม่ authorize = ห้าม render สินค้าเด็ดขาด
+  if (state.viewerAuthorized !== true) {
 
     if (app) {
       app.innerHTML = "";
@@ -3412,34 +3409,66 @@ function renderProducts() {
   }
 
   // 🔴 CHANGED:
-  // Production safety
-  if (!app) {
-    console.error("renderProducts: app container not found");
-    return;
-  }
-
-  // 🔴 CHANGED:
-  // ป้องกัน products invalid
+  // safety guard
   if (!Array.isArray(state.products)) {
-
-    console.error(
-      "renderProducts: products is not array",
-      state.products
-    );
-
     app.innerHTML = `
-      <div style="
-        text-align:center;
-        color:#ff453a;
-        margin-top:40px;
-        font-size:15px;
-      ">
+      <div class="loading">
         ไม่สามารถโหลดรายการสินค้าได้
       </div>
     `;
-
     return;
   }
+
+  const filtered = getFilteredProducts();
+
+  if (!filtered.length) {
+    app.innerHTML = `
+      <div class="loading">
+        ไม่พบสินค้า
+      </div>
+    `;
+    return;
+  }
+
+  app.innerHTML = filtered.map(product => `
+    <div
+      class="product-card"
+      onclick="openProduct('${product.id}')">
+
+      <img
+        class="thumb"
+        src="${escapeHtml(product.image || '')}"
+        alt="${escapeHtml(product.name || '')}"
+      >
+
+      <div class="info">
+
+        <div class="name">
+          ${escapeHtml(product.name || '-')}
+        </div>
+
+        <div class="sku">
+          รหัส: ${escapeHtml(product.sku || '-')}
+        </div>
+
+        <div class="price">
+          ราคา: ฿${Number(product.price || 0)}
+        </div>
+
+        <div class="meta">
+          <span>
+            จำนวน: ${Number(product.stock || 0)}
+          </span>
+
+          <span class="status ${escapeHtml(product.status || '')}">
+            ${escapeHtml(getStatusLabel(product.status))}
+          </span>
+        </div>
+
+      </div>
+    </div>
+  `).join("");
+}
 
   const escapeHTML = (str = "") =>
     String(str ?? "")
