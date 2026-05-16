@@ -3356,6 +3356,14 @@ function closeProductInfoSheet(){
 }  
   
 function renderProducts() {
+ // 🔴 CHANGED:
+ // ห้าม render สินค้า ถ้ายังไม่ authorize
+ if (state.viewerAuthorized !== true) {
+
+   app.innerHTML = "";
+   return;
+ }
+ 
  if (state.mode === "locked") {
    app.innerHTML = "";
    return;
