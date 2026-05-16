@@ -3411,65 +3411,18 @@ function renderProducts() {
   // 🔴 CHANGED:
   // safety guard
   if (!Array.isArray(state.products)) {
+
     app.innerHTML = `
       <div class="loading">
         ไม่สามารถโหลดรายการสินค้าได้
       </div>
     `;
+
     return;
   }
 
-  const filtered = getFilteredProducts();
-
-  if (!filtered.length) {
-    app.innerHTML = `
-      <div class="loading">
-        ไม่พบสินค้า
-      </div>
-    `;
-    return;
-  }
-
-  app.innerHTML = filtered.map(product => `
-    <div
-      class="product-card"
-      onclick="openProduct('${product.id}')">
-
-      <img
-        class="thumb"
-        src="${escapeHtml(product.image || '')}"
-        alt="${escapeHtml(product.name || '')}"
-      >
-
-      <div class="info">
-
-        <div class="name">
-          ${escapeHtml(product.name || '-')}
-        </div>
-
-        <div class="sku">
-          รหัส: ${escapeHtml(product.sku || '-')}
-        </div>
-
-        <div class="price">
-          ราคา: ฿${Number(product.price || 0)}
-        </div>
-
-        <div class="meta">
-          <span>
-            จำนวน: ${Number(product.stock || 0)}
-          </span>
-
-          <span class="status ${escapeHtml(product.status || '')}">
-            ${escapeHtml(getStatusLabel(product.status))}
-          </span>
-        </div>
-
-      </div>
-    </div>
-  `).join("");
-}
-
+  // 🔴 CHANGED:
+  // escape helper
   const escapeHTML = (str = "") =>
     String(str ?? "")
       .replace(/&/g, "&amp;")
@@ -3556,8 +3509,11 @@ function renderProducts() {
       ...p,
       resolvedStatus
     });
+
   });
 
+  // 🔴 CHANGED:
+  // clear app ก่อน render ใหม่
   app.innerHTML = "";
 
   // 🔴 CHANGED:
@@ -3611,6 +3567,7 @@ function renderProducts() {
       } else {
 
         openProduct(p);
+
       }
     };
 
@@ -3658,8 +3615,11 @@ function renderProducts() {
     `;
 
     app.appendChild(card);
+
   });
+
 }
+
  
 function changePage(delta){
   const nextPage = (Number(state.pagination.page) || 1) + Number(delta || 0);
