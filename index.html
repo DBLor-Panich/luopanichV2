@@ -4185,28 +4185,69 @@ async function enterAdmin(){
 }
 
 // ✅ STEP 1: UI-only mode switch (ไม่ยุ่ง session/token)
+// ✅ STEP 1: UI-only mode switch (ไม่ยุ่ง session/token)
 function leaveAdminMode(){
-  // 🔒 ปิด overlay ทั้งหมดแบบเดิม (UI layer)
+
+  // 🔴 CHANGED:
+  // close overlays first
   document
     .querySelectorAll(".sheet.show, .side-menu.show")
-    .forEach(el => closeOverlay(el));
+    .forEach(el => {
 
-  // กัน intent เด้งซ้ำ (UI guard)
+      // 🔴 CHANGED:
+      // force close without state race
+      el.classList.remove("show");
+    });
+
+  // 🔴 CHANGED:
+  // reset overlay system
+  state.ui.overlayCount = 0;
+
+  if (backdrop) {
+    backdrop.style.display = "none";
+  }
+
+  // 🔴 CHANGED:
+  // reset intent guards
   allowOpenOrders = false;
   allowOpenStockTimeline = false;
   allowOpenAddProduct = false;
 
-  // ✅ กลับสู่ viewer mode (UI state only)
+  // 🔴 CHANGED:
+  // return to viewer mode ONLY
+  // ❌ ห้ามกลับ locked
+  state.mode = "viewer";
 
-  // 🔴 CHANGED: return to locked mode
-  state.mode = "locked";
-  state.viewerAuthorized = false;
+  // 🔴 CHANGED:
+  // preserve viewer authorization
+  state.viewerAuthorized = true;
+
+  // 🔴 CHANGED:
+  // clear transient ui state only
   state.search = "";
   state.viewerSearchOpen = false;
 
+  // 🔴 CHANGED:
+  // clear selection
+  state.selectedProduct = null;
+  state.qty = 1;
+
+  // 🔴 CHANGED:
+  // clear admin ui state
+  state.admin.ui.activeSheet = null;
+
+  // 🔴 CHANGED:
+  // rerender clean viewer
   renderHeader();
   renderProducts();
-  if (typeof renderBadge === "function") renderBadge();
+
+  if (typeof renderBadge === "function") {
+    renderBadge();
+  }
+
+  // 🔴 CHANGED:
+  // ensure access screen hidden
+  updateAccessDeniedScreen();
 }
 
 function handleBackdropClick() {
