@@ -540,6 +540,16 @@ button:disabled {
    
   } 
 }
+
+ /* 🔴 CHANGED: Viewer login topbar reuse */
+.viewer-login-topbar{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:12px;
+  width:100%;
+  min-width:0;
+}
  
   .cart-item{
   display:flex;
@@ -1974,6 +1984,58 @@ textarea {
  ></div>
 
 <!-- ================= VIEWER SHEETS ================= -->
+<div
+  id="viewerLoginSheet"
+  class="sheet"
+  role="dialog"
+  aria-modal="true"
+  tabindex="-1">
+
+  <!-- 🔴 CHANGED: Viewer Login Content -->
+  <div class="viewer-login-topbar">
+    <h3>
+      เข้าสู่ระบบ
+      <span class="dashboard-title-sub">
+        กรุณาเข้าสู่ระบบเพื่อดูสินค้า
+      </span>
+    </h3>
+  </div>
+
+  <div class="form-group">
+    <label>Username</label>
+
+<input
+  id="viewerUsernameInput"
+  type="text"
+  autocomplete="username"
+  autocapitalize="off"
+  spellcheck="false"
+  placeholder="กรอก Username">
+</div>
+
+  <div class="form-group">
+    <label>Password</label>
+
+<input
+  id="viewerPasswordInput"
+  type="password"
+  enterkeyhint="go"
+  autocomplete="current-password"
+  autocapitalize="off"
+  spellcheck="false"
+  placeholder="กรอก Password">
+</div>
+
+<button
+  id="viewerLoginBtn"
+  class="btn btn-primary"
+  type="button">
+
+  เข้าสู่ระบบ
+</button>
+
+</div>
+
  <div id="productSheet" class="sheet sheet-product" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="qtySheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="cartSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
@@ -2009,6 +2071,65 @@ const productSheet = document.getElementById("productSheet");
 const qtySheet = document.getElementById("qtySheet");
 const confirmSheet = document.getElementById("confirmSheet");
 const stockSheet = document.getElementById("stockSheet");
+
+ /* 🔴 CHANGED: image viewer sheet ref */
+ const imageViewerSheet =
+   document.getElementById("imageViewerSheet"); 
+
+/* 🔴 CHANGED: viewer login sheet refs */
+const viewerLoginSheet =
+  document.getElementById("viewerLoginSheet");
+
+const viewerUsernameInput =
+  document.getElementById("viewerUsernameInput");
+
+const viewerPasswordInput =
+  document.getElementById("viewerPasswordInput");
+
+const viewerLoginBtn =
+  document.getElementById("viewerLoginBtn");
+
+ /* 🔴 CHANGED: viewer login enter submit */
+ viewerPasswordInput?.addEventListener(
+   "keydown",
+   (e) => {
+     if (e.key !== "Enter") return;
+
+     e.preventDefault();
+
+   // 🔴 CHANGED: prevent empty submit
+   if (
+     !viewerUsernameInput?.value?.trim() ||
+     !viewerPasswordInput?.value?.trim()
+   ) {
+     return;
+   }
+    
+     if (state.viewer.isSubmitting) return;
+
+     submitViewerLogin();
+   }
+ ); 
+
+ /* 🔴 CHANGED: username enter -> focus password */
+viewerUsernameInput?.addEventListener(
+  "keydown",
+  (e) => {
+
+    if (e.key !== "Enter") return;
+
+    e.preventDefault();
+
+    viewerPasswordInput?.focus();
+  }
+);
+
+ // 🔴 CHANGED: deterministic click submit
+ viewerLoginBtn?.addEventListener(
+   "click",
+   submitViewerLogin
+ ); 
+
 const adminLoginSheet = document.getElementById("adminLoginSheet");
 const adminDashboardSheet = document.getElementById("adminDashboardSheet");
 const adminOrderSheet = document.getElementById("adminOrderSheet");
@@ -2021,20 +2142,64 @@ const adminAddProductSheet = document.getElementById("adminAddProductSheet");
 
 // ================= ADMIN UI REGISTRY =================
 // 🔒 รวม ref ฝั่ง admin ไว้จุดเดียว เพื่อให้เพิ่ม/ถอดเมนูในอนาคตง่ายขึ้น
-const ADMIN_SHEETS = Object.freeze({
-  login: adminLoginSheet,
-  dashboard: adminDashboardSheet,
-  order: adminOrderSheet,
-  stock: adminStockSheet,
-  menu: mainMenuSheet,
-  productAction: adminProductActionSheet,
-  productEdit: adminProductEditSheet,
-  stockAction: adminStockActionSheet,
-  addProduct: adminAddProductSheet
+const OVERLAY_SHEETS = Object.freeze({
+
+ // 🔴 CHANGED:
+ // single registry only
+ // openOverlay() must close active overlay first 
+
+  // 🔴 CHANGED: viewer
+  viewerLogin: viewerLoginSheet,
+
+  // 🔴 CHANGED: viewer sheets
+  product: productSheet,
+  qty: qtySheet,
+  cart: cartSheet,
+  confirm: confirmSheet,
+  stock: stockSheet,
+  imageViewer: imageViewerSheet,
+
+  // 🔴 CHANGED: admin
+  adminLogin: adminLoginSheet,
+  adminDashboard: adminDashboardSheet,
+  adminOrder: adminOrderSheet,
+  adminStock: adminStockSheet,
+  adminMenu: mainMenuSheet,
+  adminProductAction: adminProductActionSheet,
+  adminProductEdit: adminProductEditSheet,
+  adminStockAction: adminStockActionSheet,
+  adminAddProduct: adminAddProductSheet
 });
 
-function getAdminSheets() {
-  return Object.values(ADMIN_SHEETS).filter(Boolean);
+ /* 🔴 CHANGED: viewer login ui lock */
+function setViewerLoginLoading(isLoading) {
+
+  // 🔴 CHANGED:
+  state.viewer.isSubmitting =
+    Boolean(isLoading);
+
+  if (!viewerLoginBtn) return;
+
+  viewerLoginBtn.disabled = isLoading;
+
+  viewerLoginBtn.textContent =
+    isLoading
+      ? "กำลังเข้าสู่ระบบ..."
+      : "เข้าสู่ระบบ";
+}
+
+/* 🔴 CHANGED: deterministic viewer submit reset */
+// call on:
+// - login success
+// - login error
+// - sheet close
+
+/* 🔴 CHANGED: safe viewer login focus */
+// call inside:
+// openViewerLogin()
+ 
+function getOverlaySheets() {
+  return Object.values(OVERLAY_SHEETS).filter(Boolean);
 }
 
 // ✅ expose เฉพาะ public actions ที่ inline handler ยังจำเป็นต้องใช้
@@ -2059,6 +2224,18 @@ Object.assign(window, {
 const state = {
   mode: "viewer",
 
+ // 🔐 VIEWER SESSION
+ viewer: {
+   loggedIn: false,
+   user: null,
+   token: null,
+   expiredAt: null,
+ isSubmitting: false,
+
+ // 🔴 CHANGED:
+ activeSheet: null
+ }, 
+
   pagination: {
     page: 1,
     pageSize: 100
@@ -2076,8 +2253,8 @@ const state = {
   cart: [],
   lastOrder: null,
 
-  // 🔒 viewer submit guard (ใช้กับ createOrder)
-  isSubmitting: false,
+// 🔒 order submit guard
+orderSubmitting: false,
 
   admin: {
     loggedIn: false,
@@ -3774,22 +3951,47 @@ function leaveAdminMode(){
 }
 
 function handleBackdropClick(){
-  if (state.ui.backdropLocked) {
 
-    console.warn('[Backdrop] force unlock');
+ // 🔴 CHANGED: prevent dismiss during viewer login submit
+ if (state.viewer.isSubmitting) {
+
+   console.warn(
+     "[Viewer Login] dismiss blocked during submit"
+   );
+
+   return;
+ }
+
+ if (state.ui.backdropLocked) {
+
+   console.warn('[Backdrop] force unlock');
 
    // 🔴 FIX: force reset overlay system (emergency exit)
    state.ui.backdropLocked = false;
-   const openEls = document.querySelectorAll(".sheet.show, .side-menu.show");
-   openEls.forEach(el => el.classList.remove("show"));
+
+   const openEls =
+     document.querySelectorAll(
+       ".sheet.show, .side-menu.show"
+     );
+
+   openEls.forEach(el =>
+     el.classList.remove("show")
+   );
+
    state.ui.overlayCount = 0;
 
-    safeHideLoading();   // ✅ ไม่มีทาง error
-    showToast("ยกเลิกการดำเนินการ", "warning", 1200);
-    return;
-  }
+   safeHideLoading();
 
-  closeTopSheet();
+   showToast(
+     "ยกเลิกการดำเนินการ",
+     "warning",
+     1200
+   );
+
+   return;
+ }
+
+ closeTopSheet();
 }
 
 function closeTopSheet(){
