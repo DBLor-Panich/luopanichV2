@@ -8032,8 +8032,7 @@ function closeViewerAccessSheet() {
   // sync access state ใหม่
   updateAccessDeniedScreen();
 }
- 
-function verifyViewerPasscode() {
+ async function verifyViewerPasscode() {
 
   const input =
     document.getElementById("viewerPassInput");
@@ -8099,22 +8098,42 @@ function verifyViewerPasscode() {
   }
 
   // 🔴 CHANGED:
-  // hide access denied screen
-  const accessScreen =
-    document.getElementById("accessDeniedScreen");
+  // reset viewer access flow state
+  state.viewerAccessOpen = false;
 
-  if (accessScreen) {
-    accessScreen.style.display = "none";
+  // 🔴 CHANGED:
+  // use centralized lock-screen controller
+  // DO NOT use inline style display:none
+  updateAccessDeniedScreen();
+
+  try {
+
+    // 🔴 CHANGED:
+    // IMPORTANT:
+    // wait products BEFORE render flow continues
+    await refreshProducts();
+
+  } catch (err) {
+
+    console.error(
+      "verifyViewerPasscode refreshProducts failed:",
+      err
+    );
+
+    showToast(
+      "ไม่สามารถโหลดสินค้าได้",
+      "error"
+    );
+
+    return;
   }
 
   // 🔴 CHANGED:
-  // render viewer immediately
+  // render header after unlock/data ready
   renderHeader();
 
   // 🔴 CHANGED:
-  // load products again after unlock
-  refreshProducts();
-
+  // render final synced state
   renderProducts();
 
   showToast(
