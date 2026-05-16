@@ -3356,48 +3356,41 @@ function closeProductInfoSheet(){
 }  
   
 function renderProducts() {
- // 🔴 CHANGED:
- // ห้าม render สินค้า ถ้ายังไม่ authorize
- if (state.viewerAuthorized !== true) {
 
-   app.innerHTML = "";
-   return;
- }
- 
- if (state.mode === "locked") {
-   app.innerHTML = "";
-   return;
- }
+  // 🔴 CHANGED:
+  // HARD LOCK:
+  // ห้าม render viewer ถ้ายังไม่ authorize จริง
+  // ป้องกันสินค้าโผล่หลัง Access Screen
+  if (
+    state.mode === "locked" ||
+    state.viewerAuthorized !== true
+  ) {
 
- // 🔴 CHANGED: STEP 1 VIEWER LOCK
- if (
-   state.mode === "locked" &&
-   state.viewerAuthorized !== true &&
-   state.mode !== "admin"
- ) {
+    // 🔴 CHANGED:
+    // clear DOM ทั้งหมดทันที
+    if (app) {
+      app.innerHTML = "";
+    }
 
-   if (app) {
-     app.innerHTML = `
-       <div class="loading">
-         ระบบถูกล็อก กรุณายืนยันตัวตน
-       </div>
-     `;
-   }
+    return;
+  }
 
-   return;
- }
-
-  const escapeHTML = (str="") =>
+  const escapeHTML = (str = "") =>
     String(str ?? "")
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;")
-      .replace(/'/g,"&#39;");
-  
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
   // 🔒 GUARD สำคัญที่สุด
   if (!Array.isArray(state.products)) {
-    console.error("renderProducts: products is not array", state.products);
+
+    console.error(
+      "renderProducts: products is not array",
+      state.products
+    );
+
     app.innerHTML = `
       <div style="
         text-align:center;
@@ -3408,46 +3401,77 @@ function renderProducts() {
         ไม่สามารถโหลดรายการสินค้าได้
       </div>
     `;
+
     return;
   }
 
   const filteredProducts = [];
 
   state.products.forEach(p => {
+
     const stockNum = Number(p.stock);
 
-  // 🔍 STATUS RESOLVE (ต้องมาก่อน filter ทุกครั้ง)
+    // 🔍 STATUS RESOLVE
     const resolvedStatus =
       stockNum <= 0
         ? "out"
-        : String(p.status || "ready").trim().toLowerCase();  
+        : String(p.status || "ready")
+            .trim()
+            .toLowerCase();
 
     // ❌ ไม่แสดงสินค้าที่ปิดขาย (viewer เท่านั้น)
-    if (state.mode === "viewer" && !p.active) return;
-
-    // 🔍 SEARCH FILTER (ชื่อ + รหัส)
-    if (state.search) {
-      const text = (p.name + p.productId).toLowerCase();
-      if (!text.includes(String(state.search).toLowerCase())) return;
+    if (
+      state.mode === "viewer" &&
+      !p.active
+    ) {
+      return;
     }
 
-// 🔍 STATUS FILTER (Viewer/Admin use resolved status)
-if (
-  state.mode === "viewer" &&
-  state.viewerFilter &&
-  state.viewerFilter.status !== "all"
-) {
-  if (resolvedStatus !== state.viewerFilter.status) return;
-}
+    // 🔍 SEARCH FILTER
+    if (state.search) {
 
-// 🔴 CHANGED: admin filter (ต้องอยู่หลัง resolvedStatus เสมอ)
+      const text =
+        (p.name + p.productId)
+          .toLowerCase();
+
+      if (
+        !text.includes(
+          String(state.search).toLowerCase()
+        )
+      ) {
+        return;
+      }
+    }
+
+    // 🔍 VIEWER STATUS FILTER
+    if (
+      state.mode === "viewer" &&
+      state.viewerFilter &&
+      state.viewerFilter.status !== "all"
+    ) {
+
+      if (
+        resolvedStatus !==
+        state.viewerFilter.status
+      ) {
+        return;
+      }
+    }
+
+    // 🔍 ADMIN STATUS FILTER
     if (
       state.mode === "admin" &&
       state.admin.filters &&
       state.admin.filters.status !== "all"
     ) {
-      if (resolvedStatus !== state.admin.filters.status) return;
-    } 
+
+      if (
+        resolvedStatus !==
+        state.admin.filters.status
+      ) {
+        return;
+      }
+    }
 
     filteredProducts.push({
       ...p,
@@ -3455,68 +3479,134 @@ if (
     });
   });
 
-  const pageSize = Number(state.pagination?.pageSize) || 100;
-  const totalItems = filteredProducts.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const safePage = Math.min(Math.max(1, Number(state.pagination?.page) || 1), totalPages);
+  const pageSize =
+    Number(state.pagination?.pageSize) || 100;
+
+  const totalItems =
+    filteredProducts.length;
+
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(totalItems / pageSize)
+    );
+
+  const safePage =
+    Math.min(
+      Math.max(
+        1,
+        Number(state.pagination?.page) || 1
+      ),
+      totalPages
+    );
+
   state.pagination.page = safePage;
 
-  const startIndex = (safePage - 1) * pageSize;
-  const pageItems = filteredProducts.slice(startIndex, startIndex + pageSize);
+  const startIndex =
+    (safePage - 1) * pageSize;
+
+  const pageItems =
+    filteredProducts.slice(
+      startIndex,
+      startIndex + pageSize
+    );
 
   app.innerHTML = "";
+
   let found = false;
 
   pageItems.forEach(p => {
+
     const statusMap = {
-      ready:     "พร้อมส่ง",
-      shipping:  "อยู่ระหว่างจัดส่ง",
+      ready: "พร้อมส่ง",
+      shipping: "อยู่ระหว่างจัดส่ง",
       warehouse: "อยู่โกดังไทย",
-      out:       "หมด"
+      out: "หมด"
     };
- 
-    const statusKey = p.resolvedStatus;
-    let statusClass = statusKey;
-    let statusText  = statusMap[statusKey] || "พร้อมส่ง";
+
+    const statusKey =
+      p.resolvedStatus;
+
+    const statusClass =
+      statusKey;
+
+    const statusText =
+      statusMap[statusKey] ||
+      "พร้อมส่ง";
 
     /* ================= CARD ================= */
-    const card = document.createElement("div");
-    card.className = "product-card";
+
+    const card =
+      document.createElement("div");
+
+    card.className =
+      "product-card";
 
     card.onclick = () => {
-      if (state.mode === "admin") {
+
+      if (
+        state.mode === "admin"
+      ) {
+
         openAdminProductAction(p);
+
       } else {
+
         openProduct(p);
       }
     };
 
     card.innerHTML = `
-      <img class="thumb"
-        src="${p.image ? escapeHTML(p.image) : "about:blank"}"
+      <img
+        class="thumb"
+        src="${
+          p.image
+            ? escapeHTML(p.image)
+            : "about:blank"
+        }"
         alt="${escapeHTML(p.name)}"
-        onerror="this.style.display='none'">
+        onerror="this.style.display='none'"
+      >
 
       <div class="info">
-        <div class="name">${escapeHTML(p.name)}</div>
-        <div class="sku">รหัส: ${escapeHTML(p.productId)}</div>
-        <div class="price">ราคา: ฿${Number(p.price).toLocaleString()}</div>
+
+        <div class="name">
+          ${escapeHTML(p.name)}
+        </div>
+
+        <div class="sku">
+          รหัส:
+          ${escapeHTML(p.productId)}
+        </div>
+
+        <div class="price">
+          ราคา:
+          ฿${Number(p.price).toLocaleString()}
+        </div>
 
         <div class="meta">
-          <span class="qty">จำนวน: ${p.stock}</span>
+
+          <span class="qty">
+            จำนวน: ${p.stock}
+          </span>
+
           <span class="status ${statusClass}">
             ${statusText}
           </span>
+
         </div>
+
       </div>
     `;
 
     app.appendChild(card);
+
     found = true;
   });
 
   // ❌ ไม่พบสินค้า
   if (!found) {
+
     app.innerHTML = `
       <div style="
         text-align:center;
@@ -3527,41 +3617,70 @@ if (
         ไม่พบสินค้าที่ค้นหา
       </div>
     `;
-    return;   
+
+    return;
   }
 
+  // ================= PAGINATION =================
+
   if (totalItems > pageSize) {
-    const pagination = document.createElement("div");
-    pagination.className = "pagination";
+
+    const pagination =
+      document.createElement("div");
+
+    pagination.className =
+      "pagination";
+
     pagination.innerHTML = `
       <button
         class="btn btn-outline"
         style="width:auto;padding:10px 14px"
-        ${safePage === 1 ? "disabled" : ""}
-        onclick="changePage(-1)">
+        ${
+          safePage === 1
+            ? "disabled"
+            : ""
+        }
+        onclick="changePage(-1)"
+      >
         ก่อนหน้า
       </button>
 
       <div class="pagination-info">
-        หน้า ${safePage} / ${totalPages}
+
+        หน้า
+        ${safePage}
+        /
+        ${totalPages}
+
         <br>
-        <span style="font-size:12px;color:rgba(235,235,245,.72)">
-          ${totalItems.toLocaleString()} รายการ
+
+        <span style="
+          font-size:12px;
+          color:rgba(235,235,245,.72)
+        ">
+          ${totalItems.toLocaleString()}
+          รายการ
         </span>
+
       </div>
 
       <button
         class="btn btn-outline"
         style="width:auto;padding:10px 14px"
-        ${safePage === totalPages ? "disabled" : ""}
-        onclick="changePage(1)">
+        ${
+          safePage === totalPages
+            ? "disabled"
+            : ""
+        }
+        onclick="changePage(1)"
+      >
         ถัดไป
       </button>
     `;
-    app.appendChild(pagination);
-  } 
-}
 
+    app.appendChild(pagination);
+  }
+}
 function changePage(delta){
   const nextPage = (Number(state.pagination.page) || 1) + Number(delta || 0);
   if (nextPage < 1) return;
