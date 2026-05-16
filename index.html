@@ -3363,106 +3363,244 @@ function closeProductInfoSheet(){
 }  
   
 /* ================= RENDER PRODUCTS ================= */
-
 function renderProducts() {
 
   // 🔴 CHANGED:
-  // HARD LOCK VIEWER
-  // ห้าม render สินค้าเด็ดขาด
-  // ถ้ายังไม่ authorize
-
+  // HARD LOCK:
+  // ห้าม render viewer ถ้ายังไม่ authorize จริง
   if (
-    state.viewerAuthorized !== true ||
-    state.mode === "locked"
+    state.mode === "locked" ||
+    state.viewerAuthorized !== true
   ) {
 
-    // 🔴 CHANGED:
-    // clear product DOM ทันที
     if (app) {
       app.innerHTML = "";
     }
 
-    updateAccessDeniedScreen();
-
     return;
   }
 
   // 🔴 CHANGED:
-  // ซ่อน lock screen เมื่อ authorize แล้วจริง
-  updateAccessDeniedScreen();
+  // Production safety
+  if (!app) {
+    console.error("renderProducts: app container not found");
+    return;
+  }
 
-  const products =
-    getFilteredProducts();
+  // 🔴 CHANGED:
+  // ป้องกัน products invalid
+  if (!Array.isArray(state.products)) {
 
-  if (!products.length) {
+    console.error(
+      "renderProducts: products is not array",
+      state.products
+    );
 
     app.innerHTML = `
-      <div
-        style="
-          text-align:center;
-          padding:48px 20px;
-          color:rgba(235,235,245,.55);
-          font-size:15px;
-        ">
-        ไม่พบสินค้าที่ค้นหา
+      <div style="
+        text-align:center;
+        color:#ff453a;
+        margin-top:40px;
+        font-size:15px;
+      ">
+        ไม่สามารถโหลดรายการสินค้าได้
       </div>
     `;
 
     return;
   }
 
-  app.innerHTML = products.map(product => {
+  const escapeHTML = (str = "") =>
+    String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
 
-    const statusClass =
-      getStatusClass(product.status);
+  const filteredProducts = [];
 
-    const statusLabel =
-      getStatusLabel(product.status);
+  state.products.forEach(p => {
 
-    return `
-      <div
-        class="product-card"
-        onclick="openProduct('${product.productId}')"
-      >
+    const stockNum =
+      Number(p.stock);
 
-        <img
-          class="thumb"
-          src="${escapeHtml(product.image || '')}"
-          alt=""
-        >
+    const resolvedStatus =
+      stockNum <= 0
+        ? "out"
+        : String(
+            p.status || "ready"
+          )
+            .trim()
+            .toLowerCase();
 
-        <div class="info">
+    // 🔴 CHANGED:
+    // viewer hide inactive
+    if (
+      state.mode === "viewer" &&
+      !p.active
+    ) {
+      return;
+    }
 
-          <div class="name">
-            ${escapeHtml(product.name || "-")}
-          </div>
+    // 🔍 SEARCH FILTER
+    if (state.search) {
 
-          <div class="sku">
-            รหัส: ${escapeHtml(product.productId || "-")}
-          </div>
+      const text =
+        (
+          String(p.name || "") +
+          String(p.productId || "")
+        ).toLowerCase();
 
-          <div class="price">
-            ราคา: ฿${Number(product.price || 0)}
-          </div>
+      if (
+        !text.includes(
+          String(state.search)
+            .toLowerCase()
+        )
+      ) {
+        return;
+      }
+    }
 
-          <div class="meta">
+    // 🔍 VIEWER FILTER
+    if (
+      state.mode === "viewer" &&
+      state.viewerFilter &&
+      state.viewerFilter.status !== "all"
+    ) {
 
-            <div class="stock">
-              จำนวน: ${Number(product.stock || 0)}
-            </div>
+      if (
+        resolvedStatus !==
+        state.viewerFilter.status
+      ) {
+        return;
+      }
+    }
 
-            <div class="status ${statusClass}">
-              ${statusLabel}
-            </div>
+    // 🔍 ADMIN FILTER
+    if (
+      state.mode === "admin" &&
+      state.admin.filters &&
+      state.admin.filters.status !== "all"
+    ) {
 
-          </div>
+      if (
+        resolvedStatus !==
+        state.admin.filters.status
+      ) {
+        return;
+      }
+    }
 
-        </div>
+    filteredProducts.push({
+      ...p,
+      resolvedStatus
+    });
+  });
+
+  app.innerHTML = "";
+
+  // 🔴 CHANGED:
+  // no products
+  if (!filteredProducts.length) {
+
+    app.innerHTML = `
+      <div style="
+        text-align:center;
+        color:#888;
+        margin-top:40px;
+        font-size:15px;
+      ">
+        ไม่พบสินค้า
       </div>
     `;
 
-  }).join("");
-} 
+    return;
+  }
+
+  filteredProducts.forEach(p => {
+
+    const statusMap = {
+      ready: "พร้อมส่ง",
+      shipping: "อยู่ระหว่างจัดส่ง",
+      warehouse: "อยู่โกดังไทย",
+      out: "หมด"
+    };
+
+    const statusClass =
+      p.resolvedStatus;
+
+    const statusText =
+      statusMap[p.resolvedStatus] ||
+      "พร้อมส่ง";
+
+    const card =
+      document.createElement("div");
+
+    card.className =
+      "product-card";
+
+    card.onclick = () => {
+
+      if (
+        state.mode === "admin"
+      ) {
+
+        openAdminProductAction(p);
+
+      } else {
+
+        openProduct(p);
+      }
+    };
+
+    card.innerHTML = `
+      <img
+        class="thumb"
+        src="${
+          p.image
+            ? escapeHTML(p.image)
+            : "about:blank"
+        }"
+        alt="${escapeHTML(p.name)}"
+        onerror="this.style.display='none'"
+      >
+
+      <div class="info">
+
+        <div class="name">
+          ${escapeHTML(p.name)}
+        </div>
+
+        <div class="sku">
+          รหัส:
+          ${escapeHTML(p.productId)}
+        </div>
+
+        <div class="price">
+          ราคา:
+          ฿${Number(p.price).toLocaleString()}
+        </div>
+
+        <div class="meta">
+
+          <span class="qty">
+            จำนวน: ${p.stock}
+          </span>
+
+          <span class="status ${statusClass}">
+            ${statusText}
+          </span>
+
+        </div>
+
+      </div>
+    `;
+
+    app.appendChild(card);
+  });
+}
+ 
 function changePage(delta){
   const nextPage = (Number(state.pagination.page) || 1) + Number(delta || 0);
   if (nextPage < 1) return;
