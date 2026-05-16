@@ -2169,6 +2169,13 @@ function updateAccessDeniedScreen() {
 
   if (locked) {
 
+   // 🔴 CHANGED:
+   // HARD CLEAR PRODUCT DOM
+   // ป้องกันสินค้า render ค้างใต้ lock screen
+   if (app) {
+     app.innerHTML = "";
+   } 
+
     // 🔴 CHANGED:
     // ใช้ hidden class แทน style ตรง
     el.classList.remove("hidden");
