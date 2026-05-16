@@ -2208,14 +2208,16 @@ function updateAccessDeniedScreen() {
     return;
   }
 
-  // 🔴 CHANGED:
-  // unlock success
-  el.classList.add("hidden");
+// 🔴 CHANGED:
+// unlock success
+el.classList.add("hidden");
 
-  // 🔴 CHANGED:
-  // render after authorize only
-  renderHeader();
-  renderProducts();
+// 🔴 CHANGED:
+// IMPORTANT:
+// access controller ต้อง "ควบคุมเฉพาะ access state"
+// ห้าม render products ตรงนี้
+// เพราะ refreshProducts() เป็น owner อยู่แล้ว
+renderHeader();
 }
 
 const state = {
