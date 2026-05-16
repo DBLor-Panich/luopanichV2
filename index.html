@@ -3396,17 +3396,20 @@ function closeProductInfoSheet(){
 /* ================= RENDER PRODUCTS ================= */
 function renderProducts() {
 
-  // 🔴 CHANGED:
-  // HARD LOCK:
-  // ยังไม่ authorize = ห้าม render สินค้าเด็ดขาด
-  if (state.viewerAuthorized !== true) {
+// 🔴 CHANGED:
+// HARD LOCK GATE
+// ยังไม่ authorize = ห้าม render ทุกกรณี
+if (
+  state.mode === "locked" ||
+  state.viewerAuthorized !== true
+) {
 
-    if (app) {
-      app.innerHTML = "";
-    }
-
-    return;
+  if (app) {
+    app.innerHTML = "";
   }
+
+  return;
+}
 
   // 🔴 CHANGED:
   // safety guard
