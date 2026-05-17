@@ -2151,6 +2151,7 @@ function getAdminSheets() {
 // ✅ expose เฉพาะ public actions ที่ inline handler ยังจำเป็นต้องใช้
 Object.assign(window, {
   login,
+  logout,
   openChangePasswordSheet,
   submitChangePassword,
   cancelAdminLogin,
@@ -2239,6 +2240,7 @@ const state = {
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
 
 const CART_KEY = "luopanich_cart";
+const AUTH_KEY = "stockviewer_auth";
 const LAST_ORDER_KEY = "luopanich_last_order"; 
 
 function showAuthRoot() {
@@ -2262,6 +2264,7 @@ function enterApp(user = null) {
   state.auth.loggedIn = true;
   state.auth.user = user;
 
+  saveAuthSession();
   showAppRoot();
 
   authRoot.innerHTML = "";
@@ -2270,6 +2273,46 @@ function enterApp(user = null) {
   renderProducts();
   updateFloatingBar();
 }
+
+function logout() {
+
+  state.auth.loggedIn = false;
+  state.auth.user = null;
+  state.auth.role = "viewer";
+
+  clearAuthSession();
+
+  showAuthRoot();
+
+  renderAuthScreen();
+
+  showToast("ออกจากระบบแล้ว", "info");
+}
+
+function restoreSession() {
+
+  const session =
+    loadAuthSession();
+
+  if (!session) {
+
+    showAuthRoot();
+    renderAuthScreen();
+
+    return;
+  }
+
+  state.auth.loggedIn =
+    session.loggedIn;
+
+  state.auth.user =
+    session.user;
+
+  state.auth.role =
+    session.role || "viewer";
+
+  enterApp(session.user);
+} 
  
 function renderAuthScreen() {
 
@@ -2442,6 +2485,53 @@ function renderLastOrderSheet() {
   `;
 }
 
+function saveAuthSession() {
+
+  try {
+
+    localStorage.setItem(
+      AUTH_KEY,
+      JSON.stringify({
+        loggedIn: state.auth.loggedIn,
+        user: state.auth.user,
+        role: state.auth.role
+      })
+    );
+
+  } catch (e) {
+    console.warn("saveAuthSession failed", e);
+  }
+}
+
+function loadAuthSession() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(AUTH_KEY);
+
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+
+    if (!parsed?.loggedIn) {
+      return null;
+    }
+
+    return parsed;
+
+  } catch (e) {
+
+    console.warn("loadAuthSession failed", e);
+
+    return null;
+  }
+}
+
+function clearAuthSession() {
+  localStorage.removeItem(AUTH_KEY);
+} 
+ 
 function reopenLastOrderSheet() {
   const adminValid =
     state.mode === "admin" &&
