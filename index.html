@@ -1954,16 +1954,28 @@ textarea {
   line-height:1.25;
   padding-right:6px; /* กันชิดขอบขาว */
 }
-  
+
+  .app-root-hidden{
+    display:none !important;
+  }
+ 
 </style>
 </head>
 <body>
 
-<!-- 🔴 HEADER (Mode-Based Controlled) -->
-<header id="appHeader"></header>
+ <!-- ================= AUTH ROOT ================= -->
+ <div id="authRoot"></div>
 
 
-<div id="app" class="container"></div>
+ <!-- ================= APP ROOT ================= -->
+ <div id="appRoot" class="app-root-hidden">
+
+   <!-- 🔴 HEADER (Mode-Based Controlled) -->
+   <header id="appHeader"></header>
+
+   <div id="app" class="container"></div>
+
+ </div>
 
 <!-- ✅ GLOBAL BACKDROP (มีตัวเดียวพอ) -->
  <div
