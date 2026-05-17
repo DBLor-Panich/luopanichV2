@@ -2274,7 +2274,18 @@ function enterApp(user = null) {
   updateFloatingBar();
 }
 
-function logout() {
+ async function logout() {
+
+  try {
+
+    if (state.auth.token) {
+
+      await authFetch({
+        action: "adminLogout"
+      });
+    }
+
+  } catch (_) {}
 
   state.auth.loggedIn = false;
   state.auth.loading = false;
@@ -2291,7 +2302,7 @@ function logout() {
   showToast("ออกจากระบบแล้ว", "info");
 }
 
-function restoreSession() {
+async function restoreSession() {
 
   const session =
     loadAuthSession();
@@ -2316,7 +2327,18 @@ function restoreSession() {
     state.auth.token =
     session.token || null;
  
-  enterApp(session.user);
+ try {
+
+   await authFetch({
+     action: "orders"
+   });
+
+ enterApp(session.user);
+  
+ } catch (e) {
+
+   logout();
+ }
 } 
  
 function renderAuthScreen() {
@@ -2589,7 +2611,30 @@ async function authLogin({
   password
 }) {
 
-  // 🔒 STEP 6 = mock API layer
+ const result =
+   await authFetch({
+     action: "adminLogin",
+     username,
+     password
+   });
+
+ if (!result?.success) {
+   return {
+     ok: false,
+     message:
+       result?.message ||
+       result?.error ||
+       "Login failed"
+   };
+ }
+
+ return {
+   ok: true,
+   token: result.token,
+   user: result.username,
+   role: "admin"
+ };
+
   // STEP 7 ค่อยเปลี่ยนเป็น fetch จริง
 
   await new Promise(resolve =>
@@ -2885,6 +2930,11 @@ function isAuthError(message = "") {
    return json;
  } 
 
+/* ================= API CONFIG ================= */
+
+ const API_BASE =
+   "https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec"; 
+ 
 /* ================= API LAYER ================= */
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
@@ -2932,6 +2982,48 @@ const fetchAdminProducts = async () => {
   return json.data;
 };  
 
+async function authFetch(payload = {}) {
+
+  const headers = {
+    "Content-Type":
+      "application/x-www-form-urlencoded"
+  };
+
+  // 🔐 attach token
+  if (state.auth.token) {
+    headers.Authorization =
+      `Bearer ${state.auth.token}`;
+  }
+
+  const body =
+    new URLSearchParams(payload);
+ 
+ const response =
+   await fetch(API_BASE, {
+     method: "POST",
+     headers,
+     body
+   });
+
+ const data =
+   await response.json();
+ 
+  // 🔒 auto logout
+  if (
+    data?.error === "Invalid token" ||
+    data?.error === "Session expired"
+  ) {
+
+    logout();
+
+    throw new Error(
+      "Session expired"
+    );
+  }
+
+  return data;
+}
+ 
 function sortProducts(products) {
   if (!Array.isArray(products)) return [];
 
