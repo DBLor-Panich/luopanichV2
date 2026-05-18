@@ -2134,8 +2134,91 @@ const state = {
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
 
 const CART_KEY = "luopanich_cart";
+const VIEWER_SESSION_KEY = "viewer_session";
 const LAST_ORDER_KEY = "luopanich_last_order"; 
 
+ function saveViewerSession() {
+   try {
+     sessionStorage.setItem(
+       VIEWER_SESSION_KEY,
+       JSON.stringify({
+         token: state.viewer.token,
+         expiredAt: state.viewer.expiredAt,
+         accessCode: state.viewer.accessCode
+       })
+     );
+   } catch (e) {
+     console.warn("saveViewerSession failed", e);
+   }
+ }
+
+ function clearViewerSession() {
+   try {
+     sessionStorage.removeItem(VIEWER_SESSION_KEY);
+   } catch (e) {
+     console.warn("clearViewerSession failed", e);
+   }
+
+   state.viewer.authenticated = false;
+   state.viewer.token = null;
+   state.viewer.expiredAt = null;
+   state.viewer.accessCode = null;
+ }
+
+ function loadViewerSession() {
+   try {
+     const raw =
+       sessionStorage.getItem(VIEWER_SESSION_KEY);
+
+     if (!raw) return null;
+
+     const parsed = JSON.parse(raw);
+
+     if (
+       !parsed ||
+       !parsed.token ||
+       !parsed.expiredAt
+     ) {
+       sessionStorage.removeItem(VIEWER_SESSION_KEY);
+       return null;
+     }
+
+     return parsed;
+
+   } catch (e) {
+     console.warn("loadViewerSession failed", e);
+     sessionStorage.removeItem(VIEWER_SESSION_KEY);
+     return null;
+   }
+ }
+
+ function isViewerSessionExpired() {
+   return (
+     !state.viewer.expiredAt ||
+     Date.now() > Number(state.viewer.expiredAt)
+   );
+ }
+
+ async function restoreViewerSession() {
+
+   const session = loadViewerSession();
+
+   if (!session) {
+     return false;
+   }
+
+   state.viewer.token = session.token;
+   state.viewer.expiredAt = session.expiredAt;
+   state.viewer.accessCode = session.accessCode;
+
+   if (isViewerSessionExpired()) {
+     clearViewerSession();
+     return false;
+   }
+
+   return true;
+ }
+ 
 function escapeHtml(value = "") {
   return String(value)
     .replace(/&/g, "&amp;")
