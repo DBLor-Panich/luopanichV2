@@ -2501,17 +2501,49 @@ function isAuthError(message = "") {
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
 const fetchProducts = async () => {
+  if (!state.viewer?.token) {
+    throw new Error("Viewer not authenticated");
+  }
+
+  const form = new URLSearchParams();
+  form.append("action", "getViewerProducts");
+  form.append("viewerToken", state.viewer.token);
+
   const res = await fetchWithTimeout(
-   `${API_URL}?action=products`,
-   {},
-   15000
- );
+    API_URL,
+    {
+      method: "POST",
+      body: form
+    },
+    15000
+  );
+
   const json = await res.json();
 
   // 🔒 enforce standard response
   if (!json || json.success !== true || !Array.isArray(json.data)) {
     console.error("fetchProducts invalid response:", json);
-    return []; // ✅ คืน array เสมอ
+
+    // 🔴 NEW: viewer session invalid/expired
+    if (
+      json?.error === "INVALID_VIEWER_SESSION" ||
+      json?.error === "VIEWER_SESSION_EXPIRED"
+    ) {
+      state.viewer.authenticated = false;
+      state.viewer.token = null;
+      state.viewer.expiredAt = null;
+      state.viewer.accessCode = null;
+     
+      showToast(
+        "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่",
+        "warning"
+      );
+
+      renderViewerAccessScreen();
+      openOverlay(viewerAccessSheet);
+    }
+
+    return [];
   }
 
   return json.data;
