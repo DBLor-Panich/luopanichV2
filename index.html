@@ -1974,6 +1974,13 @@ textarea {
  ></div>
 
 <!-- ================= VIEWER SHEETS ================= -->
+ <div
+   id="viewerAccessSheet"
+   class="sheet"
+   role="dialog"
+   aria-modal="true"
+   tabindex="-1"
+ ></div>
  <div id="productSheet" class="sheet sheet-product" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="qtySheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="cartSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
@@ -2009,6 +2016,8 @@ const productSheet = document.getElementById("productSheet");
 const qtySheet = document.getElementById("qtySheet");
 const confirmSheet = document.getElementById("confirmSheet");
 const stockSheet = document.getElementById("stockSheet");
+const viewerAccessSheet =
+  document.getElementById("viewerAccessSheet"); 
 const adminLoginSheet = document.getElementById("adminLoginSheet");
 const adminDashboardSheet = document.getElementById("adminDashboardSheet");
 const adminOrderSheet = document.getElementById("adminOrderSheet");
@@ -2099,6 +2108,13 @@ const state = {
     isSubmitting: false
   },
 
+   viewer: {
+     authenticated: false,
+     token: null,
+     expiredAt: null,
+     accessCode: null
+   },
+ 
   // 🧠 SMART ADD PRODUCT DRAFT
   smartAddDraft: {
     name: "",
@@ -2440,6 +2456,47 @@ function isAuthError(message = "") {
    return json;
  } 
 
+ function renderViewerAccessScreen() {
+
+   viewerAccessSheet.innerHTML = `
+     <h3>กรอกรหัสเข้าชม</h3>
+
+     <div class="form-group">
+       <input
+         id="viewerAccessCode"
+         type="password"
+         placeholder="Access Code"
+       />
+     </div>
+
+     <button
+       class="btn btn-primary"
+       onclick="submitViewerAccess()">
+       เข้าสู่ระบบ
+     </button>
+   `;
+ }
+
+ function submitViewerAccess() {
+
+   const input =
+     document.getElementById("viewerAccessCode");
+
+   const code = input?.value?.trim();
+
+   if (!code) {
+     showToast("กรุณากรอกรหัส", "warning");
+     return;
+   }
+
+   // 🔴 TEMP FAKE UNLOCK (STEP 3.2 ONLY)
+   state.viewer.authenticated = true;
+
+   closeOverlay(viewerAccessSheet);
+
+   showToast("เข้าสู่ระบบสำเร็จ", "success");
+ } 
+ 
 /* ================= API LAYER ================= */
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
@@ -2530,6 +2587,7 @@ async function refreshProducts() {
     state.products = sortProducts(list);
    
     renderProducts();
+   
   } catch (err) {
     console.error("refreshProducts failed:", err);
     if (app) {
@@ -7568,11 +7626,27 @@ const __domReady = new Promise((resolve) => {
     loadCart();
 
     // ✅ ค่อยโหลด data หลังรู้ mode แล้ว
-    await refreshProducts();
+ if (
+   state.mode === "admin" ||
+   state.viewer?.authenticated === true
+ ) {
+  
+ if (
+   state.mode === "admin" ||
+   state.viewer?.authenticated === true
+ ) {
+   await refreshProducts();
+ }
 
     // ✅ RENDER
     renderHeader();
     renderProducts();
+
+ if (!state.viewer.authenticated) {
+   renderViewerAccessScreen();
+   openOverlay(viewerAccessSheet);
+ }
+   
     if (typeof renderBadge === "function") {
       if (typeof renderBadge === "function") renderBadge();
     }
