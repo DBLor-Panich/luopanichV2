@@ -1954,124 +1954,16 @@ textarea {
   line-height:1.25;
   padding-right:6px; /* กันชิดขอบขาว */
 }
-
-/* ================= AUTH SCREEN ================= */
-
-.auth-screen{
-  position: fixed;
-  inset: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch; 
-  z-index: 9998;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding:
-    calc(env(safe-area-inset-top) + 24px)
-    20px
-    calc(env(safe-area-inset-bottom) + 24px);
-
-  background:
-    radial-gradient(circle at top,
-      rgba(0,122,255,.18),
-      transparent 42%),
-    #0f0f12;
-}
-
-.auth-card{
-  width: 100%;
-  max-width: 380px;
-
-  background: rgba(28,28,30,.72);
-
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-
-  border: 1px solid rgba(255,255,255,.08);
-
-  border-radius: 28px;
-
-  padding: 28px 22px;
-
-  box-shadow:
-    var(--shadow-floating),
-    inset 0 1px 0 rgba(255,255,255,.08);
-}
-
-.auth-logo{
-  width: 72px;
-  height: 72px;
-
-  margin: 0 auto 18px;
-
-  border-radius: 22px;
-
-  background:
-    linear-gradient(135deg,
-      #007aff,
-      #5ac8fa);
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  font-size:32px;
-  font-weight:700;
-  color:#fff;
-
-  box-shadow:
-    0 10px 30px rgba(0,122,255,.35);
-}
-
-.auth-title{
-  font-size: 26px;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 6px;
-}
-
-.auth-subtitle{
-  text-align:center;
-  color: rgba(235,235,245,.72);
-  font-size: 14px;
-  margin-bottom: 24px;
-  line-height:1.45;
-}
-
-.auth-actions{
-  margin-top: 18px;
-}
-
-.auth-footer{
-  margin-top: 18px;
-  text-align:center;
-  font-size:13px;
-  color: rgba(235,235,245,.48);
-} 
- 
-  .app-root-hidden{
-    display:none !important;
-  }
- 
+  
 </style>
 </head>
 <body>
 
- <!-- ================= AUTH ROOT ================= -->
- <div id="authRoot"></div>
+<!-- 🔴 HEADER (Mode-Based Controlled) -->
+<header id="appHeader"></header>
 
 
- <!-- ================= APP ROOT ================= -->
- <div id="appRoot" class="app-root-hidden">
-
-   <!-- 🔴 HEADER (Mode-Based Controlled) -->
-   <header id="appHeader"></header>
-
-   <div id="app" class="container"></div>
-
- </div>
+<div id="app" class="container"></div>
 
 <!-- ✅ GLOBAL BACKDROP (มีตัวเดียวพอ) -->
  <div
@@ -2109,9 +2001,6 @@ textarea {
   
 <script>
 /* ================= STEP 2: ประกาศ backdrop (UPGRADED) ================= */
-// ================= ROOT REFS =================
-const authRoot = document.getElementById("authRoot");
-const appRoot = document.getElementById("appRoot"); 
 const backdrop = document.getElementById("globalBackdrop");
 const cartSheet = document.getElementById("cartSheet");
   
@@ -2149,17 +2038,15 @@ function getAdminSheets() {
 }
 
 // ✅ expose เฉพาะ public actions ที่ inline handler ยังจำเป็นต้องใช้
- Object.assign(window, {
-   login,
-   logout,
-   openChangePasswordSheet,
-   submitChangePassword,
-   cancelAdminLogin,
-   closeMainMenu,
-   closeAddProduct,
-   closeProduct,
-   reopenLastOrderSheet
- });
+Object.assign(window, {
+  openChangePasswordSheet,
+  submitChangePassword,
+  cancelAdminLogin,
+  closeMainMenu,
+  closeAddProduct,
+  closeProduct,
+  reopenLastOrderSheet
+});
 
 // 🔒 Intent guards (STEP 2)
  let allowOpenOrders = false;
@@ -2170,15 +2057,6 @@ function getAdminSheets() {
 /* ================= GLOBAL STATE (UPGRADED / SAFE) ================= */
 
 const state = {
-
- auth: {
-   loggedIn: false,
-   token: null,
-   user: null,
-   role: "viewer",
-   loading: false
- },
- 
   mode: "viewer",
 
   pagination: {
@@ -2202,6 +2080,10 @@ const state = {
   isSubmitting: false,
 
   admin: {
+    loggedIn: false,
+    user: null,
+    token: null,
+    expiredAt: null,
     orders: [],
     selectedOrder: null,
     logs: [],
@@ -2236,300 +2118,8 @@ const state = {
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
 
 const CART_KEY = "luopanich_cart";
-const AUTH_KEY = "stockviewer_auth";
 const LAST_ORDER_KEY = "luopanich_last_order"; 
 
-function showAuthRoot() {
-
-  if (!authRoot || !appRoot) return; 
- 
-  authRoot.classList.remove("app-root-hidden");
-  appRoot.classList.add("app-root-hidden");
-}
-
-function showAppRoot() {
-
-  if (!authRoot || !appRoot) return;
- 
-  authRoot.classList.add("app-root-hidden");
-  appRoot.classList.remove("app-root-hidden");
-}
-
-function enterApp(user = null) {
-
-  state.auth.loggedIn = true;
-  state.auth.user = user;
-  state.auth.loading = false;
-
-   try {
-     saveAuthSession();
-   } catch (_) {}
-  showAppRoot();
-
-  authRoot.innerHTML = "";
- 
-  renderHeader();
-  renderProducts();
-  
-}
-
- async function logout() {
-
-  try {
-
-    if (state.auth.token) {
-
-      await authFetch({
-        action: "adminLogout"
-      });
-    }
-
-  } catch (_) {}
-
-  state.auth.loggedIn = false;
-  state.auth.loading = false;
-  state.auth.token = null;
-  state.auth.user = null;
-  state.auth.role = "viewer";
-
-   state.mode = "viewer";
-  
-   state.admin.selectedOrder = null;
-   state.admin.orders = [];
-   state.admin.ui.activeSheet = null;
-  
-  closeAllOverlays();
-  
-  clearAuthSession();
-
-  showAuthRoot();
-
-  renderAuthScreen();
-
-  showToast("ออกจากระบบแล้ว", "info");
-}
-
-async function restoreSession() {
-
-  const session =
-    loadAuthSession();
-
-  if (!session) {
-
-    showAuthRoot();
-    renderAuthScreen();
-
-    return;
-  }
-
-  state.auth.loggedIn =
-    session.loggedIn;
-
-  state.auth.user =
-    session.user;
-
-  state.auth.role =
-    session.role || "viewer";
-
-    state.auth.token =
-    session.token || null;
- 
- try {
-
-   await authFetch({
-     action: "orders"
-   });
-
- enterApp(session.user);
-  
- } catch (e) {
-
-   await logout();
- }
-} 
-
-function isAuthenticated() {
-
-  return Boolean(
-    state.auth.loggedIn &&
-    String(state.auth.token || "").trim()
-  );
-}
-
-function isAdmin() {
-
-  return (
-    isAuthenticated() &&
-    state.auth.role === "admin"
-  );
-}
-
-function requireAdminAccess() {
-
-  if (!isAdmin()) {
-
-    state.auth.loading = false;
-
-    showToast(
-      "ไม่มีสิทธิ์เข้าถึง",
-      "error"
-    );
-
-    return false;
-  }
-
-  return true;
-}
- 
-function renderAuthScreen() {
-
-  if (!authRoot) return;
-
-  authRoot.innerHTML = `
-    <div class="auth-screen">
-
-      <div class="auth-card">
-
-        <div class="auth-logo">
-          S
-        </div>
-
-        <div class="auth-title">
-          Stock Viewer
-        </div>
-
-        <div class="auth-subtitle">
-          กรุณาเข้าสู่ระบบเพื่อใช้งาน
-        </div>
-
-        <div class="form-group">
-          <label>Username</label>
-
-          <input
-            type="text"
-            id="authUsername"
-            placeholder="กรอกชื่อผู้ใช้"
-            autocomplete="username"
-          >
-        </div>
-
-        <div class="form-group">
-          <label>Password</label>
-
-          <input
-            type="password"
-            id="authPassword"
-            placeholder="กรอกรหัสผ่าน"
-            autocomplete="current-password"
-          >
-        </div>
-
-        <div class="auth-actions">
- <button
-   id="authLoginBtn"
-   class="btn btn-primary"
-   onclick="login()"
- >
-            เข้าสู่ระบบ
-          </button>
-        </div>
-
-        <div class="auth-footer">
-          Private Inventory Platform
-        </div>
-
-      </div>
-
-    </div>
-  `;
-} 
-
-async function login() {
-
- if (state.auth.loading) return;
-
- state.auth.loading = true;
- 
-  const username =
-    document.getElementById("authUsername");
-
-  const password =
-    document.getElementById("authPassword");
-
-  if (!username || !password) {
-    showToast("ไม่พบฟอร์มเข้าสู่ระบบ", "error");
-
-    state.auth.loading = false;
-   
-    return;
-  }
-
-  const user = username.value.trim();
-  const pass = password.value.trim();
-
-  if (!user || !pass) {
-    showToast("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน", "warning");
-
-    state.auth.loading = false;
-   
-    return;
-  }
-
- const loginBtn =
-   document.getElementById("authLoginBtn");
-
- if (loginBtn) {
-   loginBtn.disabled = true;
-   loginBtn.textContent = "กำลังเข้าสู่ระบบ...";
- }
-
- try {
-
-   const result =
-     await authLogin({
-       username: user,
-       password: pass
-     });
-
-   if (!result?.ok) {
-
-     showToast(
-       result?.message || "เข้าสู่ระบบไม่สำเร็จ",
-       "error"
-     );
-
-     state.auth.loading = false;
-    
-     return;
-   }
-
-   state.auth.token =
-     result.token;
-
-   state.auth.role =
-     result.role || "viewer";
-   enterApp(result.user);
-   showToast("เข้าสู่ระบบสำเร็จ", "success");
- } catch (e) {
-
-   console.error(e);
-
-   showToast(
-     "ไม่สามารถเชื่อมต่อระบบได้",
-     "error"
-   );
-
- } finally {
-
-   state.auth.loading = false;
-
-   if (loginBtn) {
-     loginBtn.disabled = false;
-     loginBtn.textContent = "เข้าสู่ระบบ";
-   }
- }
-}
- 
 function escapeHtml(value = "") {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -2598,126 +2188,6 @@ function renderLastOrderSheet() {
   `;
 }
 
-function saveAuthSession() {
-
-  try {
-
-    localStorage.setItem(
-      AUTH_KEY,
-      JSON.stringify({
-        loggedIn: state.auth.loggedIn,
-        token: state.auth.token,
-        user: state.auth.user,
-        role: state.auth.role
-      })
-    );
-
-  } catch (e) {
-    console.warn("saveAuthSession failed", e);
-  }
-}
-
-function loadAuthSession() {
-
-  try {
-
-    const raw =
-      localStorage.getItem(AUTH_KEY);
-
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw);
-
-    if (!parsed?.loggedIn) {
-      return null;
-    }
-
-    return parsed;
-
-  } catch (e) {
-
-    console.warn("loadAuthSession failed", e);
-
-    return null;
-  }
-}
-
-function clearAuthSession() {
-  localStorage.removeItem(AUTH_KEY);
-} 
-
-async function authLogin({
-  username,
-  password
-}) {
-
- const result =
-   await authFetch({
-     action: "adminLogin",
-     username,
-     password
-   });
-
- if (!result?.success) {
-   return {
-     ok: false,
-     message:
-       result?.message ||
-       result?.error ||
-       "Login failed"
-   };
- }
-
- return {
-   ok: true,
-   token: result.token,
-   user: result.username,
-   role: "admin"
- };
-
-  // STEP 7 ค่อยเปลี่ยนเป็น fetch จริง
-
-  await new Promise(resolve =>
-    setTimeout(resolve, 700)
-  );
-
-  // 🔴 DEMO LOGIN
-  if (
-    username === "admin" &&
-    password === "1234"
-  ) {
-
-    return {
-      ok: true,
-      token: "mock_token_admin",
-      user: {
-        username: "admin"
-      },
-      role: "admin"
-    };
-  }
-
-  if (
-    username === "viewer" &&
-    password === "1234"
-  ) {
-
-    return {
-      ok: true,
-      token: "mock_token_viewer",
-      user: {
-        username: "viewer"
-      },
-      role: "viewer"
-    };
-  }
-
-  return {
-    ok: false,
-    message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
-  };
-} 
- 
 function reopenLastOrderSheet() {
   const adminValid =
     state.mode === "admin" &&
@@ -2970,11 +2440,6 @@ function isAuthError(message = "") {
    return json;
  } 
 
-/* ================= API CONFIG ================= */
-
- const API_BASE =
-   "https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec"; 
- 
 /* ================= API LAYER ================= */
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
@@ -3002,7 +2467,7 @@ const fetchAdminProducts = async () => {
 
   const form = new URLSearchParams();
   form.append("action", "adminProducts");
-  form.append("token", state.auth.token);
+  form.append("token", state.admin.token);
 
   const res = await fetchWithTimeout(
     API_URL,
@@ -3022,48 +2487,6 @@ const fetchAdminProducts = async () => {
   return json.data;
 };  
 
-async function authFetch(payload = {}) {
-
-  const headers = {
-    "Content-Type":
-      "application/x-www-form-urlencoded"
-  };
-
-  // 🔐 attach token
-  if (state.auth.token) {
-    headers.Authorization =
-      `Bearer ${state.auth.token}`;
-  }
-
-  const body =
-    new URLSearchParams(payload);
- 
- const response =
-   await fetch(API_BASE, {
-     method: "POST",
-     headers,
-     body
-   });
-
- const data =
-   await response.json();
- 
-  // 🔒 auto logout
-  if (
-    data?.error === "Invalid token" ||
-    data?.error === "Session expired"
-  ) {
-
-    await logout();
-
-    throw new Error(
-      "Session expired"
-    );
-  }
-
-  return data;
-}
- 
 function sortProducts(products) {
   if (!Array.isArray(products)) return [];
 
@@ -3221,12 +2644,7 @@ function closeOverlay(el){
 }
 
 async function adminStockIn(productId, qty, reason){
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
-  if (!state.auth.token) {
+  if (!state.admin.token) {
     throw new Error("Not authenticated");
   }
 
@@ -3235,19 +2653,14 @@ async function adminStockIn(productId, qty, reason){
   form.append("productId", productId);
   form.append("qty", qty);
   form.append("reason", reason || "");
-  form.append("token", state.auth.token); // ✅ สำคัญที่สุด
+  form.append("token", state.admin.token); // ✅ สำคัญที่สุด
 
   return await postFormAction(form);
 }
 
 
 async function adminStockAdjust(productId, newQty, reason){
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
-  if (!state.auth.token) {
+  if (!state.admin.token) {
     throw new Error("Not authenticated");
   }
 
@@ -3256,7 +2669,7 @@ async function adminStockAdjust(productId, newQty, reason){
   form.append("productId", productId);
   form.append("newQty", newQty);
   form.append("reason", reason || "");
-  form.append("token", state.auth.token); // ✅ สำคัญที่สุด
+  form.append("token", state.admin.token); // ✅ สำคัญที่สุด
 
   return await postFormAction(form);
 }
@@ -3266,7 +2679,7 @@ async function adminStockAdjust(productId, newQty, reason){
 /* ================= ADMIN API ================= */ // 🔴 ADD
 
 async function refreshAdminAuditSnapshot() {
-  if (!state.auth.token) return;
+  if (!state.admin.token) return;
 
   const [orders, logs] = await Promise.all([
     fetchOrders(),
@@ -3278,16 +2691,11 @@ async function refreshAdminAuditSnapshot() {
 } 
 
 async function adminApproveOrder(orderId) {
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
   if (state.admin.isSubmitting) return;
   state.admin.isSubmitting = true;
 
   try {
-    if (!state.auth.token) {
+    if (!state.admin.token) {
       throw new Error("Not authenticated");
     }
 
@@ -3296,7 +2704,7 @@ async function adminApproveOrder(orderId) {
     const form = new URLSearchParams();
     form.append("action", "approveOrder");
     form.append("orderId", orderId);
-    form.append("token", state.auth.token);
+    form.append("token", state.admin.token);
 
     const json = await postFormAction(form);
 
@@ -3324,16 +2732,11 @@ async function adminApproveOrder(orderId) {
 }
 
 async function adminRejectOrder(orderId) {
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
   if (state.admin.isSubmitting) return;
   state.admin.isSubmitting = true;
 
   try {
-    if (!state.auth.token) {
+    if (!state.admin.token) {
       throw new Error("Not authenticated");
     }
 
@@ -3342,7 +2745,7 @@ async function adminRejectOrder(orderId) {
     const form = new URLSearchParams();
     form.append("action", "rejectOrder");
     form.append("orderId", orderId);
-    form.append("token", state.auth.token);
+    form.append("token", state.admin.token);
 
     const json = await postFormAction(form);
 
@@ -3376,13 +2779,13 @@ async function adminRejectOrder(orderId) {
 }
 
 async function fetchStockLogs() {
-  if (!state.auth.token) {
+  if (!state.admin.token) {
     throw new Error("Not authenticated");
   }
 
   const form = new URLSearchParams();
   form.append("action", "stockLogs");
-  form.append("token", state.auth.token);
+  form.append("token", state.admin.token);
 
   const json = await postFormAction(form);
   return json.data;
@@ -3392,13 +2795,13 @@ async function fetchStockLogs() {
   
 
 async function fetchOrders(){
-  if (!state.auth.token) {
+  if (!state.admin.token) {
     throw new Error("Not authenticated");
   }
 
   const form = new URLSearchParams();
   form.append("action", "orders");
-  form.append("token", state.auth.token);
+  form.append("token", state.admin.token);
 
   const json = await postFormAction(form);
   return json.data;
@@ -4318,7 +3721,7 @@ function selectFilter(status){
   
 function openAdminEntry(){
   // 🔒 ถ้ามี session อยู่แล้ว → ต้อง valid ก่อนค่อยเข้า admin
-  if (state.auth.loggedIn && state.auth.token) {
+  if (state.admin.loggedIn && state.admin.token) {
     if (isAdminSessionExpired()) {
       showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
       clearAdminSession();
@@ -4362,11 +3765,6 @@ function leaveAdminMode(){
 
   // ✅ กลับสู่ viewer mode (UI state only)
   state.mode = "viewer";
-
- state.admin.selectedOrder = null;
- state.admin.orders = [];
-
- state.admin.ui.activeSheet = null; 
   state.search = "";
   state.viewerSearchOpen = false;
 
@@ -4654,8 +4052,8 @@ function renderAdminLogin(){
 function openChangePasswordSheet(){
   if (
     state.mode !== "admin" ||
-    !state.auth.loggedIn ||
-    !state.auth.token ||
+    !state.admin.loggedIn ||
+    !state.admin.token ||
     isAdminSessionExpired()
   ) {
     showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
@@ -4723,7 +4121,7 @@ async function submitChangePassword(btn){
   try {
     const form = new URLSearchParams();
     form.append("action", "changePassword");
-    form.append("token", state.auth.token);
+    form.append("token", state.admin.token);
     form.append("currentPassword", currentPassword);
     form.append("newPassword", newPassword);
 
@@ -4811,9 +4209,9 @@ async function handleAdminLogin(btn){
     }
 
     // ✅ SAVE SESSION (STATE)
-    state.auth.loggedIn = true;
-    state.auth.token = json.username;
-    state.auth.token = json.token;
+    state.admin.loggedIn = true;
+    state.admin.user = json.username;
+    state.admin.token = json.token;
     state.admin.expiredAt = json.expiredAt;
 
     // ✅ SAVE SESSION (PERSIST)
@@ -4949,8 +4347,8 @@ async function openAdminDashboard(mode = "SUMMARY", force = false) {
   if (!force && !allowOpenOrders) return;
 
   if (
-    !state.auth.loggedIn ||
-    !state.auth.token ||
+    !state.admin.loggedIn ||
+    !state.admin.token ||
     isAdminSessionExpired()
   ) {
     showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
@@ -5155,52 +4553,27 @@ function backToAdminMainMenu() {
 } 
  
 function handleOpenDashboard() {
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
   allowOpenOrders = true;
   openAdminDashboard("SUMMARY");
 }
 
 function handleOpenPendingOrders() {
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
   allowOpenOrders = true;
   openAdminDashboard("PENDING");
 } 
  
 function handleOpenOrders() {
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
   allowOpenOrders = true;
   openAdminDashboard("SUMMARY");
 }
 
 
 function handleOpenStockTimeline(){
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
   allowOpenStockTimeline = true;
   openStockTimeline();
 }
 
 function handleOpenAddProduct(){
-
- if (!requireAdminAccess()) {
-   return;
- }
- 
   allowOpenAddProduct = true;
   openAddProduct();
 }  
@@ -5211,8 +4584,8 @@ async function openStockTimeline(force = false) {
 
   // 🔐 session guard
   if (
-    !state.auth.loggedIn ||
-    !state.auth.token ||
+    !state.admin.loggedIn ||
+    !state.admin.token ||
     isAdminSessionExpired()
   ) {
     showToast("Session หมดอายุ กรุณา login ใหม่", "warning");
@@ -5542,8 +4915,8 @@ function openAdminOrder(orderId){
   // 🔒 A6 GUARD: ห้ามเปิด Admin Order UI ถ้าไม่ได้อยู่ admin หรือ session ไม่พร้อม
   if (
     state.mode !== "admin" ||
-    !state.auth.loggedIn ||
-    !state.auth.token ||
+    !state.admin.loggedIn ||
+    !state.admin.token ||
     isAdminSessionExpired()
   ) {
     // ใช้มาตรฐานเดียวกับ admin dashboard
@@ -5725,7 +5098,7 @@ async function submitStockIn(){
 
 async function submitStockAdjust(){
   // 🔒 guard
-  if (state.mode !== "admin" || !state.auth.loggedIn || !state.selectedProduct) {
+  if (state.mode !== "admin" || !state.admin.loggedIn || !state.selectedProduct) {
     showToast("Unauthorized", "error");
     return;
   }
@@ -5787,9 +5160,7 @@ async function submitStockAdjust(){
   
 function openStockAction(p){
   // 🔒 guard
- if (!requireAdminAccess()) {
-   return;
- }
+  if (state.mode !== "admin") return;
 
   state.selectedProduct = p;
 
@@ -5887,8 +5258,8 @@ async function refreshProductsWithFeedback({
  
 function openMainMenu(triggerEl){
   const adminValid =
-    state.auth.loggedIn &&
-    state.auth.token &&
+    state.admin.loggedIn &&
+    state.admin.token &&
     !isAdminSessionExpired();
 
   // ✅ ถ้าอยู่ใน admin mode แต่ session ไม่ valid → ค่อยบังคับออก
@@ -6006,8 +5377,8 @@ function openAddProduct(force = false){
   // 🔐 session + mode guard
   if (
     state.mode !== "admin" ||
-    !state.auth.loggedIn ||
-    !state.auth.token ||
+    !state.admin.loggedIn ||
+    !state.admin.token ||
     isAdminSessionExpired()
   ) {
     alert("Session หมดอายุ กรุณา login ใหม่");
@@ -6433,9 +5804,7 @@ function removeItem(idx){
 
 function openProductEdit(p){
   // 🔒 A6 guard: ป้องกัน admin UI leak ตอนอยู่ Viewer
- if (!requireAdminAccess()) {
-   return;
- }
+  if (state.mode !== "admin" || !state.admin?.loggedIn || !state.admin?.token) return;
 
   // 🔴 CHANGED: ใช้ object ล่าสุดจาก state.products ก่อนเสมอ
   const latestProduct =
@@ -6779,7 +6148,7 @@ async function uploadProductImage(file) {
     }
 
     // 🔴 CHANGED: ให้ error เป็น Error object เสมอ
-    if (!state.admin || !state.auth.token) {
+    if (!state.admin || !state.admin.token) {
       reject(new Error("Missing admin token"));
       return;
     }
@@ -6797,7 +6166,7 @@ async function uploadProductImage(file) {
 
         const formData = new FormData();
         formData.append("action", "uploadProductImage");
-        formData.append("token", state.auth.token);
+        formData.append("token", state.admin.token);
         formData.append("filename", file.name);
         formData.append("mimeType", file.type || "image/jpeg");
         formData.append("data", base64);
@@ -6938,7 +6307,7 @@ async function submitProductEdit(){
     // Update product
     const form = new URLSearchParams();
     form.append("action", "updateProduct");
-    form.append("token", state.auth.token);
+    form.append("token", state.admin.token);
     form.append("oldProductId", oldProductId);
     form.append("newProductId", newProductId);
     form.append("name", name);
@@ -6983,9 +6352,7 @@ async function submitProductEdit(){
 }
 
 function confirmDeleteProduct() {
- if (!requireAdminAccess()) {
-   return;
- }
+  if (state.mode !== "admin") return;
   if (state.admin.isSubmitting) return;
 
   const p = state.selectedProduct;
@@ -7025,14 +6392,10 @@ function confirmDeleteProduct() {
   }
 
 async function deleteProduct() {
- if (!requireAdminAccess()) {
-   return;
- }
- 
   if (state.admin.isSubmitting) return;
 
   const p = state.selectedProduct;
-  if (!p || !state.auth.token) return;
+  if (!p || !state.admin.token) return;
 
   state.admin.isSubmitting = true;
 
@@ -7041,7 +6404,7 @@ async function deleteProduct() {
 
     const form = new URLSearchParams();
     form.append("action", "deleteProduct");
-    form.append("token", state.auth.token);
+    form.append("token", state.admin.token);
     form.append("productId", p.productId);
 
     const res = await postFormAction(form);
@@ -7095,7 +6458,7 @@ function validateProductImageFile(file) {
  
 async function submitAddProduct(btn){
   // 🔒 guard
-  if(state.mode !== "admin" || !state.auth.loggedIn){
+  if(state.mode !== "admin" || !state.admin.loggedIn){
     showToast("ไม่มีสิทธิ์ใช้งานส่วนนี้", "warning");
     return;
   }
@@ -7180,7 +6543,7 @@ async function submitAddProduct(btn){
     
     const form = new URLSearchParams();
     form.append("action", "addProduct"); // ✅ FIX จุดเดียวที่เป็นปัญหา
-    form.append("token", state.auth.token);
+    form.append("token", state.admin.token);
     form.append("productId", productId);
     form.append("name", name);
     form.append("price", price);
@@ -7257,9 +6620,7 @@ async function submitAddProduct(btn){
 
 function openAdminProductAction(p){
   // 🔒 guard
- if (!requireAdminAccess()) {
-   return;
- }
+  if (state.mode !== "admin") return;
 
   state.selectedProduct = p;
 
@@ -7900,9 +7261,9 @@ function clearAdminSession(){
   } catch(e) {}
 
   // ล้าง state ที่เกี่ยวกับ admin ทั้งหมด
-  state.auth.loggedIn = false;
-  state.auth.token = "";
-  state.auth.token = "";
+  state.admin.loggedIn = false;
+  state.admin.user = "";
+  state.admin.token = "";
   state.admin.expiredAt = null;
   state.admin.orders = [];
   state.admin.selectedOrder = null;
@@ -8007,9 +7368,9 @@ async function restoreAdminSessionIfValid() {
     const json = await res.json();
 
     if (json?.success === true) {
-      state.auth.loggedIn = true;
-      state.auth.token = restored.username || null;
-      state.auth.token = restored.token;
+      state.admin.loggedIn = true;
+      state.admin.user = restored.username || null;
+      state.admin.token = restored.token;
       state.admin.expiredAt = restored.expiredAt;
 
       // ❗ ไม่ set state.mode ที่นี่ (กันกระทบ flow)
@@ -8185,9 +7546,9 @@ const __domReady = new Promise((resolve) => {
         const json = await res.json();
 
         if (json && json.success === true) {
-          state.auth.loggedIn = true;
-          state.auth.token = restored.username;
-          state.auth.token = restored.token;
+          state.admin.loggedIn = true;
+          state.admin.user = restored.username;
+          state.admin.token = restored.token;
           state.admin.expiredAt = restored.expiredAt;
 
           adminRestored = true;
@@ -8205,9 +7566,7 @@ const __domReady = new Promise((resolve) => {
 
     // ✅ RESTORE VIEWER STATE ก่อน render ทุกอย่าง
     loadCart();
-    showAuthRoot();
-    renderAuthScreen(); 
-   
+
     // ✅ ค่อยโหลด data หลังรู้ mode แล้ว
     await refreshProducts();
 
