@@ -1974,13 +1974,6 @@ textarea {
  ></div>
 
 <!-- ================= VIEWER SHEETS ================= -->
- <div
-   id="viewerAccessSheet"
-   class="sheet"
-   role="dialog"
-   aria-modal="true"
-   tabindex="-1"
- ></div>
  <div id="productSheet" class="sheet sheet-product" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="qtySheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
  <div id="cartSheet" class="sheet" role="dialog" aria-modal="true" tabindex="-1"></div>
@@ -2016,8 +2009,6 @@ const productSheet = document.getElementById("productSheet");
 const qtySheet = document.getElementById("qtySheet");
 const confirmSheet = document.getElementById("confirmSheet");
 const stockSheet = document.getElementById("stockSheet");
-const viewerAccessSheet =
-  document.getElementById("viewerAccessSheet"); 
 const adminLoginSheet = document.getElementById("adminLoginSheet");
 const adminDashboardSheet = document.getElementById("adminDashboardSheet");
 const adminOrderSheet = document.getElementById("adminOrderSheet");
@@ -2108,13 +2099,6 @@ const state = {
     isSubmitting: false
   },
 
-   viewer: {
-     authenticated: false,
-     token: null,
-     expiredAt: null,
-     accessCode: null
-   },
- 
   // 🧠 SMART ADD PRODUCT DRAFT
   smartAddDraft: {
     name: "",
@@ -2134,91 +2118,8 @@ const state = {
 /* ================= CART STORAGE (VIEWER ONLY) ================= */
 
 const CART_KEY = "luopanich_cart";
-const VIEWER_SESSION_KEY = "viewer_session";
 const LAST_ORDER_KEY = "luopanich_last_order"; 
 
- function saveViewerSession() {
-   try {
-     sessionStorage.setItem(
-       VIEWER_SESSION_KEY,
-       JSON.stringify({
-         token: state.viewer.token,
-         expiredAt: state.viewer.expiredAt,
-         accessCode: state.viewer.accessCode
-       })
-     );
-   } catch (e) {
-     console.warn("saveViewerSession failed", e);
-   }
- }
-
- function clearViewerSession() {
-   try {
-     sessionStorage.removeItem(VIEWER_SESSION_KEY);
-   } catch (e) {
-     console.warn("clearViewerSession failed", e);
-   }
-
-   state.viewer.authenticated = false;
-   state.viewer.token = null;
-   state.viewer.expiredAt = null;
-   state.viewer.accessCode = null;
- }
-
- function loadViewerSession() {
-   try {
-     const raw =
-       sessionStorage.getItem(VIEWER_SESSION_KEY);
-
-     if (!raw) return null;
-
-     const parsed = JSON.parse(raw);
-
-     if (
-       !parsed ||
-       !parsed.token ||
-       !parsed.expiredAt
-     ) {
-       sessionStorage.removeItem(VIEWER_SESSION_KEY);
-       return null;
-     }
-
-     return parsed;
-
-   } catch (e) {
-     console.warn("loadViewerSession failed", e);
-     sessionStorage.removeItem(VIEWER_SESSION_KEY);
-     return null;
-   }
- }
-
- function isViewerSessionExpired() {
-   return (
-     !state.viewer.expiredAt ||
-     Date.now() > Number(state.viewer.expiredAt)
-   );
- }
-
- async function restoreViewerSession() {
-
-   const session = loadViewerSession();
-
-   if (!session) {
-     return false;
-   }
-
-   state.viewer.token = session.token;
-   state.viewer.expiredAt = session.expiredAt;
-   state.viewer.accessCode = session.accessCode;
-
-   if (isViewerSessionExpired()) {
-     clearViewerSession();
-     return false;
-   }
-
-   return true;
- }
- 
 function escapeHtml(value = "") {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -2539,94 +2440,21 @@ function isAuthError(message = "") {
    return json;
  } 
 
- function renderViewerAccessScreen() {
-
-   viewerAccessSheet.innerHTML = `
-     <h3>กรอกรหัสเข้าชม</h3>
-
-     <div class="form-group">
-       <input
-         id="viewerAccessCode"
-         type="password"
-         placeholder="Access Code"
-       />
-     </div>
-
-     <button
-       class="btn btn-primary"
-       onclick="submitViewerAccess()">
-       เข้าสู่ระบบ
-     </button>
-   `;
- }
-
- function submitViewerAccess() {
-
-   const input =
-     document.getElementById("viewerAccessCode");
-
-   const code = input?.value?.trim();
-
-   if (!code) {
-     showToast("กรุณากรอกรหัส", "warning");
-     return;
-   }
-
-   // 🔴 TEMP FAKE UNLOCK (STEP 3.2 ONLY)
-   state.viewer.authenticated = true;
-
-   closeOverlay(viewerAccessSheet);
-
-   showToast("เข้าสู่ระบบสำเร็จ", "success");
- } 
- 
 /* ================= API LAYER ================= */
 const API_URL="https://script.google.com/macros/s/AKfycbzs0OLbJ7oa8WQxIXWYcx4X3NqfS3sCIaq9iV6Mh8oLWOqI9k71Qhei08zL2fbR2Eo/exec";
 
 const fetchProducts = async () => {
-  if (!state.viewer?.token) {
-    throw new Error("Viewer not authenticated");
-  }
-
-  const form = new URLSearchParams();
-  form.append("action", "getViewerProducts");
-  form.append("viewerToken", state.viewer.token);
-
   const res = await fetchWithTimeout(
-    API_URL,
-    {
-      method: "POST",
-      body: form
-    },
-    15000
-  );
-
+   `${API_URL}?action=products`,
+   {},
+   15000
+ );
   const json = await res.json();
 
   // 🔒 enforce standard response
   if (!json || json.success !== true || !Array.isArray(json.data)) {
     console.error("fetchProducts invalid response:", json);
-
-    // 🔴 NEW: viewer session invalid/expired
-    if (
-      json?.error === "INVALID_VIEWER_SESSION" ||
-      json?.error === "VIEWER_SESSION_EXPIRED"
-    ) {
-      state.viewer.authenticated = false;
-      state.viewer.token = null;
-      state.viewer.expiredAt = null;
-      state.viewer.accessCode = null;
-     
-      showToast(
-        "Session หมดอายุ กรุณาเข้าสู่ระบบใหม่",
-        "warning"
-      );
-
-      renderViewerAccessScreen();
-      openOverlay(viewerAccessSheet);
-    }
-
-    return [];
+    return []; // ✅ คืน array เสมอ
   }
 
   return json.data;
@@ -2702,7 +2530,6 @@ async function refreshProducts() {
     state.products = sortProducts(list);
    
     renderProducts();
-   
   } catch (err) {
     console.error("refreshProducts failed:", err);
     if (app) {
@@ -7741,27 +7568,11 @@ const __domReady = new Promise((resolve) => {
     loadCart();
 
     // ✅ ค่อยโหลด data หลังรู้ mode แล้ว
- if (
-   state.mode === "admin" ||
-   state.viewer?.authenticated === true
- ) {
-  
- if (
-   state.mode === "admin" ||
-   state.viewer?.authenticated === true
- ) {
-   await refreshProducts();
- }
+    await refreshProducts();
 
     // ✅ RENDER
     renderHeader();
     renderProducts();
-
- if (!state.viewer.authenticated) {
-   renderViewerAccessScreen();
-   openOverlay(viewerAccessSheet);
- }
-   
     if (typeof renderBadge === "function") {
       if (typeof renderBadge === "function") renderBadge();
     }
